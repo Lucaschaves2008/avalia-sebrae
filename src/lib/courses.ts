@@ -476,7 +476,7 @@ export async function parseCoursesCsv(file: File): Promise<CsvImportResult> {
 
         results.data.forEach((row, i) => {
           const c = emptyCourse();
-          c.id = `c-${Date.now().toString(36)}-${i}`;
+          const lineNo = i + 2; // header is line 1
 
           for (const [rawKey, rawVal] of Object.entries(row)) {
             const target = HEADER_ALIASES[normalizeHeader(rawKey)];
@@ -486,7 +486,9 @@ export async function parseCoursesCsv(file: File): Promise<CsvImportResult> {
               c.materials[key] = parseBoolean(rawVal);
             } else if (target.startsWith("fgv:")) {
               const key = target.slice(4) as keyof CourseFgv;
-              c.fgv[key] = parseFgvVal(rawVal);
+              const parsed = parseFgvVal(rawVal);
+              if (parsed !== null) c.fgv[key] = parsed;
+              // invalid/empty → keep default, ignore field
             } else {
               const key = target as keyof Course;
               switch (key) {
@@ -506,10 +508,13 @@ export async function parseCoursesCsv(file: File): Promise<CsvImportResult> {
             }
           }
 
-          if (!c.codigo && !c.solucao) {
+          // Strict rule: "Código do produto" is required
+          if (!c.codigo.trim()) {
             skipped++;
+            errors.push(`Linha ${lineNo}: "Código do produto" em branco — linha ignorada.`);
             return;
           }
+          c.id = c.codigo.trim();
           courses.push(c);
         });
 
