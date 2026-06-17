@@ -53,11 +53,11 @@ function LoginPage() {
     if (user?.isFirstAccess) setFirstAccessOpen(true);
   }, [user]);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const result = login(email, password);
+    const result = await login(email, password);
     setLoading(false);
     if (!result.ok) {
       setError(result.error);
@@ -70,7 +70,7 @@ function LoginPage() {
     }
   }
 
-  function handleChangePassword(e: React.FormEvent) {
+  async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
     setPwError(null);
     if (newPassword.length < 6) {
@@ -81,7 +81,11 @@ function LoginPage() {
       setPwError("As senhas não coincidem.");
       return;
     }
-    changePassword(newPassword);
+    const r = await changePassword(newPassword);
+    if (!r.ok) {
+      setPwError(r.error);
+      return;
+    }
     setFirstAccessOpen(false);
     navigate({ to: "/dashboard" });
   }
@@ -211,18 +215,13 @@ function LoginPage() {
 
           <div className="mt-8 rounded-lg border border-dashed border-border bg-muted/30 p-4 text-xs text-muted-foreground">
             <div className="mb-2 font-semibold text-foreground">
-              Credenciais de teste
+              Primeiro acesso
             </div>
-            <ul className="space-y-1">
-              <li>
-                <span className="font-medium text-foreground">Admin:</span>{" "}
-                admin@sebrae.com.br / admin
-              </li>
-              <li>
-                <span className="font-medium text-foreground">Gestor NE:</span>{" "}
-                gestor.nordeste@sebrae.com.br / sebrae123
-              </li>
-            </ul>
+            <p>
+              Não possui cadastro? Solicite ao administrador o cadastro da sua
+              conta. O primeiro usuário a se cadastrar no sistema é
+              automaticamente promovido a Administrador.
+            </p>
           </div>
         </div>
       </div>
