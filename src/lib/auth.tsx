@@ -163,24 +163,7 @@ export function deleteUser(id: string): void {
   saveUsers(users);
 }
 
-export function useUsers(): AuthUser[] {
-  return useSyncExternalStore(
-    (cb) => {
-      const handler = () => cb();
-      window.addEventListener(USERS_EVENT, handler);
-      window.addEventListener("storage", handler);
-      return () => {
-        window.removeEventListener(USERS_EVENT, handler);
-        window.removeEventListener("storage", handler);
-      };
-    },
-    () => JSON.stringify(listUsers()),
-    () => JSON.stringify([]),
-  ) as unknown as string;
-  // The cast above is just to keep TS happy; we wrap below.
-}
-
-// Proper hook returning array
+// Hook returning reactive users array
 export function useUsersList(): AuthUser[] {
   const snapshot = useSyncExternalStore(
     (cb) => {
