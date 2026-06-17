@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import Papa from "papaparse";
+import { supabase } from "@/integrations/supabase/client";
 
 // ---------- Types ----------
 
@@ -54,10 +55,9 @@ export interface Course {
   atendimentosAno: number;
   ids: number;
   bcg: BCG | "";
-  dataHabilitacao: string; // ISO date (YYYY-MM-DD) ou texto livre
+  dataHabilitacao: string;
   materials: CourseMaterials;
   fgv: CourseFgv;
-  // Avaliação FGV — campos descritivos complementares
   ferramentasInclusao: string;
   sinteseAvaliacao: string;
   pontosAtencao: string;
@@ -88,11 +88,6 @@ export const FGV_FIELD_LABELS: Record<keyof CourseFgv, string> = {
   aplicacaoTransversal: "Aplicação Transversal",
   integracaoComunitaria: "Integração Comunitária",
 };
-
-// ---------- Storage ----------
-
-const STORAGE_KEY = "sebrae.courses.v1";
-const EVENT = "sebrae:courses-changed";
 
 function emptyMaterials(): CourseMaterials {
   return {
@@ -146,167 +141,210 @@ export function emptyCourse(): Course {
   };
 }
 
-const SEED_COURSES: Course[] = [
-  {
-    id: "c-seed-1",
-    codigo: "EE-001",
-    solucao: "Jovens Empreendedores Primeiros Passos (JEPP)",
-    link: "https://sebrae.com.br/jepp",
-    publicoAlvo: "Ensino Fundamental",
-    instrumento: "Curso",
-    modalidade: "Presencial",
-    idadeMeses: 36,
-    atendimentosAno: 12500,
-    ids: 87,
-    bcg: "Estrela",
-    dataHabilitacao: "2022-03-15",
-    materials: {
-      moa: true,
-      planosAula: true,
-      manualConsultor: false,
-      manualMultiplicador: true,
-      manualGestor: true,
-      guiaProfessor: true,
-      manualEstudante: true,
-      slides: true,
-      fichaTecnica: true,
-      enxovalMarketing: true,
-    },
-    fgv: {
-      bncc: "SA",
-      contextoLocal: "SA",
-      abordagemConceitual: "SA",
-      atratividadeVisual: "PA",
-      verificacaoAprendizagem: "SA",
-      socioemocionais: "SA",
-      entrecomp: "PA",
-      projetoVida: "SA",
-      aplicacaoTransversal: "PA",
-      integracaoComunitaria: "PA",
-    },
-    ferramentasInclusao: "Recursos em libras, materiais com fonte ampliada e versão audiodescrita disponíveis.",
-    sinteseAvaliacao: "Solução madura, com forte aderência à BNCC e ampla oferta de materiais de apoio.",
-    pontosAtencao: "Revisar atratividade visual dos slides e reforçar conexão com EntreComp.",
-  },
-  {
-    id: "c-seed-2",
-    codigo: "EE-002",
-    solucao: "Despertar — Professores Empreendedores",
-    link: "https://sebrae.com.br/despertar",
-    publicoAlvo: "Professor",
-    instrumento: "Oficina",
-    modalidade: "EAD",
-    idadeMeses: 18,
-    atendimentosAno: 4300,
-    ids: 74,
-    bcg: "Interrogação",
-    dataHabilitacao: "2023-09-01",
-    materials: {
-      moa: true,
-      planosAula: false,
-      manualConsultor: true,
-      manualMultiplicador: false,
-      manualGestor: false,
-      guiaProfessor: true,
-      manualEstudante: false,
-      slides: true,
-      fichaTecnica: true,
-      enxovalMarketing: false,
-    },
-    fgv: {
-      bncc: "PA",
-      contextoLocal: "PA",
-      abordagemConceitual: "SA",
-      atratividadeVisual: "PA",
-      verificacaoAprendizagem: "NA",
-      socioemocionais: "SA",
-      entrecomp: "SA",
-      projetoVida: "PA",
-      aplicacaoTransversal: "NAP",
-      integracaoComunitaria: "NA",
-    },
-    ferramentasInclusao: "Plataforma compatível com leitores de tela; ainda sem versão em libras.",
-    sinteseAvaliacao: "Oficina com bom potencial conceitual, porém com lacunas em verificação de aprendizagem.",
-    pontosAtencao: "Desenvolver instrumentos de avaliação e ampliar planos de aula.",
-  },
-];
+// ---------- DB <-> model mapping ----------
 
-function load(): Course[] {
-  if (typeof window === "undefined") return SEED_COURSES;
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(SEED_COURSES));
-    return SEED_COURSES;
-  }
-  try {
-    return JSON.parse(raw) as Course[];
-  } catch {
-    return SEED_COURSES;
-  }
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+type DbCourse = {
+  id: string;
+  solution_name: string;
+  access_link: string | null;
+  target_audience: string | null;
+  instrument: string | null;
+  modality: string | null;
+  activation_date: string | null;
+  age_months: number | null;
+  current_year_attendance: number | null;
+  ids_score: number | string | null;
+  bcg_classification: string | null;
+  has_moa: boolean | null;
+  has_class_plans: boolean | null;
+  has_consultant_manual: boolean | null;
+  has_multiplicator_manual: boolean | null;
+  has_manager_manual: boolean | null;
+  has_teacher_guide: boolean | null;
+  has_student_manual: boolean | null;
+  has_slides: boolean | null;
+  has_technical_sheet: boolean | null;
+  has_marketing_kit: boolean | null;
+  fgv_bncc: string | null;
+  fgv_context: string | null;
+  fgv_conceptual: string | null;
+  fgv_visual: string | null;
+  fgv_learning_eval: string | null;
+  fgv_socioemotional: string | null;
+  fgv_entrecomp: string | null;
+  fgv_life_project: string | null;
+  fgv_transversal: string | null;
+  fgv_community: string | null;
+  fgv_inclusion_tools: string | null;
+  fgv_synthesis: string | null;
+  fgv_attention_points: string | null;
+};
+
+function fgvFrom(v: string | null): FgvRating {
+  return v === "NA" || v === "PA" || v === "NAP" || v === "SA" ? v : "NAP";
 }
 
-function save(courses: Course[]) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(courses));
-  window.dispatchEvent(new CustomEvent(EVENT));
+function rowToCourse(r: DbCourse): Course {
+  return {
+    id: r.id,
+    codigo: r.id,
+    solucao: r.solution_name,
+    link: r.access_link ?? "",
+    publicoAlvo: r.target_audience ?? "",
+    instrumento: r.instrument ?? "",
+    modalidade: r.modality ?? "",
+    idadeMeses: r.age_months ?? 0,
+    atendimentosAno: r.current_year_attendance ?? 0,
+    ids: r.ids_score == null ? 0 : Number(r.ids_score),
+    bcg: (r.bcg_classification ?? "") as Course["bcg"],
+    dataHabilitacao: r.activation_date ?? "",
+    materials: {
+      moa: !!r.has_moa,
+      planosAula: !!r.has_class_plans,
+      manualConsultor: !!r.has_consultant_manual,
+      manualMultiplicador: !!r.has_multiplicator_manual,
+      manualGestor: !!r.has_manager_manual,
+      guiaProfessor: !!r.has_teacher_guide,
+      manualEstudante: !!r.has_student_manual,
+      slides: !!r.has_slides,
+      fichaTecnica: !!r.has_technical_sheet,
+      enxovalMarketing: !!r.has_marketing_kit,
+    },
+    fgv: {
+      bncc: fgvFrom(r.fgv_bncc),
+      contextoLocal: fgvFrom(r.fgv_context),
+      abordagemConceitual: fgvFrom(r.fgv_conceptual),
+      atratividadeVisual: fgvFrom(r.fgv_visual),
+      verificacaoAprendizagem: fgvFrom(r.fgv_learning_eval),
+      socioemocionais: fgvFrom(r.fgv_socioemotional),
+      entrecomp: fgvFrom(r.fgv_entrecomp),
+      projetoVida: fgvFrom(r.fgv_life_project),
+      aplicacaoTransversal: fgvFrom(r.fgv_transversal),
+      integracaoComunitaria: fgvFrom(r.fgv_community),
+    },
+    ferramentasInclusao: r.fgv_inclusion_tools ?? "",
+    sinteseAvaliacao: r.fgv_synthesis ?? "",
+    pontosAtencao: r.fgv_attention_points ?? "",
+  };
+}
+
+function courseToRow(c: Course) {
+  const id = (c.codigo || c.id).trim();
+  return {
+    id,
+    solution_name: c.solucao,
+    access_link: c.link || null,
+    target_audience: c.publicoAlvo || null,
+    instrument: c.instrumento || null,
+    modality: c.modalidade || null,
+    activation_date: ISO_DATE_RE.test(c.dataHabilitacao) ? c.dataHabilitacao : null,
+    age_months: c.idadeMeses || 0,
+    current_year_attendance: c.atendimentosAno || 0,
+    ids_score: c.ids || 0,
+    bcg_classification: c.bcg || null,
+    has_moa: c.materials.moa,
+    has_class_plans: c.materials.planosAula,
+    has_consultant_manual: c.materials.manualConsultor,
+    has_multiplicator_manual: c.materials.manualMultiplicador,
+    has_manager_manual: c.materials.manualGestor,
+    has_teacher_guide: c.materials.guiaProfessor,
+    has_student_manual: c.materials.manualEstudante,
+    has_slides: c.materials.slides,
+    has_technical_sheet: c.materials.fichaTecnica,
+    has_marketing_kit: c.materials.enxovalMarketing,
+    fgv_bncc: c.fgv.bncc,
+    fgv_context: c.fgv.contextoLocal,
+    fgv_conceptual: c.fgv.abordagemConceitual,
+    fgv_visual: c.fgv.atratividadeVisual,
+    fgv_learning_eval: c.fgv.verificacaoAprendizagem,
+    fgv_socioemotional: c.fgv.socioemocionais,
+    fgv_entrecomp: c.fgv.entrecomp,
+    fgv_life_project: c.fgv.projetoVida,
+    fgv_transversal: c.fgv.aplicacaoTransversal,
+    fgv_community: c.fgv.integracaoComunitaria,
+    fgv_inclusion_tools: c.ferramentasInclusao || "",
+    fgv_synthesis: c.sinteseAvaliacao || "",
+    fgv_attention_points: c.pontosAtencao || "",
+  };
+}
+
+// ---------- Reactive cache ----------
+
+let cache: Course[] = [];
+let fetched = false;
+const listeners = new Set<() => void>();
+function notify() {
+  for (const l of listeners) l();
+}
+
+async function fetchAll(): Promise<Course[]> {
+  const { data } = await supabase
+    .from("courses")
+    .select("*")
+    .order("solution_name", { ascending: true });
+  return ((data ?? []) as DbCourse[]).map(rowToCourse);
+}
+
+export async function refreshCourses() {
+  cache = await fetchAll();
+  fetched = true;
+  notify();
 }
 
 export function listCourses(): Course[] {
-  return load();
-}
-
-export function upsertCourse(course: Course) {
-  const courses = load();
-  const idx = courses.findIndex((c) => c.id === course.id);
-  if (idx === -1) courses.push(course);
-  else courses[idx] = course;
-  save(courses);
-}
-
-export function deleteCourse(id: string) {
-  save(load().filter((c) => c.id !== id));
-}
-
-export function replaceCourses(next: Course[]) {
-  save(next);
-}
-
-export function appendCourses(next: Course[]) {
-  const existing = load();
-  const byCodigo = new Map(existing.map((c) => [c.codigo.toLowerCase(), c]));
-  for (const c of next) {
-    const key = c.codigo.toLowerCase();
-    if (key && byCodigo.has(key)) {
-      // overwrite existing by codigo, preserve id
-      const prev = byCodigo.get(key)!;
-      byCodigo.set(key, { ...c, id: prev.id });
-    } else {
-      byCodigo.set(key || c.id, c);
-    }
-  }
-  save(Array.from(byCodigo.values()));
+  return cache;
 }
 
 export function useCoursesList(): Course[] {
-  useSyncExternalStore(
+  return useSyncExternalStore(
     (cb) => {
-      const h = () => cb();
-      window.addEventListener(EVENT, h);
-      window.addEventListener("storage", h);
+      listeners.add(cb);
+      if (!fetched) void refreshCourses();
       return () => {
-        window.removeEventListener(EVENT, h);
-        window.removeEventListener("storage", h);
+        listeners.delete(cb);
       };
     },
-    () => window.localStorage.getItem(STORAGE_KEY) ?? "",
-    () => "",
+    () => cache,
+    () => cache,
   );
-  return listCourses();
+}
+
+export async function upsertCourse(course: Course): Promise<void> {
+  const row = courseToRow(course);
+  await supabase.from("courses").upsert(row);
+  await refreshCourses();
+}
+
+export async function deleteCourse(id: string): Promise<void> {
+  await supabase.from("courses").delete().eq("id", id);
+  await refreshCourses();
+}
+
+export async function replaceCourses(next: Course[]): Promise<void> {
+  // Remove courses absent from `next`, then upsert remaining
+  const existing = await fetchAll();
+  const keepIds = new Set(next.map((c) => (c.codigo || c.id).trim()));
+  const toRemove = existing.filter((c) => !keepIds.has(c.id)).map((c) => c.id);
+  if (toRemove.length) {
+    await supabase.from("courses").delete().in("id", toRemove);
+  }
+  if (next.length) {
+    await supabase.from("courses").upsert(next.map(courseToRow));
+  }
+  await refreshCourses();
+}
+
+export async function appendCourses(next: Course[]): Promise<void> {
+  if (!next.length) return;
+  await supabase.from("courses").upsert(next.map(courseToRow));
+  await refreshCourses();
 }
 
 // ---------- CSV import ----------
 
 const HEADER_ALIASES: Record<string, keyof Course | `mat:${keyof CourseMaterials}` | `fgv:${keyof CourseFgv}`> = {
-  // basics
   "codigo do produto": "codigo",
   "código do produto": "codigo",
   codigo: "codigo",
@@ -345,7 +383,6 @@ const HEADER_ALIASES: Record<string, keyof Course | `mat:${keyof CourseMaterials
   "síntese da avaliação": "sinteseAvaliacao",
   "pontos de atencao": "pontosAtencao",
   "pontos de atenção": "pontosAtencao",
-  // materials
   "manual de operacao e aplicacao (moa)": "mat:moa",
   "manual de operação e aplicação (moa)": "mat:moa",
   moa: "mat:moa",
@@ -360,7 +397,6 @@ const HEADER_ALIASES: Record<string, keyof Course | `mat:${keyof CourseMaterials
   "ficha tecnica": "mat:fichaTecnica",
   "ficha técnica": "mat:fichaTecnica",
   "enxoval de marketing": "mat:enxovalMarketing",
-  // fgv
   bncc: "fgv:bncc",
   "alinhamento bncc": "fgv:bncc",
   "alinhamento à bncc": "fgv:bncc",
@@ -394,7 +430,7 @@ function parseBoolean(v: unknown): boolean {
   return ["sim", "s", "true", "1", "x", "yes", "y"].includes(s);
 }
 
-function parseFgv(v: unknown): FgvRating {
+function parseFgvVal(v: unknown): FgvRating {
   const s = String(v ?? "").trim().toUpperCase();
   if (s === "NA" || s === "PA" || s === "NAP" || s === "SA") return s;
   return "NAP";
@@ -444,19 +480,21 @@ export async function parseCoursesCsv(file: File): Promise<CsvImportResult> {
               c.materials[key] = parseBoolean(rawVal);
             } else if (target.startsWith("fgv:")) {
               const key = target.slice(4) as keyof CourseFgv;
-              c.fgv[key] = parseFgv(rawVal);
+              c.fgv[key] = parseFgvVal(rawVal);
             } else {
               const key = target as keyof Course;
               switch (key) {
                 case "idadeMeses":
                 case "atendimentosAno":
                 case "ids":
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   (c as any)[key] = parseNumber(rawVal);
                   break;
                 case "bcg":
                   c.bcg = parseBcg(rawVal);
                   break;
                 default:
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   (c as any)[key] = String(rawVal ?? "").trim();
               }
             }

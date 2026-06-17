@@ -151,7 +151,7 @@ function UsersPage() {
     setIsModalOpen(true);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const parsed = userSchema.safeParse(form);
     if (!parsed.success) {
@@ -166,14 +166,14 @@ function UsersPage() {
     setErrors({});
 
     if (editing) {
-      const r = updateUser(editing.id, parsed.data);
+      const r = await updateUser(editing.id, parsed.data);
       if (!r.ok) {
         toast.error(r.error);
         return;
       }
       toast.success("Usuário atualizado com sucesso.");
     } else {
-      const r = createUser(parsed.data);
+      const r = await createUser(parsed.data);
       if (!r.ok) {
         toast.error(r.error);
         return;
@@ -185,14 +185,14 @@ function UsersPage() {
     setIsModalOpen(false);
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!confirmDelete) return;
     if (confirmDelete.id === user?.id) {
       toast.error("Você não pode excluir o próprio usuário.");
       setConfirmDelete(null);
       return;
     }
-    deleteUser(confirmDelete.id);
+    await deleteUser(confirmDelete.id);
     toast.success("Usuário excluído.");
     setConfirmDelete(null);
   }

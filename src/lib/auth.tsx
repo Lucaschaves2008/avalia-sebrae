@@ -1,10 +1,26 @@
-import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
+import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 
 export type UserRole = "admin" | "gestor";
 export type Region = "Norte" | "Nordeste" | "Centro-Oeste" | "Sudeste" | "Sul";
 export type UserStatus = "Ativo" | "Inativo";
 
-export const REGIONS: Region[] = ["Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"];
+export const REGIONS: Region[] = [
+  "Norte",
+  "Nordeste",
+  "Centro-Oeste",
+  "Sudeste",
+  "Sul",
+];
 export const DEFAULT_PASSWORD = "Sebrae@2025";
 
 export interface AuthUser {
@@ -19,103 +35,6 @@ export interface AuthUser {
   isFirstAccess: boolean;
 }
 
-export interface StoredUser extends AuthUser {
-  password: string;
-}
-
-const SEED_USERS: StoredUser[] = [
-  {
-    id: "u-admin",
-    email: "admin@sebrae.com.br",
-    password: "admin",
-    name: "Administrador SEBRAE",
-    phone: "(61) 3243-0000",
-    unit: "SEBRAE Nacional",
-    region: "Centro-Oeste",
-    role: "admin",
-    status: "Ativo",
-    isFirstAccess: false,
-  },
-  {
-    id: "u-gestor-ne",
-    email: "gestor.nordeste@sebrae.com.br",
-    password: "sebrae123",
-    name: "Gestor Regional Nordeste",
-    phone: "(81) 3413-0000",
-    unit: "SEBRAE/PE",
-    region: "Nordeste",
-    role: "gestor",
-    status: "Ativo",
-    isFirstAccess: true,
-  },
-  {
-    id: "u-gestor-su",
-    email: "gestor.sul@sebrae.com.br",
-    password: DEFAULT_PASSWORD,
-    name: "Mariana Costa",
-    phone: "(51) 3216-5000",
-    unit: "SEBRAE/RS",
-    region: "Sul",
-    role: "gestor",
-    status: "Ativo",
-    isFirstAccess: true,
-  },
-  {
-    id: "u-gestor-no",
-    email: "gestor.norte@sebrae.com.br",
-    password: DEFAULT_PASSWORD,
-    name: "Ricardo Almeida",
-    phone: "(92) 3303-1500",
-    unit: "SEBRAE/AM",
-    region: "Norte",
-    role: "gestor",
-    status: "Inativo",
-    isFirstAccess: false,
-  },
-  {
-    id: "u-gestor-se",
-    email: "gestor.sudeste@sebrae.com.br",
-    password: DEFAULT_PASSWORD,
-    name: "Patrícia Mendes",
-    phone: "(11) 3177-4500",
-    unit: "SEBRAE/SP",
-    region: "Sudeste",
-    role: "gestor",
-    status: "Ativo",
-    isFirstAccess: false,
-  },
-];
-
-const STORAGE_USERS = "sebrae.users.v2";
-const STORAGE_SESSION = "sebrae.session.v2";
-const USERS_EVENT = "sebrae:users-changed";
-
-function loadUsers(): StoredUser[] {
-  if (typeof window === "undefined") return SEED_USERS;
-  const raw = window.localStorage.getItem(STORAGE_USERS);
-  if (!raw) {
-    window.localStorage.setItem(STORAGE_USERS, JSON.stringify(SEED_USERS));
-    return SEED_USERS;
-  }
-  try {
-    return JSON.parse(raw) as StoredUser[];
-  } catch {
-    return SEED_USERS;
-  }
-}
-
-function saveUsers(users: StoredUser[]) {
-  window.localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
-  window.dispatchEvent(new CustomEvent(USERS_EVENT));
-}
-
-function toAuthUser(u: StoredUser): AuthUser {
-  const { password: _pw, ...rest } = u;
-  return rest;
-}
-
-// ---------- Users CRUD (admin) ----------
-
 export interface UserInput {
   name: string;
   email: string;
@@ -126,126 +45,266 @@ export interface UserInput {
   status: UserStatus;
 }
 
+// ---------- Users list (reactive cache) ----------
+
+let usersCache: AuthUser[] = [];
+let usersFetched = false;
+const usersListeners = new Set<() => void>();
+
+function notifyUsers() {
+  for (const l of usersListeners) l();
+}
+
+async function fetchUsers(): Promise<AuthUser[]> {
+  const [profilesRes, rolesRes] = await Promise.all([
+    supabase.from("profiles").select("*").order("created_at", { ascending: true }),
+    supabase.from("user_roles").select("user_id, role"),
+  ]);
+  const profiles = profilesRes.data ?? [];
+  const roleMap = new Map<string, UserRole>();
+  for (const r of rolesRes.data ?? []) {
+    roleMap.set(r.user_id, r.role as UserRole);
+  }
+  return profiles.map((p): AuthUser => ({
+    id: p.id,
+    email: p.email,
+    name: p.name,
+    phone: p.phone ?? "",
+    unit: p.unity,
+    region: p.region as Region,
+    role: roleMap.get(p.id) ?? "gestor",
+    status: "Ativo",
+    isFirstAccess: p.is_first_access ?? false,
+  }));
+}
+
+export async function refreshUsers() {
+  usersCache = await fetchUsers();
+  usersFetched = true;
+  notifyUsers();
+}
+
 export function listUsers(): AuthUser[] {
-  return loadUsers().map(toAuthUser);
+  return usersCache;
 }
 
-export function createUser(input: UserInput): { ok: true; user: AuthUser } | { ok: false; error: string } {
-  const users = loadUsers();
-  if (users.some((u) => u.email.toLowerCase() === input.email.toLowerCase())) {
-    return { ok: false, error: "Já existe um usuário com este e-mail." };
-  }
-  const newUser: StoredUser = {
-    id: `u-${Date.now().toString(36)}`,
+export function useUsersList(): AuthUser[] {
+  return useSyncExternalStore(
+    (cb) => {
+      usersListeners.add(cb);
+      if (!usersFetched) void refreshUsers();
+      return () => {
+        usersListeners.delete(cb);
+      };
+    },
+    () => usersCache,
+    () => usersCache,
+  );
+}
+
+// ---------- Mutations ----------
+
+export async function createUser(
+  input: UserInput,
+): Promise<{ ok: true; user: AuthUser } | { ok: false; error: string }> {
+  // Use a transient supabase client so the admin's session is not replaced.
+  const url = import.meta.env.VITE_SUPABASE_URL as string;
+  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+  const tmp = createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
+  });
+  const { data, error } = await tmp.auth.signUp({
+    email: input.email,
     password: DEFAULT_PASSWORD,
-    isFirstAccess: true,
-    ...input,
+    options: {
+      emailRedirectTo: `${window.location.origin}/login`,
+      data: {
+        name: input.name,
+        phone: input.phone,
+        unity: input.unit,
+        region: input.region,
+      },
+    },
+  });
+  if (error) return { ok: false, error: error.message };
+  if (!data.user) return { ok: false, error: "Não foi possível criar o usuário." };
+
+  if (input.role === "admin") {
+    const { error: rErr } = await supabase.rpc("set_user_role", {
+      _user_id: data.user.id,
+      _role: "admin",
+    });
+    if (rErr) return { ok: false, error: rErr.message };
+  }
+
+  await refreshUsers();
+  return {
+    ok: true,
+    user: {
+      id: data.user.id,
+      email: input.email,
+      name: input.name,
+      phone: input.phone,
+      unit: input.unit,
+      region: input.region,
+      role: input.role,
+      status: "Ativo",
+      isFirstAccess: true,
+    },
   };
-  saveUsers([...users, newUser]);
-  return { ok: true, user: toAuthUser(newUser) };
 }
 
-export function updateUser(id: string, input: UserInput): { ok: true } | { ok: false; error: string } {
-  const users = loadUsers();
-  const idx = users.findIndex((u) => u.id === id);
-  if (idx === -1) return { ok: false, error: "Usuário não encontrado." };
-  if (users.some((u) => u.id !== id && u.email.toLowerCase() === input.email.toLowerCase())) {
-    return { ok: false, error: "Já existe outro usuário com este e-mail." };
-  }
-  const next = [...users];
-  next[idx] = { ...next[idx], ...input };
-  saveUsers(next);
+export async function updateUser(
+  id: string,
+  input: UserInput,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      name: input.name,
+      email: input.email,
+      phone: input.phone,
+      unity: input.unit,
+      region: input.region,
+    })
+    .eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  const { error: rErr } = await supabase.rpc("set_user_role", {
+    _user_id: id,
+    _role: input.role,
+  });
+  if (rErr) return { ok: false, error: rErr.message };
+  await refreshUsers();
   return { ok: true };
 }
 
-export function deleteUser(id: string): void {
-  const users = loadUsers().filter((u) => u.id !== id);
-  saveUsers(users);
-}
-
-// Hook returning reactive users array
-export function useUsersList(): AuthUser[] {
-  const snapshot = useSyncExternalStore(
-    (cb) => {
-      const handler = () => cb();
-      window.addEventListener(USERS_EVENT, handler);
-      window.addEventListener("storage", handler);
-      return () => {
-        window.removeEventListener(USERS_EVENT, handler);
-        window.removeEventListener("storage", handler);
-      };
-    },
-    () => {
-      const raw = window.localStorage.getItem(STORAGE_USERS) ?? "";
-      return raw;
-    },
-    () => "",
-  );
-  // Recompute on snapshot change
-  void snapshot;
-  return listUsers();
+export async function deleteUser(id: string): Promise<void> {
+  // Removes the profile (cascade also handled by FK to auth.users when it cascades).
+  await supabase.from("profiles").delete().eq("id", id);
+  await refreshUsers();
 }
 
 // ---------- Auth context ----------
 
 interface AuthContextValue {
   user: AuthUser | null;
-  login: (email: string, password: string) => { ok: true; user: AuthUser } | { ok: false; error: string };
-  logout: () => void;
-  changePassword: (newPassword: string) => void;
+  loading: boolean;
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<{ ok: true; user: AuthUser } | { ok: false; error: string }>;
+  signUp: (
+    input: UserInput & { password: string },
+  ) => Promise<{ ok: true } | { ok: false; error: string }>;
+  logout: () => Promise<void>;
+  changePassword: (
+    newPassword: string,
+  ) => Promise<{ ok: true } | { ok: false; error: string }>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+async function hydrateUser(authUserId: string): Promise<AuthUser | null> {
+  const [{ data: profile }, { data: roles }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", authUserId).maybeSingle(),
+    supabase.from("user_roles").select("role").eq("user_id", authUserId),
+  ]);
+  if (!profile) return null;
+  const role = ((roles?.[0]?.role as UserRole) ?? "gestor") as UserRole;
+  return {
+    id: profile.id,
+    email: profile.email,
+    name: profile.name,
+    phone: profile.phone ?? "",
+    unit: profile.unity,
+    region: profile.region as Region,
+    role,
+    status: "Ativo",
+    isFirstAccess: profile.is_first_access ?? false,
+  };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadUsers();
-    const raw = window.localStorage.getItem(STORAGE_SESSION);
-    if (raw) {
-      try {
-        setUser(JSON.parse(raw) as AuthUser);
-      } catch {
-        /* ignore */
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        const uid = session.user.id;
+        // Defer to avoid Supabase deadlock when calling APIs inside the callback
+        setTimeout(async () => {
+          const u = await hydrateUser(uid);
+          setUser(u);
+          setLoading(false);
+        }, 0);
+      } else {
+        setUser(null);
+        setLoading(false);
       }
-    }
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) setLoading(false);
+    });
+    return () => sub.subscription.unsubscribe();
   }, []);
 
-  const login: AuthContextValue["login"] = (email, password) => {
-    const users = loadUsers();
-    const match = users.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password,
-    );
-    if (!match) return { ok: false, error: "E-mail ou senha inválidos." };
-    if (match.status === "Inativo") {
-      return { ok: false, error: "Este usuário está inativo. Contate o administrador." };
-    }
-    const session = toAuthUser(match);
-    window.localStorage.setItem(STORAGE_SESSION, JSON.stringify(session));
-    setUser(session);
-    return { ok: true, user: session };
-  };
+  const login: AuthContextValue["login"] = useCallback(async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+    if (error) return { ok: false, error: error.message };
+    if (!data.user) return { ok: false, error: "Falha no login." };
+    const u = await hydrateUser(data.user.id);
+    if (!u) return { ok: false, error: "Perfil não encontrado." };
+    setUser(u);
+    return { ok: true, user: u };
+  }, []);
 
-  const logout = () => {
-    window.localStorage.removeItem(STORAGE_SESSION);
+  const signUp: AuthContextValue["signUp"] = useCallback(async (input) => {
+    const { error } = await supabase.auth.signUp({
+      email: input.email.trim(),
+      password: input.password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/login`,
+        data: {
+          name: input.name,
+          phone: input.phone,
+          unity: input.unit,
+          region: input.region,
+        },
+      },
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  }, []);
+
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     setUser(null);
-  };
+  }, []);
 
-  const changePassword = (newPassword: string) => {
-    if (!user) return;
-    const users = loadUsers();
-    const next = users.map((u) =>
-      u.id === user.id ? { ...u, password: newPassword, isFirstAccess: false } : u,
-    );
-    saveUsers(next);
-    const updated: AuthUser = { ...user, isFirstAccess: false };
-    window.localStorage.setItem(STORAGE_SESSION, JSON.stringify(updated));
-    setUser(updated);
-  };
+  const changePassword: AuthContextValue["changePassword"] = useCallback(
+    async (newPassword) => {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) return { ok: false, error: error.message };
+      if (user) {
+        await supabase
+          .from("profiles")
+          .update({ is_first_access: false })
+          .eq("id", user.id);
+        setUser({ ...user, isFirstAccess: false });
+      }
+      return { ok: true };
+    },
+    [user],
+  );
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, changePassword }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, signUp, logout, changePassword }}
+    >
       {children}
     </AuthContext.Provider>
   );
