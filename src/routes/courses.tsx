@@ -731,13 +731,22 @@ function CourseDetailSheet({
   course,
   onClose,
   isAdmin,
+  isGestor,
+  currentUser,
+  judgments,
   onEdit,
 }: {
   course: Course | null;
   onClose: () => void;
   isAdmin: boolean;
+  isGestor: boolean;
+  currentUser: AuthUser | null;
+  judgments: Judgment[];
   onEdit: (c: Course) => void;
 }) {
+  const myJudgment = currentUser
+    ? judgments.find((j) => j.userId === currentUser.id)
+    : undefined;
   return (
     <Sheet open={!!course} onOpenChange={(o) => !o && onClose()}>
       <SheetContent className="w-full overflow-y-auto p-0 sm:max-w-xl">
