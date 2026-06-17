@@ -26,19 +26,14 @@ export const Route = createFileRoute("/reports")({
 });
 
 function ReportsPage() {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user === null) {
-      const t = setTimeout(() => {
-        if (!user) navigate({ to: "/login" });
-      }, 50);
-      return () => clearTimeout(t);
-    }
-  }, [user, navigate]);
+    if (!loading && !user) navigate({ to: "/login" });
+  }, [loading, user, navigate]);
 
-  if (!user) {
+  if (loading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
         Carregando...
