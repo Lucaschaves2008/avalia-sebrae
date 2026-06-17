@@ -1196,7 +1196,7 @@ function CourseEditDialog({
                 onChange={(e) => update("ids", Number(e.target.value))}
               />
             </Field>
-            <Field label="Classificação BCG" className="sm:col-span-2">
+            <Field label="Classificação BCG">
               <Select
                 value={form.bcg || "none"}
                 onValueChange={(v) => update("bcg", v === "none" ? "" : (v as BCG))}
@@ -1213,6 +1213,13 @@ function CourseEditDialog({
                   ))}
                 </SelectContent>
               </Select>
+            </Field>
+            <Field label="Data de habilitação">
+              <Input
+                type="date"
+                value={form.dataHabilitacao}
+                onChange={(e) => update("dataHabilitacao", e.target.value)}
+              />
             </Field>
           </TabsContent>
 
