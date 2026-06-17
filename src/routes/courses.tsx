@@ -4,9 +4,12 @@ import {
   ArrowLeft,
   ArrowUpRight,
   CheckCircle2,
+  ClipboardCheck,
+  Clock,
   Download,
   ExternalLink,
   FileSpreadsheet,
+  Gavel,
   LayoutGrid,
   List,
   Pencil,
@@ -16,6 +19,7 @@ import {
   Upload,
   XCircle,
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
