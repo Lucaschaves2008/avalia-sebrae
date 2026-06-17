@@ -1,10 +1,36 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { BookOpen, FileText, GraduationCap, LogOut, MapPin, UserCog, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  BookOpen,
+  FileText,
+  GraduationCap,
+  LogOut,
+  MapPin,
+  UserCog,
+  ClipboardCheck,
+  Gavel,
+} from "lucide-react";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 import { Button } from "@/components/ui/button";
-import { AuthProvider, useAuth } from "@/lib/auth";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { AuthProvider, REGIONS, useAuth, type Region } from "@/lib/auth";
 import { SebraeLogo } from "@/components/SebraeLogo";
+import { supabase } from "@/integrations/supabase/client";
+import { useCoursesList, computeMaterialReadiness } from "@/lib/courses";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -17,15 +43,106 @@ export const Route = createFileRoute("/dashboard")({
   ),
 });
 
+type DecisionKey = "MANTIDO" | "ATUALIZADO" | "INATIVAÇÃO";
+
+const DECISION_LABEL: Record<DecisionKey, string> = {
+  MANTIDO: "Mantido",
+  ATUALIZADO: "Mantido com atualizações",
+  "INATIVAÇÃO": "Inativação",
+};
+const DECISION_COLOR: Record<DecisionKey, string> = {
+  MANTIDO: "#10b981",
+  ATUALIZADO: "#f59e0b",
+  "INATIVAÇÃO": "#ef4444",
+};
+
+interface JudgmentRow {
+  id: string;
+  course_id: string;
+  user_id: string;
+  region: string;
+  decision: string;
+}
+
 function Dashboard() {
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
+  const courses = useCoursesList();
+
+  const [regionFilter, setRegionFilter] = useState<Region | "all">("all");
+  const [judgments, setJudgments] = useState<JudgmentRow[]>([]);
+  const [loadingJudgments, setLoadingJudgments] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate({ to: "/login" });
-    }
+    if (!loading && !user) navigate({ to: "/login" });
   }, [loading, user, navigate]);
+
+  // Real-time fetch of judgments scoped by role
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    setLoadingJudgments(true);
+
+    async function load() {
+      let query = supabase
+        .from("judgments")
+        .select("id, course_id, user_id, region, decision");
+
+      if (user!.role === "gestor") {
+        // Gestor: only own judgments
+        query = query.eq("user_id", user!.id);
+      } else if (regionFilter !== "all") {
+        // Admin with region filter
+        query = query.eq("region", regionFilter);
+      }
+
+      const { data, error } = await query;
+      if (cancelled) return;
+      if (error) {
+        console.error("[dashboard] judgments fetch error:", error);
+        setJudgments([]);
+      } else {
+        setJudgments((data ?? []) as JudgmentRow[]);
+      }
+      setLoadingJudgments(false);
+    }
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, regionFilter]);
+
+  // Material readiness aggregates
+  const readiness = useMemo(() => {
+    const buckets = { pronto: 0, medio: 0, alto: 0 };
+    let sumPct = 0;
+    for (const c of courses) {
+      const r = computeMaterialReadiness(c);
+      buckets[r.level] += 1;
+      sumPct += r.pct;
+    }
+    const avg = courses.length ? Math.round(sumPct / courses.length) : 0;
+    return { ...buckets, avg, total: courses.length };
+  }, [courses]);
+
+  // Decision aggregates for pie chart
+  const decisionData = useMemo(() => {
+    const counts: Record<DecisionKey, number> = {
+      MANTIDO: 0,
+      ATUALIZADO: 0,
+      "INATIVAÇÃO": 0,
+    };
+    for (const j of judgments) {
+      const key = j.decision as DecisionKey;
+      if (key in counts) counts[key] += 1;
+    }
+    return (Object.keys(counts) as DecisionKey[]).map((k) => ({
+      key: k,
+      name: DECISION_LABEL[k],
+      value: counts[k],
+      color: DECISION_COLOR[k],
+    }));
+  }, [judgments]);
 
   if (loading || !user) {
     return (
@@ -35,20 +152,40 @@ function Dashboard() {
     );
   }
 
-  const stats =
-    user.role === "admin"
-      ? [
-          { label: "Cursos ativos", value: "148", icon: BookOpen },
-          { label: "Turmas em andamento", value: "412", icon: GraduationCap },
-          { label: "Empreendedores", value: "32.8k", icon: Users },
-          { label: "Regiões atendidas", value: "5", icon: MapPin },
-        ]
-      : [
-          { label: "Cursos na região", value: "37", icon: BookOpen },
-          { label: "Turmas em andamento", value: "84", icon: GraduationCap },
-          { label: "Empreendedores", value: "6.2k", icon: Users },
-          { label: "Estados", value: "9", icon: MapPin },
-        ];
+  const isAdmin = user.role === "admin";
+  const judgedCourseIds = new Set(judgments.map((j) => j.course_id));
+  const completude = courses.length
+    ? Math.round((judgedCourseIds.size / courses.length) * 100)
+    : 0;
+
+  const adminStats = [
+    { label: "Cursos no portfólio", value: String(courses.length), icon: BookOpen },
+    {
+      label: "Julgamentos registrados",
+      value: String(judgments.length),
+      icon: ClipboardCheck,
+    },
+    {
+      label: "Prontidão média de materiais",
+      value: `${readiness.avg}%`,
+      icon: GraduationCap,
+    },
+    { label: "Regiões ativas", value: String(REGIONS.length), icon: MapPin },
+  ];
+
+  const gestorStats = [
+    { label: "Cursos no portfólio", value: String(courses.length), icon: BookOpen },
+    { label: "Seus julgamentos", value: String(judgments.length), icon: Gavel },
+    { label: "Completude", value: `${completude}%`, icon: ClipboardCheck },
+    {
+      label: "Cursos pendentes",
+      value: String(Math.max(courses.length - judgedCourseIds.size, 0)),
+      icon: GraduationCap,
+    },
+  ];
+
+  const stats = isAdmin ? adminStats : gestorStats;
+  const hasJudgments = judgments.length > 0;
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -62,7 +199,7 @@ function Dashboard() {
             <div className="hidden text-right text-white sm:block">
               <div className="text-sm font-semibold">{user.name}</div>
               <div className="text-xs text-white/70">
-                {user.role === "admin" ? "Administrador" : `Gestor — ${user.region}`}
+                {isAdmin ? "Administrador" : `Gestor — ${user.region}`}
               </div>
             </div>
             <Button
@@ -83,7 +220,7 @@ function Dashboard() {
               <FileText className="mr-2 h-4 w-4" />
               Relatórios
             </Button>
-            {user.role === "admin" && (
+            {isAdmin && (
               <Button
                 variant="outline"
                 size="sm"
@@ -114,13 +251,13 @@ function Dashboard() {
         <div className="mb-8">
           <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            {user.role === "admin" ? "Acesso total" : `Região ${user.region}`}
+            {isAdmin ? "Acesso total" : `Região ${user.region}`}
           </span>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
             Bem-vindo(a), {user.name.split(" ")[0]}
           </h1>
           <p className="mt-1 text-muted-foreground">
-            Portfólio de Cursos de Educação Empreendedora — visão geral.
+            Portfólio de Cursos de Educação Empreendedora — visão em tempo real.
           </p>
         </div>
 
@@ -143,16 +280,171 @@ function Dashboard() {
           ))}
         </div>
 
-        <div className="mt-10 rounded-xl border border-border bg-card p-8 shadow-[var(--shadow-card)]">
-          <h2 className="text-lg font-semibold text-foreground">
-            Próximos passos
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Esta é a base do portal. Em seguida, podemos implementar o
-            cadastro de cursos, gestão de turmas, indicadores e relatórios.
-          </p>
+        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Pie chart: decisions */}
+          <div className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">
+                  {isAdmin
+                    ? "Distribuição de decisões"
+                    : "Suas decisões registradas"}
+                </h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {isAdmin
+                    ? "Agrupamento de julgamentos por decisão das regionais."
+                    : "Resumo dos julgamentos que você registrou."}
+                </p>
+              </div>
+              {isAdmin && (
+                <Select
+                  value={regionFilter}
+                  onValueChange={(v) => setRegionFilter(v as Region | "all")}
+                >
+                  <SelectTrigger className="h-9 w-48">
+                    <SelectValue placeholder="Filtrar por região" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as regiões</SelectItem>
+                    {REGIONS.map((r) => (
+                      <SelectItem key={r} value={r}>
+                        {r}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            <div className="mt-4 h-64">
+              {loadingJudgments ? (
+                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                  Carregando...
+                </div>
+              ) : !hasJudgments ? (
+                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                  Nenhum julgamento{isAdmin && regionFilter !== "all"
+                    ? ` para a região ${regionFilter}`
+                    : ""}{" "}
+                  ainda.
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={decisionData.filter((d) => d.value > 0)}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={90}
+                      label={(entry) => `${entry.value}`}
+                    >
+                      {decisionData
+                        .filter((d) => d.value > 0)
+                        .map((d) => (
+                          <Cell key={d.key} fill={d.color} />
+                        ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+
+          {/* Material readiness */}
+          <div className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
+            <h2 className="text-lg font-semibold text-foreground">
+              Índice de Prontidão de Materiais
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Calculado pela soma dos 10 materiais por curso dividida por 10.
+            </p>
+
+            <div className="mt-5 space-y-3">
+              <ReadinessRow
+                label="Pronto / Baixo Esforço (≥ 76%)"
+                count={readiness.pronto}
+                total={readiness.total}
+                color="bg-emerald-500"
+              />
+              <ReadinessRow
+                label="Médio Esforço (41–75%)"
+                count={readiness.medio}
+                total={readiness.total}
+                color="bg-amber-500"
+              />
+              <ReadinessRow
+                label="Alto Esforço (≤ 40%)"
+                count={readiness.alto}
+                total={readiness.total}
+                color="bg-rose-500"
+              />
+            </div>
+
+            <div className="mt-6 rounded-lg border border-dashed border-border p-4 text-center">
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                Prontidão média do portfólio
+              </div>
+              <div className="mt-1 text-3xl font-bold text-foreground">
+                {readiness.avg}%
+              </div>
+            </div>
+          </div>
         </div>
+
+        {!isAdmin && (
+          <div className="mt-6 rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
+            <h2 className="text-lg font-semibold text-foreground">
+              Completude do seu julgamento
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Cursos julgados ({judgedCourseIds.size}) ÷ total de cursos
+              cadastrados ({courses.length}).
+            </p>
+            <div className="mt-4 flex items-center gap-3">
+              <div className="h-3 flex-1 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full bg-primary transition-all"
+                  style={{ width: `${completude}%` }}
+                />
+              </div>
+              <span className="w-12 text-right text-sm font-semibold">
+                {completude}%
+              </span>
+            </div>
+          </div>
+        )}
       </main>
+    </div>
+  );
+}
+
+function ReadinessRow({
+  label,
+  count,
+  total,
+  color,
+}: {
+  label: string;
+  count: number;
+  total: number;
+  color: string;
+}) {
+  const pct = total ? Math.round((count / total) * 100) : 0;
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">{label}</span>
+        <span className="font-semibold text-foreground">
+          {count} ({pct}%)
+        </span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-muted">
+        <div className={`h-full ${color}`} style={{ width: `${pct}%` }} />
+      </div>
     </div>
   );
 }
