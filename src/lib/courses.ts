@@ -427,13 +427,19 @@ function normalizeHeader(h: string): string {
 function parseBoolean(v: unknown): boolean {
   if (typeof v === "boolean") return v;
   const s = String(v ?? "").trim().toLowerCase();
+  if (!s) return false;
+  if (["nao", "não", "n", "false", "0"].includes(s)) return false;
   return ["sim", "s", "true", "1", "x", "yes", "y"].includes(s);
 }
 
-function parseFgvVal(v: unknown): FgvRating {
+// Returns a valid FgvRating or null when the value is invalid/empty
+// (caller should keep the default and skip the field).
+function parseFgvVal(v: unknown): FgvRating | null {
   const s = String(v ?? "").trim().toUpperCase();
+  if (!s) return null;
+  if (s === "NOVO") return "NAP";
   if (s === "NA" || s === "PA" || s === "NAP" || s === "SA") return s;
-  return "NAP";
+  return null;
 }
 
 function parseBcg(v: unknown): BCG | "" {
