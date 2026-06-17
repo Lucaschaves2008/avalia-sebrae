@@ -28,7 +28,7 @@ export const adminCreateUser = createServerFn({ method: "POST" })
     );
 
     // Create the auth user (email auto-confirmed -> row exists in auth.users immediately)
-    const { data: created, error: createErr } =
+    let { data: created, error: createErr } =
       await supabaseAdmin.auth.admin.createUser({
         email: data.email.trim(),
         password: data.password,
@@ -40,6 +40,47 @@ export const adminCreateUser = createServerFn({ method: "POST" })
           region: data.region,
         },
       });
+
+    // Recover from orphan auth user (exists in auth.users but no profile row)
+    if (createErr && /already been registered|email_exists/i.test(createErr.message)) {
+      const email = data.email.trim().toLowerCase();
+      let orphanId: string | null = null;
+      for (let page = 1; page <= 10 && !orphanId; page++) {
+        const { data: list } = await supabaseAdmin.auth.admin.listUsers({
+          page,
+          perPage: 200,
+        });
+        const match = list?.users.find((u) => u.email?.toLowerCase() === email);
+        if (match) {
+          const { data: prof } = await supabaseAdmin
+            .from("profiles")
+            .select("id")
+            .eq("id", match.id)
+            .maybeSingle();
+          if (!prof) orphanId = match.id;
+          else throw new Error("E-mail já está em uso por outro usuário.");
+          break;
+        }
+        if (!list || list.users.length < 200) break;
+      }
+      if (orphanId) {
+        await supabaseAdmin.auth.admin.deleteUser(orphanId);
+        const retry = await supabaseAdmin.auth.admin.createUser({
+          email: data.email.trim(),
+          password: data.password,
+          email_confirm: true,
+          user_metadata: {
+            name: data.name,
+            phone: data.phone,
+            unity: data.unit,
+            region: data.region,
+          },
+        });
+        created = retry.data;
+        createErr = retry.error;
+      }
+    }
+
     if (createErr) throw new Error(createErr.message);
     const newUserId = created.user?.id;
     if (!newUserId) throw new Error("Falha ao criar usuário.");
