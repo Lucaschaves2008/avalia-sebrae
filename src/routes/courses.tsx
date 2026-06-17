@@ -456,7 +456,13 @@ function CoursesPage() {
         {filtered.length > 0 && view === "cards" && (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filtered.map((c) => (
-              <CourseCard key={c.id} course={c} onOpen={() => setDetail(c)} />
+              <CourseCard
+                key={c.id}
+                course={c}
+                onOpen={() => setDetail(c)}
+                userJudgment={user ? findUserJudgment(judgments, c.id, user.id) : undefined}
+                showJudgmentStatus={isGestor}
+              />
             ))}
           </div>
         )}
