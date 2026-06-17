@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { BookOpen, GraduationCap, LogOut, MapPin, UserCog, Users } from "lucide-react";
+import { BookOpen, FileText, GraduationCap, LogOut, MapPin, UserCog, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { AuthProvider, useAuth } from "@/lib/auth";
@@ -76,6 +76,15 @@ function Dashboard() {
             >
               <BookOpen className="mr-2 h-4 w-4" />
               Cursos
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate({ to: "/reports" })}
+              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Relatórios
             </Button>
             {user.role === "admin" && (
               <Button
