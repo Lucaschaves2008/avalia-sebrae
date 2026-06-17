@@ -549,6 +549,9 @@ function CoursesPage() {
         course={detail}
         onClose={() => setDetail(null)}
         isAdmin={isAdmin}
+        isGestor={isGestor}
+        currentUser={user}
+        judgments={detail ? judgmentsForCourse(judgments, detail.id) : []}
         onEdit={(c) => {
           setDetail(null);
           setEditing(c);
