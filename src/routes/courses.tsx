@@ -1267,6 +1267,32 @@ function CourseEditDialog({
                 </Select>
               </div>
             ))}
+
+            <div className="mt-4 space-y-4 border-t border-border pt-4">
+              <Field label="Ferramentas de Inclusão">
+                <Input
+                  value={form.ferramentasInclusao}
+                  onChange={(e) => update("ferramentasInclusao", e.target.value)}
+                  placeholder="Ex.: versão em libras, audiodescrição, fonte ampliada..."
+                />
+              </Field>
+              <Field label="Síntese">
+                <Textarea
+                  rows={3}
+                  value={form.sinteseAvaliacao}
+                  onChange={(e) => update("sinteseAvaliacao", e.target.value)}
+                  placeholder="Síntese geral da avaliação..."
+                />
+              </Field>
+              <Field label="Pontos de Atenção">
+                <Textarea
+                  rows={3}
+                  value={form.pontosAtencao}
+                  onChange={(e) => update("pontosAtencao", e.target.value)}
+                  placeholder="Aspectos que precisam de revisão ou acompanhamento..."
+                />
+              </Field>
+            </div>
           </TabsContent>
         </Tabs>
 
