@@ -343,19 +343,18 @@ function CoursesPage() {
           <div className="mb-6 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900 shadow-[var(--shadow-card)]">
             <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-600" />
             <div className="flex-1">
-              <div className="font-semibold">Importação concluída</div>
+              <div className="font-semibold">Relatório de Importação</div>
               <div className="text-sm text-emerald-800">
-                {importSummary.imported} curso(s) adicionado(s) ou atualizado(s).
+                {importSummary.imported} curso(s) importado(s) com sucesso.{" "}
+                {importSummary.errors.length} erro(s) encontrado(s).
                 {importSummary.skipped > 0 &&
                   ` ${importSummary.skipped} linha(s) ignorada(s).`}
               </div>
               {importSummary.errors.length > 0 && (
                 <details className="mt-2 text-xs">
-                  <summary className="cursor-pointer">
-                    {importSummary.errors.length} aviso(s) durante o parse
-                  </summary>
+                  <summary className="cursor-pointer">Ver detalhes dos erros</summary>
                   <ul className="mt-1 list-disc pl-5">
-                    {importSummary.errors.slice(0, 5).map((e, i) => (
+                    {importSummary.errors.slice(0, 20).map((e, i) => (
                       <li key={i}>{e}</li>
                     ))}
                   </ul>
@@ -372,6 +371,7 @@ function CoursesPage() {
             </Button>
           </div>
         )}
+
 
         {/* Filters bar */}
         <div className="mb-5 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
