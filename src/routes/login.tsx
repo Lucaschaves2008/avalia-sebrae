@@ -308,18 +308,28 @@ function LoginPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  logout();
+                disabled={pwLoading}
+                onClick={async () => {
+                  await logout();
                   setFirstAccessOpen(false);
                 }}
               >
-                Cancelar
+                Sair
               </Button>
               <Button
                 type="submit"
+                disabled={pwLoading}
+                aria-busy={pwLoading}
                 className="bg-primary text-primary-foreground hover:bg-[var(--primary-hover)]"
               >
-                Salvar nova senha
+                {pwLoading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Salvando...
+                  </span>
+                ) : (
+                  "Salvar nova senha"
+                )}
               </Button>
             </DialogFooter>
           </form>
