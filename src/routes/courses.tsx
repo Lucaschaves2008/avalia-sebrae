@@ -20,6 +20,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1437,39 +1438,75 @@ function JudgmentPanel({
     setReason(myJudgment?.reason ?? "");
   }, [myJudgment?.id, course.id]);
 
-  function handleSave() {
-    if (!currentUser) return;
-    if (!decision) {
-      toast.error("Selecione a decisão.");
+  const [saving, setSaving] = useState(false);
+
+  const judgmentSchema = useMemo(
+    () =>
+      z
+        .object({
+          decision: z.enum(["MANTIDO", "ATUALIZADO", "INATIVACAO"], {
+            errorMap: () => ({ message: "Selecione a decisão." }),
+          }),
+          priority: z.enum(["Alta", "Média", "Baixa"], {
+            errorMap: () => ({ message: "Selecione a priorização." }),
+          }),
+          reason: z.string().trim().min(1, "Informe o motivo / observação."),
+          updates: z.string().trim().optional(),
+        })
+        .superRefine((val, ctx) => {
+          if (val.decision === "ATUALIZADO" && !val.updates) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["updates"],
+              message:
+                "Por favor, descreva quais as atualizações necessárias para este curso.",
+            });
+          }
+        }),
+    [],
+  );
+
+  async function handleSave() {
+    if (!currentUser) {
+      toast.error("Sessão expirada. Faça login novamente.");
       return;
     }
-    if (!priority) {
-      toast.error("Selecione a priorização.");
+    const parsed = judgmentSchema.safeParse({ decision, priority, reason, updates });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Verifique os campos do formulário.");
       return;
     }
-    if (!reason.trim()) {
-      toast.error("Informe o motivo / observação.");
-      return;
+    setSaving(true);
+    try {
+      await upsertJudgment({
+        courseId: course.id,
+        userId: currentUser.id, // captured from active session
+        userName: currentUser.name,
+        userEmail: currentUser.email,
+        region: currentUser.region, // captured from logged-in profile
+        decision: parsed.data.decision,
+        updatesNeeded:
+          parsed.data.decision === "ATUALIZADO" ? parsed.data.updates : undefined,
+        priority: parsed.data.priority,
+        reason: parsed.data.reason,
+      });
+      toast.success(
+        myJudgment ? "Julgamento atualizado." : "Julgamento registrado com sucesso.",
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      // Surface validation message from upsertJudgment; otherwise generic network/DB error
+      if (msg.startsWith("Por favor")) {
+        toast.error(msg);
+      } else {
+        console.error("[judgments] save error:", err);
+        toast.error("Erro ao salvar julgamento. Tente novamente em instantes.");
+      }
+    } finally {
+      setSaving(false);
     }
-    if (decision === "ATUALIZADO" && !updates.trim()) {
-      toast.error("Descreva quais atualizações são necessárias.");
-      return;
-    }
-    upsertJudgment({
-      courseId: course.id,
-      userId: currentUser.id,
-      userName: currentUser.name,
-      userEmail: currentUser.email,
-      region: currentUser.region,
-      decision,
-      updatesNeeded: decision === "ATUALIZADO" ? updates.trim() : undefined,
-      priority,
-      reason: reason.trim(),
-    });
-    toast.success(
-      myJudgment ? "Julgamento atualizado." : "Julgamento registrado com sucesso.",
-    );
   }
+
 
   return (
     <div className="space-y-5">
@@ -1580,9 +1617,14 @@ function JudgmentPanel({
             </div>
             <Button
               onClick={handleSave}
+              disabled={saving}
               className="bg-primary text-primary-foreground hover:bg-[var(--primary-hover)]"
             >
-              {myJudgment ? "Atualizar julgamento" : "Salvar julgamento"}
+              {saving
+                ? "Salvando..."
+                : myJudgment
+                  ? "Atualizar julgamento"
+                  : "Salvar julgamento"}
             </Button>
           </div>
         </div>
