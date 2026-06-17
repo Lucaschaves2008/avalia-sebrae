@@ -888,7 +888,7 @@ function CourseDetailSheet({
 
                 {/* Tab 2 — Materials */}
                 <TabsContent value="materiais" className="mt-5">
-                  <MaterialsChecklist materials={course.materials} />
+                  <MaterialsChecklist course={course} />
                 </TabsContent>
 
                 {/* Tab 3 — FGV */}
