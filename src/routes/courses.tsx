@@ -852,6 +852,10 @@ function CourseDetailSheet({
                   <InfoRow label="Instrumento" value={course.instrumento || "—"} />
                   <InfoRow label="Modalidade" value={course.modalidade || "—"} />
                   <InfoRow label="Classificação BCG" value={course.bcg || "—"} />
+                  <InfoRow
+                    label="Data de habilitação"
+                    value={formatHabilitacao(course.dataHabilitacao)}
+                  />
 
                   <div className="rounded-lg border border-border bg-muted/30 p-4">
                     <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -893,7 +897,7 @@ function CourseDetailSheet({
 
                 {/* Tab 3 — FGV */}
                 <TabsContent value="fgv" className="mt-5">
-                  <FgvPanel fgv={course.fgv} />
+                  <FgvPanel course={course} />
                 </TabsContent>
 
                 {/* Tab 4 — Julgamento */}
@@ -1027,7 +1031,8 @@ function MaterialsChecklist({ course }: { course: Course }) {
   );
 }
 
-function FgvPanel({ fgv }: { fgv: CourseFgv }) {
+function FgvPanel({ course }: { course: Course }) {
+  const fgv = course.fgv;
   const items = Object.keys(FGV_FIELD_LABELS) as (keyof CourseFgv)[];
   const counts: Record<FgvRating, number> = { SA: 0, PA: 0, NA: 0, NAP: 0 };
   for (const k of items) counts[fgv[k]]++;
