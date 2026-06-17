@@ -156,6 +156,7 @@ function CoursesPage() {
   const [bcgFilter, setBcgFilter] = useState<string>("all");
   const [publicoFilter, setPublicoFilter] = useState<string>("all");
   const [modalidadeFilter, setModalidadeFilter] = useState<string>("all");
+  const [esforcoFilter, setEsforcoFilter] = useState<string>("all");
   const [view, setView] = useState<"cards" | "table">("cards");
   const [detail, setDetail] = useState<Course | null>(null);
   const [editing, setEditing] = useState<Course | null>(null);
@@ -192,6 +193,10 @@ function CoursesPage() {
       if (bcgFilter !== "all" && c.bcg !== bcgFilter) return false;
       if (publicoFilter !== "all" && c.publicoAlvo !== publicoFilter) return false;
       if (modalidadeFilter !== "all" && c.modalidade !== modalidadeFilter) return false;
+      if (esforcoFilter !== "all") {
+        const r = computeMaterialReadiness(c);
+        if (r.level !== esforcoFilter) return false;
+      }
       if (!q) return true;
       return (
         c.solucao.toLowerCase().includes(q) ||
@@ -200,7 +205,7 @@ function CoursesPage() {
         c.modalidade.toLowerCase().includes(q)
       );
     });
-  }, [courses, query, bcgFilter, publicoFilter, modalidadeFilter]);
+  }, [courses, query, bcgFilter, publicoFilter, modalidadeFilter, esforcoFilter]);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -234,13 +239,15 @@ function CoursesPage() {
     setBcgFilter("all");
     setPublicoFilter("all");
     setModalidadeFilter("all");
+    setEsforcoFilter("all");
   }
 
   const hasFilters =
     !!query ||
     bcgFilter !== "all" ||
     publicoFilter !== "all" ||
-    modalidadeFilter !== "all";
+    modalidadeFilter !== "all" ||
+    esforcoFilter !== "all";
 
   if (!user) {
     return (
