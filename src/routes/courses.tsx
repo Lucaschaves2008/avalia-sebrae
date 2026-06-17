@@ -92,6 +92,18 @@ import {
   type FgvRating,
 } from "@/lib/courses";
 import { SebraeLogo } from "@/components/SebraeLogo";
+import {
+  DECISION_LABELS,
+  DECISION_STYLES,
+  PRIORITY_STYLES,
+  findUserJudgment,
+  judgmentsForCourse,
+  upsertJudgment,
+  useJudgmentsList,
+  type Judgment,
+  type JudgmentDecision,
+  type JudgmentPriority,
+} from "@/lib/judgments";
 
 export const Route = createFileRoute("/courses")({
   head: () => ({
