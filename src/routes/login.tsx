@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,24 @@ export const Route = createFileRoute("/login")({
   ),
 });
 
+function getPasswordCriteria(password: string) {
+  return {
+    minLength: password.length >= 8,
+    hasUpper: /[A-Z]/.test(password),
+    hasLower: /[a-z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+  };
+}
+
+function CriteriaItem({ met, label }: { met: boolean; label: string }) {
+  return (
+    <div className={`flex items-center gap-2 text-xs ${met ? "text-emerald-600" : "text-muted-foreground"}`}>
+      {met ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5 opacity-50" />}
+      <span>{label}</span>
+    </div>
+  );
+}
+
 function LoginPage() {
   const { user, login, changePassword, logout } = useAuth();
   const navigate = useNavigate();
@@ -50,6 +68,10 @@ function LoginPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwError, setPwError] = useState<string | null>(null);
   const [pwLoading, setPwLoading] = useState(false);
+
+  const criteria = useMemo(() => getPasswordCriteria(newPassword), [newPassword]);
+  const allCriteriaMet = Object.values(criteria).every(Boolean);
+  const passwordsMatch = newPassword === confirmPassword && confirmPassword.length > 0;
 
   useEffect(() => {
     if (user?.isFirstAccess) setFirstAccessOpen(true);
@@ -82,14 +104,16 @@ function LoginPage() {
     e.preventDefault();
     if (pwLoading) return;
     setPwError(null);
-    if (newPassword.length < 6) {
-      setPwError("A nova senha deve ter pelo menos 6 caracteres.");
+
+    if (!allCriteriaMet) {
+      setPwError("A senha não atende a todos os critérios de segurança.");
       return;
     }
-    if (newPassword !== confirmPassword) {
+    if (!passwordsMatch) {
       setPwError("As senhas não coincidem.");
       return;
     }
+
     setPwLoading(true);
     const r = await changePassword(newPassword);
     setPwLoading(false);
@@ -98,8 +122,10 @@ function LoginPage() {
       toast.error(r.error);
       return;
     }
-    toast.success("Senha atualizada com sucesso.");
+    toast.success("Senha atualizada com sucesso! Redirecionando para a Dashboard da sua Regional…");
     setFirstAccessOpen(false);
+    setNewPassword("");
+    setConfirmPassword("");
     navigate({ to: "/dashboard" });
   }
 
@@ -251,7 +277,6 @@ function LoginPage() {
       <Dialog
         open={firstAccessOpen}
         onOpenChange={(open) => {
-          // Block dismissal: only allow open=true; ignore close attempts
           if (open) setFirstAccessOpen(true);
         }}
       >
@@ -267,35 +292,47 @@ function LoginPage() {
             </div>
             <DialogTitle>Primeiro acesso detectado</DialogTitle>
             <DialogDescription>
-              Por segurança, é obrigatório trocar a senha padrão antes de
+              Por segurança, é obrigatório definir uma nova senha antes de
               acessar a plataforma.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleChangePassword} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="newPassword">Nova senha</Label>
+              <Label htmlFor="newPassword">Nova Senha</Label>
               <Input
                 id="newPassword"
                 type="password"
+                autoComplete="new-password"
                 required
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Mínimo de 6 caracteres"
+                placeholder="Digite a nova senha"
                 className="h-11"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
+              <Label htmlFor="confirmPassword">Confirme a Nova Senha</Label>
               <Input
                 id="confirmPassword"
                 type="password"
+                autoComplete="new-password"
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Repita a nova senha"
                 className="h-11"
               />
+            </div>
+
+            {/* Real-time validation checklist */}
+            <div className="space-y-1.5 rounded-lg border border-border bg-muted/30 p-3">
+              <div className="mb-1 text-xs font-semibold text-foreground">Critérios de segurança</div>
+              <CriteriaItem met={criteria.minLength} label="Mínimo de 8 caracteres" />
+              <CriteriaItem met={criteria.hasUpper} label="Pelo menos 1 letra maiúscula" />
+              <CriteriaItem met={criteria.hasLower} label="Pelo menos 1 letra minúscula" />
+              <CriteriaItem met={criteria.hasNumber} label="Pelo menos 1 número" />
+              <CriteriaItem met={passwordsMatch} label="Senhas coincidem" />
             </div>
 
             {pwError && (
@@ -318,7 +355,7 @@ function LoginPage() {
               </Button>
               <Button
                 type="submit"
-                disabled={pwLoading}
+                disabled={pwLoading || !allCriteriaMet || !passwordsMatch}
                 aria-busy={pwLoading}
                 className="bg-primary text-primary-foreground hover:bg-[var(--primary-hover)]"
               >
