@@ -532,6 +532,9 @@ function CoursesPage() {
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </TableCell>
+                    <TableCell>
+                      <ReadinessBadge result={computeMaterialReadiness(c)} />
+                    </TableCell>
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-end gap-1">
                         {isAdmin && (
