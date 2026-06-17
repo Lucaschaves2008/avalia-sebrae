@@ -7,8 +7,8 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { adminCreateUser } from "@/lib/admin-users.functions";
 
 export type UserRole = "admin" | "gestor";
 export type Region = "Norte" | "Nordeste" | "Centro-Oeste" | "Sudeste" | "Sul";
