@@ -527,3 +527,30 @@ export function downloadCsvTemplate() {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+export type ReadinessLevel = "alto" | "medio" | "pronto";
+
+export interface ReadinessResult {
+  pct: number;
+  level: ReadinessLevel;
+  label: string;
+}
+
+export function computeMaterialReadiness(course: Course): ReadinessResult {
+  const items = Object.values(course.materials);
+  const done = items.filter(Boolean).length;
+  const pct = Math.round((done / items.length) * 100);
+  let level: ReadinessLevel;
+  let label: string;
+  if (pct <= 40) {
+    level = "alto";
+    label = "Alto Esforço";
+  } else if (pct <= 75) {
+    level = "medio";
+    label = "Médio Esforço";
+  } else {
+    level = "pronto";
+    label = "Pronto / Baixo Esforço";
+  }
+  return { pct, level, label };
+}
