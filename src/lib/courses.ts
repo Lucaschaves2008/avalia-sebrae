@@ -137,8 +137,12 @@ export function emptyCourse(): Course {
     atendimentosAno: 0,
     ids: 0,
     bcg: "",
+    dataHabilitacao: "",
     materials: emptyMaterials(),
     fgv: emptyFgv(),
+    ferramentasInclusao: "",
+    sinteseAvaliacao: "",
+    pontosAtencao: "",
   };
 }
 
@@ -155,6 +159,7 @@ const SEED_COURSES: Course[] = [
     atendimentosAno: 12500,
     ids: 87,
     bcg: "Estrela",
+    dataHabilitacao: "2022-03-15",
     materials: {
       moa: true,
       planosAula: true,
