@@ -225,6 +225,9 @@ const SEED_COURSES: Course[] = [
       aplicacaoTransversal: "NAP",
       integracaoComunitaria: "NA",
     },
+    ferramentasInclusao: "Plataforma compatível com leitores de tela; ainda sem versão em libras.",
+    sinteseAvaliacao: "Oficina com bom potencial conceitual, porém com lacunas em verificação de aprendizagem.",
+    pontosAtencao: "Desenvolver instrumentos de avaliação e ampliar planos de aula.",
   },
 ];
 
