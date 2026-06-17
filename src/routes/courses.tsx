@@ -145,7 +145,9 @@ function CoursesPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const courses = useCoursesList();
+  const judgments = useJudgmentsList();
   const isAdmin = user?.role === "admin";
+  const isGestor = user?.role === "gestor";
 
   const [query, setQuery] = useState("");
   const [bcgFilter, setBcgFilter] = useState<string>("all");
