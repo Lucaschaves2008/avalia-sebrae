@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Eye, EyeOff, Lock, Mail, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,7 @@ function LoginPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwError, setPwError] = useState<string | null>(null);
+  const [pwLoading, setPwLoading] = useState(false);
 
   useEffect(() => {
     if (user?.isFirstAccess) setFirstAccessOpen(true);
@@ -55,14 +57,20 @@ function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return;
     setError(null);
     setLoading(true);
     const result = await login(email, password);
     setLoading(false);
     if (!result.ok) {
-      setError(result.error);
+      const msg = /invalid|credentials|password|email/i.test(result.error)
+        ? "Credenciais inválidas. Verifique os dados e tente novamente."
+        : result.error;
+      setError(msg);
+      toast.error(msg);
       return;
     }
+    toast.success(`Bem-vindo, ${result.user.name.split(" ")[0]}!`);
     if (result.user.isFirstAccess) {
       setFirstAccessOpen(true);
     } else {
@@ -72,6 +80,7 @@ function LoginPage() {
 
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
+    if (pwLoading) return;
     setPwError(null);
     if (newPassword.length < 6) {
       setPwError("A nova senha deve ter pelo menos 6 caracteres.");
@@ -81,11 +90,15 @@ function LoginPage() {
       setPwError("As senhas não coincidem.");
       return;
     }
+    setPwLoading(true);
     const r = await changePassword(newPassword);
+    setPwLoading(false);
     if (!r.ok) {
       setPwError(r.error);
+      toast.error(r.error);
       return;
     }
+    toast.success("Senha atualizada com sucesso.");
     setFirstAccessOpen(false);
     navigate({ to: "/dashboard" });
   }
@@ -201,9 +214,17 @@ function LoginPage() {
             <Button
               type="submit"
               disabled={loading}
+              aria-busy={loading}
               className="h-11 w-full bg-primary text-base font-semibold text-primary-foreground shadow-[var(--shadow-elegant)] transition-all hover:bg-[var(--primary-hover)]"
             >
-              {loading ? "Entrando..." : "Entrar"}
+              {loading ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Entrando...
+                </span>
+              ) : (
+                "Entrar"
+              )}
             </Button>
 
             <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
@@ -226,18 +247,20 @@ function LoginPage() {
         </div>
       </div>
 
-      {/* First access modal — mandatory password change */}
+      {/* First access modal — mandatory password change (blocks navigation) */}
       <Dialog
         open={firstAccessOpen}
         onOpenChange={(open) => {
-          if (!open) {
-            // Block dismissal — force change or logout
-            logout();
-            setFirstAccessOpen(false);
-          }
+          // Block dismissal: only allow open=true; ignore close attempts
+          if (open) setFirstAccessOpen(true);
         }}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent
+          className="sm:max-w-md [&>button]:hidden"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-secondary">
               <ShieldCheck className="h-5 w-5 text-primary" />
@@ -285,18 +308,28 @@ function LoginPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  logout();
+                disabled={pwLoading}
+                onClick={async () => {
+                  await logout();
                   setFirstAccessOpen(false);
                 }}
               >
-                Cancelar
+                Sair
               </Button>
               <Button
                 type="submit"
+                disabled={pwLoading}
+                aria-busy={pwLoading}
                 className="bg-primary text-primary-foreground hover:bg-[var(--primary-hover)]"
               >
-                Salvar nova senha
+                {pwLoading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Salvando...
+                  </span>
+                ) : (
+                  "Salvar nova senha"
+                )}
               </Button>
             </DialogFooter>
           </form>
