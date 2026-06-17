@@ -1254,3 +1254,259 @@ function Field({
     </div>
   );
 }
+
+function JudgmentPanel({
+  course,
+  currentUser,
+  isGestor,
+  isAdmin,
+  judgments,
+  myJudgment,
+}: {
+  course: Course;
+  currentUser: AuthUser | null;
+  isGestor: boolean;
+  isAdmin: boolean;
+  judgments: Judgment[];
+  myJudgment?: Judgment;
+}) {
+  const [decision, setDecision] = useState<JudgmentDecision | "">(
+    myJudgment?.decision ?? "",
+  );
+  const [updates, setUpdates] = useState<string>(myJudgment?.updatesNeeded ?? "");
+  const [priority, setPriority] = useState<JudgmentPriority | "">(
+    myJudgment?.priority ?? "",
+  );
+  const [reason, setReason] = useState<string>(myJudgment?.reason ?? "");
+
+  useEffect(() => {
+    setDecision(myJudgment?.decision ?? "");
+    setUpdates(myJudgment?.updatesNeeded ?? "");
+    setPriority(myJudgment?.priority ?? "");
+    setReason(myJudgment?.reason ?? "");
+  }, [myJudgment?.id, course.id]);
+
+  function handleSave() {
+    if (!currentUser) return;
+    if (!decision) {
+      toast.error("Selecione a decisão.");
+      return;
+    }
+    if (!priority) {
+      toast.error("Selecione a priorização.");
+      return;
+    }
+    if (!reason.trim()) {
+      toast.error("Informe o motivo / observação.");
+      return;
+    }
+    if (decision === "ATUALIZADO" && !updates.trim()) {
+      toast.error("Descreva quais atualizações são necessárias.");
+      return;
+    }
+    upsertJudgment({
+      courseId: course.id,
+      userId: currentUser.id,
+      userName: currentUser.name,
+      userEmail: currentUser.email,
+      region: currentUser.region,
+      decision,
+      updatesNeeded: decision === "ATUALIZADO" ? updates.trim() : undefined,
+      priority,
+      reason: reason.trim(),
+    });
+    toast.success(
+      myJudgment ? "Julgamento atualizado." : "Julgamento registrado com sucesso.",
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* Status summary */}
+      <div className="rounded-lg border border-border bg-muted/30 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Gavel className="h-4 w-4 text-primary" />
+            <span className="text-sm font-semibold text-foreground">
+              Módulo de Julgamento
+            </span>
+          </div>
+          {isGestor &&
+            (myJudgment ? (
+              <Badge
+                variant="outline"
+                className="border-emerald-300 bg-emerald-50 text-emerald-800"
+              >
+                <ClipboardCheck className="mr-1 h-3 w-3" /> Julgado
+              </Badge>
+            ) : (
+              <Badge
+                variant="outline"
+                className="border-amber-300 bg-amber-50 text-amber-800"
+              >
+                <Clock className="mr-1 h-3 w-3" /> Pendente
+              </Badge>
+            ))}
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          {isGestor
+            ? `Registre sua avaliação como Gestor da Região ${currentUser?.region}. O julgamento será vinculado ao seu usuário e à sua região.`
+            : "Visualização consolidada dos julgamentos realizados pelos gestores regionais."}
+        </p>
+      </div>
+
+      {/* Form (gestor only) */}
+      {isGestor && currentUser && (
+        <div className="space-y-4 rounded-lg border border-border bg-card p-4">
+          <div className="space-y-2">
+            <Label>Decisão *</Label>
+            <Select
+              value={decision || undefined}
+              onValueChange={(v) => setDecision(v as JudgmentDecision)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a decisão" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MANTIDO">Mantido</SelectItem>
+                <SelectItem value="ATUALIZADO">Mantido com atualizações</SelectItem>
+                <SelectItem value="INATIVACAO">Inativação</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {decision === "ATUALIZADO" && (
+            <div className="space-y-2">
+              <Label>Quais atualizações são necessárias? *</Label>
+              <Textarea
+                value={updates}
+                onChange={(e) => setUpdates(e.target.value)}
+                placeholder="Descreva as atualizações necessárias para o curso..."
+                rows={3}
+                maxLength={1000}
+              />
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label>Priorização *</Label>
+            <Select
+              value={priority || undefined}
+              onValueChange={(v) => setPriority(v as JudgmentPriority)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a prioridade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Alta">Alta</SelectItem>
+                <SelectItem value="Média">Média</SelectItem>
+                <SelectItem value="Baixa">Baixa</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Motivo / Observação *</Label>
+            <Textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Justifique sua decisão..."
+              rows={4}
+              maxLength={1500}
+              required
+            />
+            <div className="text-right text-[11px] text-muted-foreground">
+              {reason.length}/1500
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 pt-1">
+            <div className="text-xs text-muted-foreground">
+              Vinculado a{" "}
+              <span className="font-medium text-foreground">{currentUser.name}</span>{" "}
+              • Região{" "}
+              <span className="font-medium text-foreground">{currentUser.region}</span>
+            </div>
+            <Button
+              onClick={handleSave}
+              className="bg-primary text-primary-foreground hover:bg-[var(--primary-hover)]"
+            >
+              {myJudgment ? "Atualizar julgamento" : "Salvar julgamento"}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Existing judgments list (admin sees all; gestor sees others') */}
+      <div>
+        <div className="mb-2 flex items-center justify-between">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Julgamentos registrados
+          </h4>
+          <span className="text-xs text-muted-foreground">
+            {judgments.length} no total
+          </span>
+        </div>
+        {judgments.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-border bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+            Nenhum julgamento registrado para este curso.
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {judgments.map((j) => {
+              const isMine = currentUser?.id === j.userId;
+              return (
+                <li
+                  key={j.id}
+                  className={`rounded-lg border p-3 ${
+                    isMine ? "border-primary/40 bg-primary/5" : "border-border bg-card"
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant="outline"
+                        className={DECISION_STYLES[j.decision]}
+                      >
+                        {DECISION_LABELS[j.decision]}
+                      </Badge>
+                      <Badge variant="outline" className={PRIORITY_STYLES[j.priority]}>
+                        Prioridade {j.priority}
+                      </Badge>
+                      {isMine && (
+                        <Badge variant="secondary" className="bg-primary/10 text-primary">
+                          Seu julgamento
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {new Date(j.updatedAt).toLocaleDateString("pt-BR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}
+                    </div>
+                  </div>
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    <span className="font-medium text-foreground">{j.userName}</span> •{" "}
+                    Região <span className="font-medium text-foreground">{j.region}</span>
+                  </div>
+                  {j.decision === "ATUALIZADO" && j.updatesNeeded && (
+                    <div className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                      <span className="font-semibold">Atualizações:</span>{" "}
+                      {j.updatesNeeded}
+                    </div>
+                  )}
+                  <div className="mt-2 whitespace-pre-wrap text-sm text-foreground">
+                    {j.reason}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {!isGestor && !isAdmin && null}
+      </div>
+    </div>
+  );
+}
