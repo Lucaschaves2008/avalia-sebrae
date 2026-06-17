@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import type { Region } from "./auth";
 
 export type JudgmentDecision = "MANTIDO" | "ATUALIZADO" | "INATIVACAO";
@@ -37,79 +38,122 @@ export const PRIORITY_STYLES: Record<JudgmentPriority, string> = {
   Baixa: "border-sky-300 bg-sky-50 text-sky-800",
 };
 
-const STORAGE_KEY = "sebrae.judgments.v1";
-const EVENT = "sebrae:judgments-changed";
+const DECISION_TO_DB: Record<JudgmentDecision, string> = {
+  MANTIDO: "MANTIDO",
+  ATUALIZADO: "ATUALIZADO",
+  INATIVACAO: "INATIVAÇÃO",
+};
+const DB_TO_DECISION: Record<string, JudgmentDecision> = {
+  MANTIDO: "MANTIDO",
+  ATUALIZADO: "ATUALIZADO",
+  "INATIVAÇÃO": "INATIVACAO",
+};
 
-function load(): Judgment[] {
-  if (typeof window === "undefined") return [];
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) return [];
-  try {
-    return JSON.parse(raw) as Judgment[];
-  } catch {
-    return [];
-  }
+// ---------- Reactive cache ----------
+
+let cache: Judgment[] = [];
+let fetched = false;
+const listeners = new Set<() => void>();
+function notify() {
+  for (const l of listeners) l();
 }
 
-function save(items: Judgment[]) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  window.dispatchEvent(new CustomEvent(EVENT));
+type DbJudgment = {
+  id: string;
+  course_id: string;
+  user_id: string;
+  region: string;
+  decision: string;
+  updates_required: string | null;
+  priority: string;
+  notes: string;
+  updated_at: string;
+};
+
+type DbProfile = { id: string; name: string; email: string };
+
+function mapRow(row: DbJudgment, profilesById: Map<string, DbProfile>): Judgment {
+  const p = profilesById.get(row.user_id);
+  return {
+    id: row.id,
+    courseId: row.course_id,
+    userId: row.user_id,
+    userName: p?.name ?? "",
+    userEmail: p?.email ?? "",
+    region: row.region as Region,
+    decision: DB_TO_DECISION[row.decision] ?? "MANTIDO",
+    updatesNeeded: row.updates_required ?? undefined,
+    priority: row.priority as JudgmentPriority,
+    reason: row.notes,
+    createdAt: row.updated_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+async function fetchAll(): Promise<Judgment[]> {
+  const [judgRes, profRes] = await Promise.all([
+    supabase.from("judgments").select("*"),
+    supabase.from("profiles").select("id, name, email"),
+  ]);
+  const profilesById = new Map<string, DbProfile>();
+  for (const p of (profRes.data ?? []) as DbProfile[]) profilesById.set(p.id, p);
+  return ((judgRes.data ?? []) as DbJudgment[]).map((r) => mapRow(r, profilesById));
+}
+
+export async function refreshJudgments() {
+  cache = await fetchAll();
+  fetched = true;
+  notify();
 }
 
 export function listJudgments(): Judgment[] {
-  return load();
-}
-
-export function upsertJudgment(
-  input: Omit<Judgment, "id" | "createdAt" | "updatedAt"> & { id?: string },
-): Judgment {
-  const items = load();
-  const now = new Date().toISOString();
-  const idx = items.findIndex(
-    (j) => j.courseId === input.courseId && j.userId === input.userId,
-  );
-  if (idx === -1) {
-    const created: Judgment = {
-      ...input,
-      id: input.id ?? `j-${Date.now().toString(36)}`,
-      createdAt: now,
-      updatedAt: now,
-    };
-    items.push(created);
-    save(items);
-    return created;
-  }
-  const updated: Judgment = {
-    ...items[idx],
-    ...input,
-    id: items[idx].id,
-    createdAt: items[idx].createdAt,
-    updatedAt: now,
-  };
-  items[idx] = updated;
-  save(items);
-  return updated;
-}
-
-export function deleteJudgment(courseId: string, userId: string) {
-  save(load().filter((j) => !(j.courseId === courseId && j.userId === userId)));
+  return cache;
 }
 
 export function useJudgmentsList(): Judgment[] {
-  useSyncExternalStore(
+  return useSyncExternalStore(
     (cb) => {
-      const h = () => cb();
-      window.addEventListener(EVENT, h);
-      window.addEventListener("storage", h);
+      listeners.add(cb);
+      if (!fetched) void refreshJudgments();
       return () => {
-        window.removeEventListener(EVENT, h);
-        window.removeEventListener("storage", h);
+        listeners.delete(cb);
       };
     },
-    () => window.localStorage.getItem(STORAGE_KEY) ?? "",
-    () => "",
+    () => cache,
+    () => cache,
   );
-  return listJudgments();
+}
+
+// ---------- Mutations ----------
+
+export async function upsertJudgment(
+  input: Omit<Judgment, "id" | "createdAt" | "updatedAt"> & { id?: string },
+): Promise<void> {
+  const row = {
+    course_id: input.courseId,
+    user_id: input.userId,
+    region: input.region,
+    decision: DECISION_TO_DB[input.decision],
+    updates_required: input.updatesNeeded ?? null,
+    priority: input.priority,
+    notes: input.reason,
+  };
+  await supabase
+    .from("judgments")
+    .upsert(row, { onConflict: "course_id,user_id" });
+  await refreshJudgments();
+}
+
+export async function deleteJudgment(
+  courseId: string,
+  userId: string,
+): Promise<void> {
+  await supabase
+    .from("judgments")
+    .delete()
+    .eq("course_id", courseId)
+    .eq("user_id", userId);
+  await refreshJudgments();
 }
 
 export function findUserJudgment(
@@ -120,6 +164,9 @@ export function findUserJudgment(
   return judgments.find((j) => j.courseId === courseId && j.userId === userId);
 }
 
-export function judgmentsForCourse(judgments: Judgment[], courseId: string): Judgment[] {
+export function judgmentsForCourse(
+  judgments: Judgment[],
+  courseId: string,
+): Judgment[] {
   return judgments.filter((j) => j.courseId === courseId);
 }
