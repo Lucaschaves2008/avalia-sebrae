@@ -280,10 +280,14 @@ function notify() {
 }
 
 async function fetchAll(): Promise<Course[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("courses")
     .select("*")
     .order("solution_name", { ascending: true });
+  if (error) {
+    console.error("[courses] fetchAll error:", error);
+    return [];
+  }
   return ((data ?? []) as DbCourse[]).map(rowToCourse);
 }
 
