@@ -950,7 +950,9 @@ function InfoRow({
   );
 }
 
-function MaterialsChecklist({ materials }: { materials: CourseMaterials }) {
+function MaterialsChecklist({ course }: { course: Course }) {
+  const materials = course.materials;
+  const readiness = computeMaterialReadiness(course);
   const items = Object.keys(MATERIAL_LABELS) as (keyof CourseMaterials)[];
   const done = items.filter((k) => materials[k]).length;
   const pct = Math.round((done / items.length) * 100);
