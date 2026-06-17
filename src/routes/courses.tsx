@@ -687,32 +687,43 @@ function CourseCard({
   const fgvScores = Object.values(course.fgv);
   const saCount = fgvScores.filter((v) => v === "SA").length;
 
+  const judged = !!userJudgment;
   return (
     <button
       onClick={onOpen}
-      className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[var(--shadow-elegant)]"
+      className={`group relative flex flex-col overflow-hidden rounded-xl border bg-card text-left shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-elegant)] ${
+        showJudgmentStatus
+          ? judged
+            ? "border-emerald-300 hover:border-emerald-400"
+            : "border-rose-300 hover:border-rose-400"
+          : "border-border hover:border-primary/30"
+      }`}
     >
-      <div className="h-1.5 w-full bg-gradient-to-r from-primary via-primary/60 to-secondary" />
-      {showJudgmentStatus && (
-        <div className="absolute right-3 top-4 z-10">
-          {userJudgment ? (
-            <Badge
-              variant="outline"
-              className="border-emerald-300 bg-emerald-50 text-emerald-800 shadow-sm"
-            >
-              <ClipboardCheck className="mr-1 h-3 w-3" />
-              Julgado
-            </Badge>
+      {showJudgmentStatus ? (
+        <div
+          className={`flex w-full items-center justify-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white ${
+            judged ? "bg-emerald-600" : "bg-rose-600"
+          }`}
+        >
+          {judged ? (
+            <>
+              <ClipboardCheck className="h-3.5 w-3.5" />
+              Julgamento concluído
+              {userJudgment?.decision && (
+                <span className="ml-1 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold">
+                  {DECISION_LABELS[userJudgment.decision] ?? userJudgment.decision}
+                </span>
+              )}
+            </>
           ) : (
-            <Badge
-              variant="outline"
-              className="border-amber-300 bg-amber-50 text-amber-800 shadow-sm"
-            >
-              <Clock className="mr-1 h-3 w-3" />
-              Pendente
-            </Badge>
+            <>
+              <Clock className="h-3.5 w-3.5" />
+              Pendente de julgamento — clique para avaliar
+            </>
           )}
         </div>
+      ) : (
+        <div className="h-1.5 w-full bg-gradient-to-r from-primary via-primary/60 to-secondary" />
       )}
       <div className="flex flex-1 flex-col p-5">
         <div className="mb-3 flex items-start justify-between gap-2">
