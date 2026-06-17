@@ -963,14 +963,17 @@ function MaterialsChecklist({ course }: { course: Course }) {
         <div className="flex items-end justify-between">
           <div>
             <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Materiais disponíveis
+              Índice de Prontidão de Materiais
             </div>
             <div className="mt-1 text-2xl font-bold text-foreground">
               {done}
               <span className="text-base font-normal text-muted-foreground"> / {items.length}</span>
             </div>
           </div>
-          <div className="text-sm font-semibold text-emerald-600">{pct}%</div>
+          <div className="flex flex-col items-end gap-1">
+            <ReadinessBadge result={readiness} />
+            <div className="text-sm font-semibold text-emerald-600">{pct}% prontos</div>
+          </div>
         </div>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-border">
           <div
