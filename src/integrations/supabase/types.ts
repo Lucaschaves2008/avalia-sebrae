@@ -14,16 +14,228 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      courses: {
+        Row: {
+          access_link: string | null
+          activation_date: string | null
+          age_months: number | null
+          bcg_classification: string | null
+          created_at: string
+          current_year_attendance: number | null
+          fgv_bncc: string | null
+          fgv_community: string | null
+          fgv_conceptual: string | null
+          fgv_context: string | null
+          fgv_entrecomp: string | null
+          fgv_learning_eval: string | null
+          fgv_life_project: string | null
+          fgv_socioemotional: string | null
+          fgv_transversal: string | null
+          fgv_visual: string | null
+          has_class_plans: boolean | null
+          has_consultant_manual: boolean | null
+          has_manager_manual: boolean | null
+          has_marketing_kit: boolean | null
+          has_moa: boolean | null
+          has_multiplicator_manual: boolean | null
+          has_slides: boolean | null
+          has_student_manual: boolean | null
+          has_teacher_guide: boolean | null
+          has_technical_sheet: boolean | null
+          id: string
+          ids_score: number | null
+          instrument: string | null
+          modality: string | null
+          solution_name: string
+          target_audience: string | null
+        }
+        Insert: {
+          access_link?: string | null
+          activation_date?: string | null
+          age_months?: number | null
+          bcg_classification?: string | null
+          created_at?: string
+          current_year_attendance?: number | null
+          fgv_bncc?: string | null
+          fgv_community?: string | null
+          fgv_conceptual?: string | null
+          fgv_context?: string | null
+          fgv_entrecomp?: string | null
+          fgv_learning_eval?: string | null
+          fgv_life_project?: string | null
+          fgv_socioemotional?: string | null
+          fgv_transversal?: string | null
+          fgv_visual?: string | null
+          has_class_plans?: boolean | null
+          has_consultant_manual?: boolean | null
+          has_manager_manual?: boolean | null
+          has_marketing_kit?: boolean | null
+          has_moa?: boolean | null
+          has_multiplicator_manual?: boolean | null
+          has_slides?: boolean | null
+          has_student_manual?: boolean | null
+          has_teacher_guide?: boolean | null
+          has_technical_sheet?: boolean | null
+          id: string
+          ids_score?: number | null
+          instrument?: string | null
+          modality?: string | null
+          solution_name: string
+          target_audience?: string | null
+        }
+        Update: {
+          access_link?: string | null
+          activation_date?: string | null
+          age_months?: number | null
+          bcg_classification?: string | null
+          created_at?: string
+          current_year_attendance?: number | null
+          fgv_bncc?: string | null
+          fgv_community?: string | null
+          fgv_conceptual?: string | null
+          fgv_context?: string | null
+          fgv_entrecomp?: string | null
+          fgv_learning_eval?: string | null
+          fgv_life_project?: string | null
+          fgv_socioemotional?: string | null
+          fgv_transversal?: string | null
+          fgv_visual?: string | null
+          has_class_plans?: boolean | null
+          has_consultant_manual?: boolean | null
+          has_manager_manual?: boolean | null
+          has_marketing_kit?: boolean | null
+          has_moa?: boolean | null
+          has_multiplicator_manual?: boolean | null
+          has_slides?: boolean | null
+          has_student_manual?: boolean | null
+          has_teacher_guide?: boolean | null
+          has_technical_sheet?: boolean | null
+          id?: string
+          ids_score?: number | null
+          instrument?: string | null
+          modality?: string | null
+          solution_name?: string
+          target_audience?: string | null
+        }
+        Relationships: []
+      }
+      judgments: {
+        Row: {
+          course_id: string
+          decision: string
+          id: string
+          notes: string
+          priority: string
+          region: string
+          updated_at: string
+          updates_required: string | null
+          user_id: string
+        }
+        Insert: {
+          course_id: string
+          decision: string
+          id?: string
+          notes: string
+          priority: string
+          region: string
+          updated_at?: string
+          updates_required?: string | null
+          user_id: string
+        }
+        Update: {
+          course_id?: string
+          decision?: string
+          id?: string
+          notes?: string
+          priority?: string
+          region?: string
+          updated_at?: string
+          updates_required?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "judgments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "judgments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_first_access: boolean | null
+          name: string
+          phone: string | null
+          region: string
+          unity: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          is_first_access?: boolean | null
+          name: string
+          phone?: string | null
+          region: string
+          unity: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_first_access?: boolean | null
+          name?: string
+          phone?: string | null
+          region?: string
+          unity?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "gestor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +362,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "gestor"],
+    },
   },
 } as const
