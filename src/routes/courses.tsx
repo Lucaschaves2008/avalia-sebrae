@@ -210,15 +210,20 @@ function CoursesPage() {
     try {
       const result = await parseCoursesCsv(file);
       if (result.courses.length === 0) {
-        toast.error("Nenhum curso válido encontrado no arquivo.");
+        setImportSummary({ imported: 0, skipped: result.skipped, errors: result.errors });
+        toast.error(
+          `0 cursos importados. ${result.errors.length} erro(s) encontrado(s).`,
+        );
       } else {
-        appendCourses(result.courses);
+        await appendCourses(result.courses);
         setImportSummary({
           imported: result.courses.length,
           skipped: result.skipped,
           errors: result.errors,
         });
-        toast.success(`${result.courses.length} curso(s) importado(s) com sucesso.`);
+        toast.success(
+          `${result.courses.length} curso(s) importado(s) com sucesso. ${result.errors.length} erro(s) encontrado(s).`,
+        );
       }
     } catch (err) {
       toast.error("Falha ao processar o CSV.");
@@ -228,6 +233,7 @@ function CoursesPage() {
       if (fileRef.current) fileRef.current.value = "";
     }
   }
+
 
   function clearFilters() {
     setQuery("");
