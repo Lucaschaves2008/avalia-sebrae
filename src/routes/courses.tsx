@@ -71,7 +71,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 
-import { AuthProvider, useAuth } from "@/lib/auth";
+import { AuthProvider, useAuth, type AuthUser } from "@/lib/auth";
 import {
   BCG_OPTIONS,
   FGV_FIELD_LABELS,
