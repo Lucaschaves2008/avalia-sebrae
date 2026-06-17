@@ -617,7 +617,17 @@ function BcgBadge({ value }: { value: BCG }) {
   );
 }
 
-function CourseCard({ course, onOpen }: { course: Course; onOpen: () => void }) {
+function CourseCard({
+  course,
+  onOpen,
+  userJudgment,
+  showJudgmentStatus,
+}: {
+  course: Course;
+  onOpen: () => void;
+  userJudgment?: Judgment;
+  showJudgmentStatus?: boolean;
+}) {
   const materialsCount = Object.values(course.materials).filter(Boolean).length;
   const totalMaterials = Object.keys(course.materials).length;
   const fgvScores = Object.values(course.fgv);
@@ -629,6 +639,27 @@ function CourseCard({ course, onOpen }: { course: Course; onOpen: () => void }) 
       className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[var(--shadow-elegant)]"
     >
       <div className="h-1.5 w-full bg-gradient-to-r from-primary via-primary/60 to-secondary" />
+      {showJudgmentStatus && (
+        <div className="absolute right-3 top-4 z-10">
+          {userJudgment ? (
+            <Badge
+              variant="outline"
+              className="border-emerald-300 bg-emerald-50 text-emerald-800 shadow-sm"
+            >
+              <ClipboardCheck className="mr-1 h-3 w-3" />
+              Julgado
+            </Badge>
+          ) : (
+            <Badge
+              variant="outline"
+              className="border-amber-300 bg-amber-50 text-amber-800 shadow-sm"
+            >
+              <Clock className="mr-1 h-3 w-3" />
+              Pendente
+            </Badge>
+          )}
+        </div>
+      )}
       <div className="flex flex-1 flex-col p-5">
         <div className="mb-3 flex items-start justify-between gap-2">
           <span className="rounded-md bg-muted px-2 py-0.5 font-mono text-[11px] text-muted-foreground">
@@ -636,6 +667,7 @@ function CourseCard({ course, onOpen }: { course: Course; onOpen: () => void }) 
           </span>
           {course.bcg && <BcgBadge value={course.bcg} />}
         </div>
+
 
         <h3 className="line-clamp-2 text-base font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">
           {course.solucao}
