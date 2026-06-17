@@ -853,6 +853,18 @@ function CourseDetailSheet({
                 <TabsContent value="fgv" className="mt-5">
                   <FgvPanel fgv={course.fgv} />
                 </TabsContent>
+
+                {/* Tab 4 — Julgamento */}
+                <TabsContent value="julgamento" className="mt-5">
+                  <JudgmentPanel
+                    course={course}
+                    currentUser={currentUser}
+                    isGestor={isGestor}
+                    isAdmin={isAdmin}
+                    judgments={judgments}
+                    myJudgment={myJudgment}
+                  />
+                </TabsContent>
               </Tabs>
             </div>
           </>
