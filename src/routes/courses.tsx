@@ -145,7 +145,7 @@ const FGV_STYLES: Record<FgvRating, { badge: string; dot: string; bar: string }>
 };
 
 function CoursesPage() {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
   const courses = useCoursesList();
   const judgments = useJudgmentsList();
@@ -170,13 +170,8 @@ function CoursesPage() {
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    if (user === null) {
-      const t = setTimeout(() => {
-        if (!user) navigate({ to: "/login" });
-      }, 50);
-      return () => clearTimeout(t);
-    }
-  }, [user, navigate]);
+    if (!loading && !user) navigate({ to: "/login" });
+  }, [loading, user, navigate]);
 
   const publicos = useMemo(
     () => Array.from(new Set(courses.map((c) => c.publicoAlvo).filter(Boolean))).sort(),
@@ -249,7 +244,7 @@ function CoursesPage() {
     modalidadeFilter !== "all" ||
     esforcoFilter !== "all";
 
-  if (!user) {
+  if (loading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
         Carregando...
