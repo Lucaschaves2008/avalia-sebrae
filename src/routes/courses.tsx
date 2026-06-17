@@ -73,10 +73,16 @@ import { Toaster } from "@/components/ui/sonner";
 
 import { AuthProvider, useAuth, type AuthUser } from "@/lib/auth";
 import {
+  appendCourses,
   BCG_OPTIONS,
   computeMaterialReadiness,
+  deleteCourse,
   downloadCsvTemplate,
   emptyCourse,
+  FGV_FIELD_LABELS,
+  FGV_LABELS,
+  FGV_OPTIONS,
+  MATERIAL_LABELS,
   parseCoursesCsv,
   upsertCourse,
   useCoursesList,
