@@ -74,12 +74,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider, useAuth, type AuthUser } from "@/lib/auth";
 import {
   BCG_OPTIONS,
-  FGV_FIELD_LABELS,
-  FGV_LABELS,
-  FGV_OPTIONS,
-  MATERIAL_LABELS,
-  appendCourses,
-  deleteCourse,
+  computeMaterialReadiness,
   downloadCsvTemplate,
   emptyCourse,
   parseCoursesCsv,
@@ -90,6 +85,8 @@ import {
   type CourseFgv,
   type CourseMaterials,
   type FgvRating,
+  type ReadinessLevel,
+  type ReadinessResult,
 } from "@/lib/courses";
 import { SebraeLogo } from "@/components/SebraeLogo";
 import {
