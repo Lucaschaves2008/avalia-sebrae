@@ -311,14 +311,28 @@ export function useCoursesList(): Course[] {
   );
 }
 
-export async function upsertCourse(course: Course): Promise<void> {
+export async function upsertCourse(course: Course, opts?: { isNew?: boolean }): Promise<void> {
   const row = courseToRow(course);
-  await supabase.from("courses").upsert(row);
+  if (!row.id) throw new Error("Código do produto é obrigatório.");
+  if (opts?.isNew) {
+    const { data: existing, error: checkErr } = await supabase
+      .from("courses")
+      .select("id")
+      .eq("id", row.id)
+      .maybeSingle();
+    if (checkErr) throw checkErr;
+    if (existing) {
+      throw new Error(`Já existe um curso cadastrado com o código "${row.id}".`);
+    }
+  }
+  const { error } = await supabase.from("courses").upsert(row);
+  if (error) throw error;
   await refreshCourses();
 }
 
 export async function deleteCourse(id: string): Promise<void> {
-  await supabase.from("courses").delete().eq("id", id);
+  const { error } = await supabase.from("courses").delete().eq("id", id);
+  if (error) throw error;
   await refreshCourses();
 }
 
@@ -328,18 +342,43 @@ export async function replaceCourses(next: Course[]): Promise<void> {
   const keepIds = new Set(next.map((c) => (c.codigo || c.id).trim()));
   const toRemove = existing.filter((c) => !keepIds.has(c.id)).map((c) => c.id);
   if (toRemove.length) {
-    await supabase.from("courses").delete().in("id", toRemove);
+    const { error } = await supabase.from("courses").delete().in("id", toRemove);
+    if (error) throw error;
   }
   if (next.length) {
-    await supabase.from("courses").upsert(next.map(courseToRow));
+    const { error } = await supabase.from("courses").upsert(next.map(courseToRow));
+    if (error) throw error;
   }
   await refreshCourses();
 }
 
-export async function appendCourses(next: Course[]): Promise<void> {
-  if (!next.length) return;
-  await supabase.from("courses").upsert(next.map(courseToRow));
+export async function appendCourses(next: Course[]): Promise<{ inserted: number; errors: string[] }> {
+  const errors: string[] = [];
+  let inserted = 0;
+  if (!next.length) return { inserted, errors };
+  const BATCH_SIZE = 500;
+  // Dedupe within the same import by id (last one wins)
+  const byId = new Map<string, ReturnType<typeof courseToRow>>();
+  for (const c of next) {
+    const row = courseToRow(c);
+    if (!row.id) continue;
+    byId.set(row.id, row);
+  }
+  const rows = Array.from(byId.values());
+  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+    const batch = rows.slice(i, i + BATCH_SIZE);
+    const { error, data } = await supabase
+      .from("courses")
+      .upsert(batch, { onConflict: "id" })
+      .select("id");
+    if (error) {
+      errors.push(`Lote ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`);
+    } else {
+      inserted += data?.length ?? batch.length;
+    }
+  }
   await refreshCourses();
+  return { inserted, errors };
 }
 
 // ---------- CSV import ----------
