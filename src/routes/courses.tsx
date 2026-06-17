@@ -145,7 +145,7 @@ const FGV_STYLES: Record<FgvRating, { badge: string; dot: string; bar: string }>
 };
 
 function CoursesPage() {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
   const courses = useCoursesList();
   const judgments = useJudgmentsList();
