@@ -54,8 +54,13 @@ export interface Course {
   atendimentosAno: number;
   ids: number;
   bcg: BCG | "";
+  dataHabilitacao: string; // ISO date (YYYY-MM-DD) ou texto livre
   materials: CourseMaterials;
   fgv: CourseFgv;
+  // Avaliação FGV — campos descritivos complementares
+  ferramentasInclusao: string;
+  sinteseAvaliacao: string;
+  pontosAtencao: string;
 }
 
 export const MATERIAL_LABELS: Record<keyof CourseMaterials, string> = {
@@ -132,8 +137,12 @@ export function emptyCourse(): Course {
     atendimentosAno: 0,
     ids: 0,
     bcg: "",
+    dataHabilitacao: "",
     materials: emptyMaterials(),
     fgv: emptyFgv(),
+    ferramentasInclusao: "",
+    sinteseAvaliacao: "",
+    pontosAtencao: "",
   };
 }
 
@@ -150,6 +159,7 @@ const SEED_COURSES: Course[] = [
     atendimentosAno: 12500,
     ids: 87,
     bcg: "Estrela",
+    dataHabilitacao: "2022-03-15",
     materials: {
       moa: true,
       planosAula: true,
@@ -174,6 +184,9 @@ const SEED_COURSES: Course[] = [
       aplicacaoTransversal: "PA",
       integracaoComunitaria: "PA",
     },
+    ferramentasInclusao: "Recursos em libras, materiais com fonte ampliada e versão audiodescrita disponíveis.",
+    sinteseAvaliacao: "Solução madura, com forte aderência à BNCC e ampla oferta de materiais de apoio.",
+    pontosAtencao: "Revisar atratividade visual dos slides e reforçar conexão com EntreComp.",
   },
   {
     id: "c-seed-2",
@@ -187,6 +200,7 @@ const SEED_COURSES: Course[] = [
     atendimentosAno: 4300,
     ids: 74,
     bcg: "Interrogação",
+    dataHabilitacao: "2023-09-01",
     materials: {
       moa: true,
       planosAula: false,
@@ -211,6 +225,9 @@ const SEED_COURSES: Course[] = [
       aplicacaoTransversal: "NAP",
       integracaoComunitaria: "NA",
     },
+    ferramentasInclusao: "Plataforma compatível com leitores de tela; ainda sem versão em libras.",
+    sinteseAvaliacao: "Oficina com bom potencial conceitual, porém com lacunas em verificação de aprendizagem.",
+    pontosAtencao: "Desenvolver instrumentos de avaliação e ampliar planos de aula.",
   },
 ];
 
@@ -316,6 +333,18 @@ const HEADER_ALIASES: Record<string, keyof Course | `mat:${keyof CourseMaterials
   "classificacao na matriz bcg": "bcg",
   "classificação na matriz bcg": "bcg",
   bcg: "bcg",
+  "data de habilitacao": "dataHabilitacao",
+  "data de habilitação": "dataHabilitacao",
+  "data habilitacao": "dataHabilitacao",
+  "data habilitação": "dataHabilitacao",
+  "ferramentas de inclusao": "ferramentasInclusao",
+  "ferramentas de inclusão": "ferramentasInclusao",
+  sintese: "sinteseAvaliacao",
+  síntese: "sinteseAvaliacao",
+  "sintese da avaliacao": "sinteseAvaliacao",
+  "síntese da avaliação": "sinteseAvaliacao",
+  "pontos de atencao": "pontosAtencao",
+  "pontos de atenção": "pontosAtencao",
   // materials
   "manual de operacao e aplicacao (moa)": "mat:moa",
   "manual de operação e aplicação (moa)": "mat:moa",
@@ -462,6 +491,7 @@ export const CSV_TEMPLATE = [
     "Atendimentos no ano atual",
     "IDS",
     "Classificação na matriz BCG",
+    "Data de Habilitação",
     "MOA",
     "Planos de Aula",
     "Manual do Consultor",
@@ -482,6 +512,9 @@ export const CSV_TEMPLATE = [
     "Projeto de Vida / Mundo do Trabalho",
     "Aplicação Transversal",
     "Integração Comunitária",
+    "Ferramentas de Inclusão",
+    "Síntese",
+    "Pontos de Atenção",
   ],
   [
     "EE-003",
@@ -494,6 +527,7 @@ export const CSV_TEMPLATE = [
     "850",
     "72",
     "Estrela",
+    "2024-02-10",
     "Sim",
     "Sim",
     "Não",
@@ -514,6 +548,9 @@ export const CSV_TEMPLATE = [
     "SA",
     "NAP",
     "NA",
+    "Conteúdo com versão em libras e materiais com fonte ampliada.",
+    "Curso bem estruturado, com forte aderência às competências.",
+    "Atenção ao alinhamento com a realidade local e à atratividade visual.",
   ],
 ];
 

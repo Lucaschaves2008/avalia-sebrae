@@ -852,6 +852,10 @@ function CourseDetailSheet({
                   <InfoRow label="Instrumento" value={course.instrumento || "—"} />
                   <InfoRow label="Modalidade" value={course.modalidade || "—"} />
                   <InfoRow label="Classificação BCG" value={course.bcg || "—"} />
+                  <InfoRow
+                    label="Data de habilitação"
+                    value={formatHabilitacao(course.dataHabilitacao)}
+                  />
 
                   <div className="rounded-lg border border-border bg-muted/30 p-4">
                     <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -893,7 +897,7 @@ function CourseDetailSheet({
 
                 {/* Tab 3 — FGV */}
                 <TabsContent value="fgv" className="mt-5">
-                  <FgvPanel fgv={course.fgv} />
+                  <FgvPanel course={course} />
                 </TabsContent>
 
                 {/* Tab 4 — Julgamento */}
@@ -1027,7 +1031,8 @@ function MaterialsChecklist({ course }: { course: Course }) {
   );
 }
 
-function FgvPanel({ fgv }: { fgv: CourseFgv }) {
+function FgvPanel({ course }: { course: Course }) {
+  const fgv = course.fgv;
   const items = Object.keys(FGV_FIELD_LABELS) as (keyof CourseFgv)[];
   const counts: Record<FgvRating, number> = { SA: 0, PA: 0, NA: 0, NAP: 0 };
   for (const k of items) counts[fgv[k]]++;
@@ -1088,6 +1093,25 @@ function FgvPanel({ fgv }: { fgv: CourseFgv }) {
         })}
       </div>
 
+      {/* Campos descritivos complementares */}
+      <div className="space-y-3">
+        <FgvTextBlock
+          label="Ferramentas de Inclusão"
+          value={course.ferramentasInclusao}
+          tone="sky"
+        />
+        <FgvTextBlock
+          label="Síntese"
+          value={course.sinteseAvaliacao}
+          tone="emerald"
+        />
+        <FgvTextBlock
+          label="Pontos de Atenção"
+          value={course.pontosAtencao}
+          tone="amber"
+        />
+      </div>
+
       {/* Legend */}
       <div className="rounded-lg border border-dashed border-border bg-muted/20 p-3">
         <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -1105,6 +1129,39 @@ function FgvPanel({ fgv }: { fgv: CourseFgv }) {
       </div>
     </div>
   );
+}
+
+function FgvTextBlock({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "sky" | "emerald" | "amber";
+}) {
+  const tones: Record<typeof tone, string> = {
+    sky: "border-sky-200 bg-sky-50/60 text-sky-900",
+    emerald: "border-emerald-200 bg-emerald-50/60 text-emerald-900",
+    amber: "border-amber-200 bg-amber-50/60 text-amber-900",
+  };
+  return (
+    <div className={`rounded-lg border p-3 ${tones[tone]}`}>
+      <div className="text-[11px] font-semibold uppercase tracking-wide opacity-80">
+        {label}
+      </div>
+      <div className="mt-1 whitespace-pre-wrap text-sm">
+        {value?.trim() ? value : <span className="opacity-60">Não informado.</span>}
+      </div>
+    </div>
+  );
+}
+
+function formatHabilitacao(value: string): string {
+  if (!value) return "—";
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+  return value;
 }
 
 function CourseEditDialog({
@@ -1196,7 +1253,7 @@ function CourseEditDialog({
                 onChange={(e) => update("ids", Number(e.target.value))}
               />
             </Field>
-            <Field label="Classificação BCG" className="sm:col-span-2">
+            <Field label="Classificação BCG">
               <Select
                 value={form.bcg || "none"}
                 onValueChange={(v) => update("bcg", v === "none" ? "" : (v as BCG))}
@@ -1213,6 +1270,13 @@ function CourseEditDialog({
                   ))}
                 </SelectContent>
               </Select>
+            </Field>
+            <Field label="Data de habilitação">
+              <Input
+                type="date"
+                value={form.dataHabilitacao}
+                onChange={(e) => update("dataHabilitacao", e.target.value)}
+              />
             </Field>
           </TabsContent>
 
@@ -1260,6 +1324,32 @@ function CourseEditDialog({
                 </Select>
               </div>
             ))}
+
+            <div className="mt-4 space-y-4 border-t border-border pt-4">
+              <Field label="Ferramentas de Inclusão">
+                <Input
+                  value={form.ferramentasInclusao}
+                  onChange={(e) => update("ferramentasInclusao", e.target.value)}
+                  placeholder="Ex.: versão em libras, audiodescrição, fonte ampliada..."
+                />
+              </Field>
+              <Field label="Síntese">
+                <Textarea
+                  rows={3}
+                  value={form.sinteseAvaliacao}
+                  onChange={(e) => update("sinteseAvaliacao", e.target.value)}
+                  placeholder="Síntese geral da avaliação..."
+                />
+              </Field>
+              <Field label="Pontos de Atenção">
+                <Textarea
+                  rows={3}
+                  value={form.pontosAtencao}
+                  onChange={(e) => update("pontosAtencao", e.target.value)}
+                  placeholder="Aspectos que precisam de revisão ou acompanhamento..."
+                />
+              </Field>
+            </div>
           </TabsContent>
         </Tabs>
 
