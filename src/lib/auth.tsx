@@ -7,8 +7,8 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { adminCreateUser } from "@/lib/admin-users.functions";
 
 export type UserRole = "admin" | "gestor";
 export type Region = "Norte" | "Nordeste" | "Centro-Oeste" | "Sudeste" | "Sul";
@@ -107,51 +107,36 @@ export function useUsersList(): AuthUser[] {
 export async function createUser(
   input: UserInput,
 ): Promise<{ ok: true; user: AuthUser } | { ok: false; error: string }> {
-  // Use a transient supabase client so the admin's session is not replaced.
-  const url = import.meta.env.VITE_SUPABASE_URL as string;
-  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
-  const tmp = createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
-  });
-  const { data, error } = await tmp.auth.signUp({
-    email: input.email,
-    password: DEFAULT_PASSWORD,
-    options: {
-      emailRedirectTo: `${window.location.origin}/login`,
+  try {
+    const res = await adminCreateUser({
       data: {
         name: input.name,
+        email: input.email.trim(),
         phone: input.phone,
-        unity: input.unit,
+        unit: input.unit,
         region: input.region,
+        role: input.role,
+        password: DEFAULT_PASSWORD,
       },
-    },
-  });
-  if (error) return { ok: false, error: error.message };
-  if (!data.user) return { ok: false, error: "Não foi possível criar o usuário." };
-
-  if (input.role === "admin") {
-    const { error: rErr } = await supabase.rpc("set_user_role", {
-      _user_id: data.user.id,
-      _role: "admin",
     });
-    if (rErr) return { ok: false, error: rErr.message };
+    await refreshUsers();
+    return {
+      ok: true,
+      user: {
+        id: res.userId,
+        email: input.email,
+        name: input.name,
+        phone: input.phone,
+        unit: input.unit,
+        region: input.region,
+        role: input.role,
+        status: "Ativo",
+        isFirstAccess: true,
+      },
+    };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Erro ao criar usuário." };
   }
-
-  await refreshUsers();
-  return {
-    ok: true,
-    user: {
-      id: data.user.id,
-      email: input.email,
-      name: input.name,
-      phone: input.phone,
-      unit: input.unit,
-      region: input.region,
-      role: input.role,
-      status: "Ativo",
-      isFirstAccess: true,
-    },
-  };
 }
 
 export async function updateUser(
