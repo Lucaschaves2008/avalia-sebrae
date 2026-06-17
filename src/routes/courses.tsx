@@ -384,7 +384,7 @@ function CoursesPage() {
                 className="h-10 pl-9"
               />
             </div>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
               <Select value={publicoFilter} onValueChange={setPublicoFilter}>
                 <SelectTrigger className="h-10">
                   <SelectValue placeholder="Público-alvo" />
@@ -422,6 +422,17 @@ function CoursesPage() {
                       {b}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              <Select value={esforcoFilter} onValueChange={setEsforcoFilter}>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Esforço de confecção" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os níveis</SelectItem>
+                  <SelectItem value="pronto">Pronto / Baixo Esforço</SelectItem>
+                  <SelectItem value="medio">Médio Esforço</SelectItem>
+                  <SelectItem value="alto">Alto Esforço</SelectItem>
                 </SelectContent>
               </Select>
             </div>
