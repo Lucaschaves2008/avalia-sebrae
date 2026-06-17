@@ -2,10 +2,13 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
+  ArrowUpRight,
   CheckCircle2,
   Download,
-  Eye,
+  ExternalLink,
   FileSpreadsheet,
+  LayoutGrid,
+  List,
   Pencil,
   Plus,
   Search,
@@ -43,6 +46,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -53,6 +63,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -90,6 +101,30 @@ export const Route = createFileRoute("/courses")({
   ),
 });
 
+// FGV color tokens — SA verde, PA amarelo, NA vermelho, NAP azul claro
+const FGV_STYLES: Record<FgvRating, { badge: string; dot: string; bar: string }> = {
+  SA: {
+    badge: "border-emerald-300 bg-emerald-50 text-emerald-800",
+    dot: "bg-emerald-500",
+    bar: "bg-emerald-500",
+  },
+  PA: {
+    badge: "border-amber-300 bg-amber-50 text-amber-800",
+    dot: "bg-amber-500",
+    bar: "bg-amber-500",
+  },
+  NA: {
+    badge: "border-rose-300 bg-rose-50 text-rose-800",
+    dot: "bg-rose-500",
+    bar: "bg-rose-500",
+  },
+  NAP: {
+    badge: "border-sky-300 bg-sky-50 text-sky-800",
+    dot: "bg-sky-400",
+    bar: "bg-sky-400",
+  },
+};
+
 function CoursesPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -98,7 +133,10 @@ function CoursesPage() {
 
   const [query, setQuery] = useState("");
   const [bcgFilter, setBcgFilter] = useState<string>("all");
-  const [viewing, setViewing] = useState<Course | null>(null);
+  const [publicoFilter, setPublicoFilter] = useState<string>("all");
+  const [modalidadeFilter, setModalidadeFilter] = useState<string>("all");
+  const [view, setView] = useState<"cards" | "table">("cards");
+  const [detail, setDetail] = useState<Course | null>(null);
   const [editing, setEditing] = useState<Course | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Course | null>(null);
   const [importing, setImporting] = useState(false);
@@ -118,10 +156,21 @@ function CoursesPage() {
     }
   }, [user, navigate]);
 
+  const publicos = useMemo(
+    () => Array.from(new Set(courses.map((c) => c.publicoAlvo).filter(Boolean))).sort(),
+    [courses],
+  );
+  const modalidades = useMemo(
+    () => Array.from(new Set(courses.map((c) => c.modalidade).filter(Boolean))).sort(),
+    [courses],
+  );
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return courses.filter((c) => {
       if (bcgFilter !== "all" && c.bcg !== bcgFilter) return false;
+      if (publicoFilter !== "all" && c.publicoAlvo !== publicoFilter) return false;
+      if (modalidadeFilter !== "all" && c.modalidade !== modalidadeFilter) return false;
       if (!q) return true;
       return (
         c.solucao.toLowerCase().includes(q) ||
@@ -130,7 +179,7 @@ function CoursesPage() {
         c.modalidade.toLowerCase().includes(q)
       );
     });
-  }, [courses, query, bcgFilter]);
+  }, [courses, query, bcgFilter, publicoFilter, modalidadeFilter]);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -158,6 +207,19 @@ function CoursesPage() {
       if (fileRef.current) fileRef.current.value = "";
     }
   }
+
+  function clearFilters() {
+    setQuery("");
+    setBcgFilter("all");
+    setPublicoFilter("all");
+    setModalidadeFilter("all");
+  }
+
+  const hasFilters =
+    !!query ||
+    bcgFilter !== "all" ||
+    publicoFilter !== "all" ||
+    modalidadeFilter !== "all";
 
   if (!user) {
     return (
@@ -282,20 +344,47 @@ function CoursesPage() {
           </div>
         )}
 
-        <div className="rounded-xl border border-border bg-card shadow-[var(--shadow-card)]">
-          <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-1 flex-col gap-2 sm:flex-row">
-              <div className="relative w-full sm:max-w-sm">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Buscar por código, solução, público..."
-                  className="h-10 pl-9"
-                />
-              </div>
+        {/* Filters bar */}
+        <div className="mb-5 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar por código, solução, público..."
+                className="h-10 pl-9"
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <Select value={publicoFilter} onValueChange={setPublicoFilter}>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Público-alvo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os públicos</SelectItem>
+                  {publicos.map((p) => (
+                    <SelectItem key={p} value={p}>
+                      {p}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={modalidadeFilter} onValueChange={setModalidadeFilter}>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Modalidade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as modalidades</SelectItem>
+                  {modalidades.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {m}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Select value={bcgFilter} onValueChange={setBcgFilter}>
-                <SelectTrigger className="h-10 w-full sm:w-48">
+                <SelectTrigger className="h-10">
                   <SelectValue placeholder="Matriz BCG" />
                 </SelectTrigger>
                 <SelectContent>
@@ -308,12 +397,55 @@ function CoursesPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="text-xs text-muted-foreground">
-              {filtered.length} de {courses.length} cursos
-            </div>
           </div>
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <div className="text-xs text-muted-foreground">
+              <span className="font-semibold text-foreground">{filtered.length}</span> de{" "}
+              {courses.length} cursos
+              {hasFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="ml-2 font-medium text-primary hover:underline"
+                >
+                  Limpar filtros
+                </button>
+              )}
+            </div>
+            <ToggleGroup
+              type="single"
+              value={view}
+              onValueChange={(v) => v && setView(v as "cards" | "table")}
+              className="rounded-md border border-border bg-muted/30 p-0.5"
+            >
+              <ToggleGroupItem value="cards" aria-label="Cartões" className="h-8 px-3">
+                <LayoutGrid className="h-4 w-4" />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="table" aria-label="Tabela" className="h-8 px-3">
+                <List className="h-4 w-4" />
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+        </div>
 
-          <div className="overflow-x-auto">
+        {/* Empty state */}
+        {filtered.length === 0 && (
+          <div className="rounded-xl border border-dashed border-border bg-card p-16 text-center">
+            <p className="text-sm text-muted-foreground">Nenhum curso encontrado.</p>
+          </div>
+        )}
+
+        {/* Cards view */}
+        {filtered.length > 0 && view === "cards" && (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {filtered.map((c) => (
+              <CourseCard key={c.id} course={c} onOpen={() => setDetail(c)} />
+            ))}
+          </div>
+        )}
+
+        {/* Table view */}
+        {filtered.length > 0 && view === "table" && (
+          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-card)]">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40">
@@ -328,79 +460,76 @@ function CoursesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="py-12 text-center text-sm text-muted-foreground">
-                      Nenhum curso encontrado.
+                {filtered.map((c) => (
+                  <TableRow
+                    key={c.id}
+                    className="cursor-pointer hover:bg-muted/30"
+                    onClick={() => setDetail(c)}
+                  >
+                    <TableCell className="font-mono text-xs">{c.codigo}</TableCell>
+                    <TableCell>
+                      <div className="font-medium text-foreground">{c.solucao}</div>
+                      {c.instrumento && (
+                        <div className="text-xs text-muted-foreground">{c.instrumento}</div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm">{c.publicoAlvo}</TableCell>
+                    <TableCell className="text-sm">{c.modalidade}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {c.atendimentosAno.toLocaleString("pt-BR")}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{c.ids}</TableCell>
+                    <TableCell>
+                      {c.bcg ? (
+                        <BcgBadge value={c.bcg} />
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex justify-end gap-1">
+                        {isAdmin && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              onClick={() => setEditing(c)}
+                              aria-label="Editar"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={() => setConfirmDelete(c)}
+                              aria-label="Excluir"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
-                ) : (
-                  filtered.map((c) => (
-                    <TableRow key={c.id} className="hover:bg-muted/30">
-                      <TableCell className="font-mono text-xs">{c.codigo}</TableCell>
-                      <TableCell>
-                        <div className="font-medium text-foreground">{c.solucao}</div>
-                        {c.instrumento && (
-                          <div className="text-xs text-muted-foreground">{c.instrumento}</div>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-sm">{c.publicoAlvo}</TableCell>
-                      <TableCell className="text-sm">{c.modalidade}</TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {c.atendimentosAno.toLocaleString("pt-BR")}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">{c.ids}</TableCell>
-                      <TableCell>
-                        {c.bcg ? <BcgBadge value={c.bcg} /> : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-primary"
-                            onClick={() => setViewing(c)}
-                            aria-label="Detalhes"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {isAdmin && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-primary"
-                                onClick={() => setEditing(c)}
-                                aria-label="Editar"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                onClick={() => setConfirmDelete(c)}
-                                aria-label="Excluir"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
+                ))}
               </TableBody>
             </Table>
           </div>
-        </div>
+        )}
       </main>
 
-      {/* View dialog */}
-      <CourseViewDialog course={viewing} onClose={() => setViewing(null)} />
+      {/* Detail Sheet */}
+      <CourseDetailSheet
+        course={detail}
+        onClose={() => setDetail(null)}
+        isAdmin={isAdmin}
+        onEdit={(c) => {
+          setDetail(null);
+          setEditing(c);
+        }}
+      />
 
       {/* Edit dialog (admin) */}
       {isAdmin && (
@@ -461,109 +590,382 @@ function BcgBadge({ value }: { value: BCG }) {
   );
 }
 
-function FgvBadge({ value }: { value: FgvRating }) {
-  const styles: Record<FgvRating, string> = {
-    SA: "border-emerald-300 bg-emerald-50 text-emerald-800",
-    PA: "border-amber-300 bg-amber-50 text-amber-800",
-    NA: "border-rose-300 bg-rose-50 text-rose-800",
-    NAP: "border-zinc-300 bg-zinc-100 text-zinc-600",
-  };
+function CourseCard({ course, onOpen }: { course: Course; onOpen: () => void }) {
+  const materialsCount = Object.values(course.materials).filter(Boolean).length;
+  const totalMaterials = Object.keys(course.materials).length;
+  const fgvScores = Object.values(course.fgv);
+  const saCount = fgvScores.filter((v) => v === "SA").length;
+
   return (
-    <Badge variant="outline" className={styles[value]}>
-      {value}
-    </Badge>
+    <button
+      onClick={onOpen}
+      className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[var(--shadow-elegant)]"
+    >
+      <div className="h-1.5 w-full bg-gradient-to-r from-primary via-primary/60 to-secondary" />
+      <div className="flex flex-1 flex-col p-5">
+        <div className="mb-3 flex items-start justify-between gap-2">
+          <span className="rounded-md bg-muted px-2 py-0.5 font-mono text-[11px] text-muted-foreground">
+            {course.codigo || "—"}
+          </span>
+          {course.bcg && <BcgBadge value={course.bcg} />}
+        </div>
+
+        <h3 className="line-clamp-2 text-base font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">
+          {course.solucao}
+        </h3>
+
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {course.publicoAlvo && (
+            <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/10">
+              {course.publicoAlvo}
+            </Badge>
+          )}
+          {course.modalidade && (
+            <Badge variant="outline" className="border-border text-muted-foreground">
+              {course.modalidade}
+            </Badge>
+          )}
+          {course.instrumento && (
+            <Badge variant="outline" className="border-border text-muted-foreground">
+              {course.instrumento}
+            </Badge>
+          )}
+        </div>
+
+        <div className="mt-5 grid grid-cols-3 gap-3 border-t border-border pt-4">
+          <MiniStat label="Atendimentos" value={course.atendimentosAno.toLocaleString("pt-BR")} />
+          <MiniStat label="IDS" value={String(course.ids)} />
+          <MiniStat label="Idade" value={`${course.idadeMeses}m`} />
+        </div>
+
+        <div className="mt-4 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-3">
+            <span className="text-muted-foreground">
+              <span className="font-semibold text-foreground">{materialsCount}</span>
+              <span className="text-muted-foreground">/{totalMaterials}</span> materiais
+            </span>
+            <span className="text-muted-foreground">
+              <span className="font-semibold text-emerald-600">{saCount}</span>
+              <span className="text-muted-foreground">/10</span> SA
+            </span>
+          </div>
+          <span className="inline-flex items-center gap-1 font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
+            Detalhes
+            <ArrowUpRight className="h-3.5 w-3.5" />
+          </span>
+        </div>
+      </div>
+    </button>
   );
 }
 
-function CourseViewDialog({ course, onClose }: { course: Course | null; onClose: () => void }) {
+function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <Dialog open={!!course} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
+    <div>
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="text-sm font-semibold tabular-nums text-foreground">{value}</div>
+    </div>
+  );
+}
+
+function CourseDetailSheet({
+  course,
+  onClose,
+  isAdmin,
+  onEdit,
+}: {
+  course: Course | null;
+  onClose: () => void;
+  isAdmin: boolean;
+  onEdit: (c: Course) => void;
+}) {
+  return (
+    <Sheet open={!!course} onOpenChange={(o) => !o && onClose()}>
+      <SheetContent className="w-full overflow-y-auto p-0 sm:max-w-xl">
         {course && (
           <>
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <span className="font-mono text-xs text-muted-foreground">{course.codigo}</span>
-                <span>{course.solucao}</span>
-              </DialogTitle>
-              <DialogDescription>
-                {course.publicoAlvo} • {course.modalidade} • {course.instrumento}
-              </DialogDescription>
-            </DialogHeader>
+            <div
+              className="px-6 pb-6 pt-8 text-white"
+              style={{ background: "var(--gradient-primary)" }}
+            >
+              <div className="mb-3 flex items-center gap-2">
+                <span className="rounded-md bg-white/15 px-2 py-0.5 font-mono text-[11px] backdrop-blur">
+                  {course.codigo || "—"}
+                </span>
+                {course.bcg && (
+                  <Badge className="border-0 bg-secondary text-primary hover:bg-secondary">
+                    {course.bcg}
+                  </Badge>
+                )}
+              </div>
+              <SheetHeader className="space-y-1 p-0 text-left">
+                <SheetTitle className="text-xl font-bold text-white">
+                  {course.solucao}
+                </SheetTitle>
+                <SheetDescription className="text-white/70">
+                  {[course.publicoAlvo, course.modalidade, course.instrumento]
+                    .filter(Boolean)
+                    .join(" • ")}
+                </SheetDescription>
+              </SheetHeader>
 
-            <div className="grid grid-cols-2 gap-4 rounded-lg border border-border bg-muted/30 p-4 sm:grid-cols-4">
-              <Stat label="Idade (meses)" value={String(course.idadeMeses)} />
-              <Stat label="Atendimentos" value={course.atendimentosAno.toLocaleString("pt-BR")} />
-              <Stat label="IDS" value={String(course.ids)} />
-              <Stat label="BCG" value={course.bcg || "—"} />
+              <div className="mt-5 grid grid-cols-3 gap-3 rounded-lg bg-white/10 p-3 backdrop-blur">
+                <HeaderStat label="Atendimentos" value={course.atendimentosAno.toLocaleString("pt-BR")} />
+                <HeaderStat label="IDS" value={String(course.ids)} />
+                <HeaderStat label="Idade" value={`${course.idadeMeses} meses`} />
+              </div>
             </div>
 
-            {course.link && (
-              <a
-                href={course.link}
-                target="_blank"
-                rel="noreferrer"
-                className="text-sm font-medium text-primary hover:underline"
-              >
-                Abrir solução →
-              </a>
-            )}
+            <div className="px-6 py-6">
+              <Tabs defaultValue="info">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="info">Informações</TabsTrigger>
+                  <TabsTrigger value="materiais">Materiais</TabsTrigger>
+                  <TabsTrigger value="fgv">Avaliação FGV</TabsTrigger>
+                </TabsList>
 
-            <div>
-              <h3 className="mb-3 text-sm font-semibold text-foreground">Materiais Existentes</h3>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {(Object.keys(MATERIAL_LABELS) as (keyof CourseMaterials)[]).map((k) => (
-                  <div key={k} className="flex items-center gap-2 text-sm">
-                    {course.materials[k] ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                {/* Tab 1 — Info */}
+                <TabsContent value="info" className="mt-5 space-y-5">
+                  <InfoRow label="Código do Produto" value={course.codigo || "—"} mono />
+                  <InfoRow label="Solução Educacional" value={course.solucao} />
+                  <InfoRow label="Público-alvo" value={course.publicoAlvo || "—"} />
+                  <InfoRow label="Instrumento" value={course.instrumento || "—"} />
+                  <InfoRow label="Modalidade" value={course.modalidade || "—"} />
+                  <InfoRow label="Classificação BCG" value={course.bcg || "—"} />
+
+                  <div className="rounded-lg border border-border bg-muted/30 p-4">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Link de acesso
+                    </div>
+                    {course.link ? (
+                      <a
+                        href={course.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-2 inline-flex items-center gap-1.5 break-all text-sm font-medium text-primary hover:underline"
+                      >
+                        {course.link}
+                        <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                      </a>
                     ) : (
-                      <XCircle className="h-4 w-4 text-zinc-400" />
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        Nenhum link cadastrado.
+                      </div>
                     )}
-                    <span className={course.materials[k] ? "text-foreground" : "text-muted-foreground"}>
-                      {MATERIAL_LABELS[k]}
-                    </span>
                   </div>
-                ))}
-              </div>
-            </div>
 
-            <div>
-              <h3 className="mb-3 text-sm font-semibold text-foreground">
-                Avaliação Qualitativa FGV
-              </h3>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {(Object.keys(FGV_FIELD_LABELS) as (keyof CourseFgv)[]).map((k) => (
-                  <div
-                    key={k}
-                    className="flex items-center justify-between rounded-md border border-border bg-card px-3 py-2 text-sm"
-                  >
-                    <span className="text-foreground">{FGV_FIELD_LABELS[k]}</span>
-                    <FgvBadge value={course.fgv[k]} />
-                  </div>
-                ))}
-              </div>
-              <div className="mt-3 text-xs text-muted-foreground">
-                Legenda:{" "}
-                {FGV_OPTIONS.map((o, i) => (
-                  <span key={o}>
-                    <strong>{o}</strong> {FGV_LABELS[o]}
-                    {i < FGV_OPTIONS.length - 1 ? " • " : ""}
-                  </span>
-                ))}
-              </div>
+                  {isAdmin && (
+                    <Button
+                      variant="outline"
+                      onClick={() => onEdit(course)}
+                      className="w-full"
+                    >
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Editar curso
+                    </Button>
+                  )}
+                </TabsContent>
+
+                {/* Tab 2 — Materials */}
+                <TabsContent value="materiais" className="mt-5">
+                  <MaterialsChecklist materials={course.materials} />
+                </TabsContent>
+
+                {/* Tab 3 — FGV */}
+                <TabsContent value="fgv" className="mt-5">
+                  <FgvPanel fgv={course.fgv} />
+                </TabsContent>
+              </Tabs>
             </div>
           </>
         )}
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function HeaderStat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="mt-1 font-semibold text-foreground">{value}</div>
+      <div className="text-[10px] uppercase tracking-wide text-white/60">{label}</div>
+      <div className="mt-0.5 text-base font-semibold tabular-nums text-white">{value}</div>
+    </div>
+  );
+}
+
+function InfoRow({
+  label,
+  value,
+  mono,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 border-b border-border pb-3 last:border-0">
+      <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </div>
+      <div
+        className={`text-right text-sm font-medium text-foreground ${
+          mono ? "font-mono text-xs" : ""
+        }`}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function MaterialsChecklist({ materials }: { materials: CourseMaterials }) {
+  const items = Object.keys(MATERIAL_LABELS) as (keyof CourseMaterials)[];
+  const done = items.filter((k) => materials[k]).length;
+  const pct = Math.round((done / items.length) * 100);
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg border border-border bg-muted/30 p-4">
+        <div className="flex items-end justify-between">
+          <div>
+            <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Materiais disponíveis
+            </div>
+            <div className="mt-1 text-2xl font-bold text-foreground">
+              {done}
+              <span className="text-base font-normal text-muted-foreground"> / {items.length}</span>
+            </div>
+          </div>
+          <div className="text-sm font-semibold text-emerald-600">{pct}%</div>
+        </div>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-border">
+          <div
+            className="h-full rounded-full bg-emerald-500 transition-all"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
+
+      <ul className="space-y-2">
+        {items.map((k) => {
+          const ok = materials[k];
+          return (
+            <li
+              key={k}
+              className={`flex items-center justify-between gap-3 rounded-md border px-3 py-2.5 transition-colors ${
+                ok
+                  ? "border-emerald-200 bg-emerald-50/60"
+                  : "border-border bg-card"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                {ok ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                ) : (
+                  <XCircle className="h-4 w-4 text-zinc-400" />
+                )}
+                <span
+                  className={`text-sm ${
+                    ok ? "font-medium text-foreground" : "text-muted-foreground"
+                  }`}
+                >
+                  {MATERIAL_LABELS[k]}
+                </span>
+              </div>
+              <Badge
+                variant="outline"
+                className={
+                  ok
+                    ? "border-emerald-300 bg-emerald-100 text-emerald-800"
+                    : "border-zinc-300 bg-zinc-100 text-zinc-500"
+                }
+              >
+                {ok ? "Disponível" : "Indisponível"}
+              </Badge>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+function FgvPanel({ fgv }: { fgv: CourseFgv }) {
+  const items = Object.keys(FGV_FIELD_LABELS) as (keyof CourseFgv)[];
+  const counts: Record<FgvRating, number> = { SA: 0, PA: 0, NA: 0, NAP: 0 };
+  for (const k of items) counts[fgv[k]]++;
+
+  return (
+    <div className="space-y-5">
+      {/* Summary bar */}
+      <div className="rounded-lg border border-border bg-muted/30 p-4">
+        <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          Distribuição da avaliação
+        </div>
+        <div className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-border">
+          {(["SA", "PA", "NA", "NAP"] as FgvRating[]).map((r) =>
+            counts[r] > 0 ? (
+              <div
+                key={r}
+                className={FGV_STYLES[r].bar}
+                style={{ width: `${(counts[r] / items.length) * 100}%` }}
+              />
+            ) : null,
+          )}
+        </div>
+        <div className="mt-3 grid grid-cols-4 gap-2 text-center text-xs">
+          {(["SA", "PA", "NA", "NAP"] as FgvRating[]).map((r) => (
+            <div key={r} className="rounded-md border border-border bg-card p-2">
+              <div className="flex items-center justify-center gap-1.5">
+                <span className={`h-1.5 w-1.5 rounded-full ${FGV_STYLES[r].dot}`} />
+                <span className="font-semibold">{r}</span>
+              </div>
+              <div className="mt-0.5 text-base font-bold text-foreground">{counts[r]}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Criteria grid */}
+      <div className="grid grid-cols-1 gap-2">
+        {items.map((k) => {
+          const value = fgv[k];
+          const style = FGV_STYLES[value];
+          return (
+            <div
+              key={k}
+              className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2.5"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className={`h-2 w-2 rounded-full ${style.dot}`} />
+                <span className="text-sm font-medium text-foreground">
+                  {FGV_FIELD_LABELS[k]}
+                </span>
+              </div>
+              <Badge variant="outline" className={style.badge}>
+                <span className="font-mono text-[11px] font-bold">{value}</span>
+                <span className="ml-1.5 hidden sm:inline">{FGV_LABELS[value]}</span>
+              </Badge>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      <div className="rounded-lg border border-dashed border-border bg-muted/20 p-3">
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Legenda
+        </div>
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          {FGV_OPTIONS.map((r) => (
+            <div key={r} className="flex items-center gap-2">
+              <span className={`h-2.5 w-2.5 rounded-full ${FGV_STYLES[r].dot}`} />
+              <span className="font-mono font-bold text-foreground">{r}</span>
+              <span className="text-muted-foreground">— {FGV_LABELS[r]}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
