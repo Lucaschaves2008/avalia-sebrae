@@ -128,7 +128,12 @@ export function useJudgmentsList(): Judgment[] {
 
 export async function upsertJudgment(
   input: Omit<Judgment, "id" | "createdAt" | "updatedAt"> & { id?: string },
-): Promise<void> {
+): Promise<Judgment> {
+  if (input.decision === "ATUALIZADO" && !input.updatesNeeded?.trim()) {
+    throw new Error(
+      "Por favor, descreva quais as atualizações necessárias para este curso.",
+    );
+  }
   const row = {
     course_id: input.courseId,
     user_id: input.userId,
@@ -138,22 +143,54 @@ export async function upsertJudgment(
     priority: input.priority,
     notes: input.reason,
   };
-  await supabase
+  const { data, error } = await supabase
     .from("judgments")
-    .upsert(row, { onConflict: "course_id,user_id" });
-  await refreshJudgments();
+    .upsert(row, { onConflict: "course_id,user_id" })
+    .select("*")
+    .single();
+  if (error) throw error;
+
+  const saved: Judgment = {
+    id: (data as DbJudgment).id,
+    courseId: input.courseId,
+    userId: input.userId,
+    userName: input.userName,
+    userEmail: input.userEmail,
+    region: input.region,
+    decision: input.decision,
+    updatesNeeded: input.updatesNeeded,
+    priority: input.priority,
+    reason: input.reason,
+    createdAt: (data as DbJudgment).updated_at,
+    updatedAt: (data as DbJudgment).updated_at,
+  };
+
+  // Optimistic local update — replace if exists for (courseId, userId), else append
+  const idx = cache.findIndex(
+    (j) => j.courseId === saved.courseId && j.userId === saved.userId,
+  );
+  if (idx >= 0) cache = [...cache.slice(0, idx), saved, ...cache.slice(idx + 1)];
+  else cache = [...cache, saved];
+  notify();
+
+  // Re-sync in background to pick up server-side fields
+  void refreshJudgments();
+  return saved;
 }
 
 export async function deleteJudgment(
   courseId: string,
   userId: string,
 ): Promise<void> {
-  await supabase
+  const { error } = await supabase
     .from("judgments")
     .delete()
     .eq("course_id", courseId)
     .eq("user_id", userId);
-  await refreshJudgments();
+  if (error) throw error;
+  cache = cache.filter((j) => !(j.courseId === courseId && j.userId === userId));
+  notify();
+  void refreshJudgments();
 }
 
 export function findUserJudgment(
