@@ -68,6 +68,15 @@ function Dashboard() {
                 {user.role === "admin" ? "Administrador" : `Gestor — ${user.region}`}
               </div>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate({ to: "/courses" })}
+              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
+              Cursos
+            </Button>
             {user.role === "admin" && (
               <Button
                 variant="outline"
