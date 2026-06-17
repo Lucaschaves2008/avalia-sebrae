@@ -786,10 +786,20 @@ function CourseDetailSheet({
 
             <div className="px-6 py-6">
               <Tabs defaultValue="info">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="info">Informações</TabsTrigger>
                   <TabsTrigger value="materiais">Materiais</TabsTrigger>
                   <TabsTrigger value="fgv">Avaliação FGV</TabsTrigger>
+                  <TabsTrigger value="julgamento" className="relative">
+                    Julgamento
+                    {isGestor && (
+                      <span
+                        className={`ml-1.5 h-1.5 w-1.5 rounded-full ${
+                          myJudgment ? "bg-emerald-500" : "bg-amber-500"
+                        }`}
+                      />
+                    )}
+                  </TabsTrigger>
                 </TabsList>
 
                 {/* Tab 1 — Info */}
