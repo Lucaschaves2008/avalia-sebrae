@@ -596,10 +596,16 @@ function CoursesPage() {
         <CourseEditDialog
           course={editing}
           onClose={() => setEditing(null)}
-          onSave={(c) => {
-            upsertCourse(c);
-            toast.success("Curso salvo com sucesso.");
-            setEditing(null);
+          onSave={async (c) => {
+            const isNew = !courses.some((x) => x.id === (c.codigo || c.id).trim());
+            try {
+              await upsertCourse(c, { isNew });
+              toast.success("Curso salvo com sucesso.");
+              setEditing(null);
+            } catch (err) {
+              const msg = err instanceof Error ? err.message : "Erro ao salvar curso.";
+              toast.error(msg);
+            }
           }}
         />
       )}
