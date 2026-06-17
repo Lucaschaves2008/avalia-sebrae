@@ -215,15 +215,22 @@ function CoursesPage() {
           `0 cursos importados. ${result.errors.length} erro(s) encontrado(s).`,
         );
       } else {
-        await appendCourses(result.courses);
+        const { inserted, errors: dbErrors } = await appendCourses(result.courses);
+        const allErrors = [...result.errors, ...dbErrors];
         setImportSummary({
-          imported: result.courses.length,
+          imported: inserted,
           skipped: result.skipped,
-          errors: result.errors,
+          errors: allErrors,
         });
-        toast.success(
-          `${result.courses.length} curso(s) importado(s) com sucesso. ${result.errors.length} erro(s) encontrado(s).`,
-        );
+        if (inserted === 0) {
+          toast.error(
+            `0 cursos importados. ${allErrors.length} erro(s) encontrado(s). Verifique o relatório.`,
+          );
+        } else {
+          toast.success(
+            `${inserted} curso(s) importado(s) com sucesso. ${allErrors.length} erro(s) encontrado(s).`,
+          );
+        }
       }
     } catch (err) {
       toast.error("Falha ao processar o CSV.");
@@ -589,10 +596,16 @@ function CoursesPage() {
         <CourseEditDialog
           course={editing}
           onClose={() => setEditing(null)}
-          onSave={(c) => {
-            upsertCourse(c);
-            toast.success("Curso salvo com sucesso.");
-            setEditing(null);
+          onSave={async (c) => {
+            const isNew = !courses.some((x) => x.id === (c.codigo || c.id).trim());
+            try {
+              await upsertCourse(c, { isNew });
+              toast.success("Curso salvo com sucesso.");
+              setEditing(null);
+            } catch (err) {
+              const msg = err instanceof Error ? err.message : "Erro ao salvar curso.";
+              toast.error(msg);
+            }
           }}
         />
       )}
