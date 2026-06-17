@@ -54,8 +54,13 @@ export interface Course {
   atendimentosAno: number;
   ids: number;
   bcg: BCG | "";
+  dataHabilitacao: string; // ISO date (YYYY-MM-DD) ou texto livre
   materials: CourseMaterials;
   fgv: CourseFgv;
+  // Avaliação FGV — campos descritivos complementares
+  ferramentasInclusao: string;
+  sinteseAvaliacao: string;
+  pontosAtencao: string;
 }
 
 export const MATERIAL_LABELS: Record<keyof CourseMaterials, string> = {
