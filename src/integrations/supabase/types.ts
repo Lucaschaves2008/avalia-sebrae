@@ -22,14 +22,17 @@ export type Database = {
           bcg_classification: string | null
           created_at: string
           current_year_attendance: number | null
+          fgv_attention_points: string | null
           fgv_bncc: string | null
           fgv_community: string | null
           fgv_conceptual: string | null
           fgv_context: string | null
           fgv_entrecomp: string | null
+          fgv_inclusion_tools: string | null
           fgv_learning_eval: string | null
           fgv_life_project: string | null
           fgv_socioemotional: string | null
+          fgv_synthesis: string | null
           fgv_transversal: string | null
           fgv_visual: string | null
           has_class_plans: boolean | null
@@ -56,14 +59,17 @@ export type Database = {
           bcg_classification?: string | null
           created_at?: string
           current_year_attendance?: number | null
+          fgv_attention_points?: string | null
           fgv_bncc?: string | null
           fgv_community?: string | null
           fgv_conceptual?: string | null
           fgv_context?: string | null
           fgv_entrecomp?: string | null
+          fgv_inclusion_tools?: string | null
           fgv_learning_eval?: string | null
           fgv_life_project?: string | null
           fgv_socioemotional?: string | null
+          fgv_synthesis?: string | null
           fgv_transversal?: string | null
           fgv_visual?: string | null
           has_class_plans?: boolean | null
@@ -90,14 +96,17 @@ export type Database = {
           bcg_classification?: string | null
           created_at?: string
           current_year_attendance?: number | null
+          fgv_attention_points?: string | null
           fgv_bncc?: string | null
           fgv_community?: string | null
           fgv_conceptual?: string | null
           fgv_context?: string | null
           fgv_entrecomp?: string | null
+          fgv_inclusion_tools?: string | null
           fgv_learning_eval?: string | null
           fgv_life_project?: string | null
           fgv_socioemotional?: string | null
+          fgv_synthesis?: string | null
           fgv_transversal?: string | null
           fgv_visual?: string | null
           has_class_plans?: boolean | null
