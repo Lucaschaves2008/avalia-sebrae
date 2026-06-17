@@ -501,6 +501,7 @@ function CoursesPage() {
                   <TableHead className="text-right">Atendimentos</TableHead>
                   <TableHead className="text-right">IDS</TableHead>
                   <TableHead>BCG</TableHead>
+                  <TableHead>Prontidão</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -638,6 +639,19 @@ function BcgBadge({ value }: { value: BCG }) {
   );
 }
 
+function ReadinessBadge({ result }: { result: ReadinessResult }) {
+  const styles: Record<ReadinessLevel, string> = {
+    pronto: "border-emerald-300 bg-emerald-50 text-emerald-800",
+    medio: "border-amber-300 bg-amber-50 text-amber-800",
+    alto: "border-rose-300 bg-rose-50 text-rose-800",
+  };
+  return (
+    <Badge variant="outline" className={styles[result.level]}>
+      {result.label} ({result.pct}%)
+    </Badge>
+  );
+}
+
 function CourseCard({
   course,
   onOpen,
@@ -649,6 +663,7 @@ function CourseCard({
   userJudgment?: Judgment;
   showJudgmentStatus?: boolean;
 }) {
+  const readiness = computeMaterialReadiness(course);
   const materialsCount = Object.values(course.materials).filter(Boolean).length;
   const totalMaterials = Object.keys(course.materials).length;
   const fgvScores = Object.values(course.fgv);
@@ -686,7 +701,10 @@ function CourseCard({
           <span className="rounded-md bg-muted px-2 py-0.5 font-mono text-[11px] text-muted-foreground">
             {course.codigo || "—"}
           </span>
-          {course.bcg && <BcgBadge value={course.bcg} />}
+          <div className="flex items-center gap-1.5">
+            <ReadinessBadge result={readiness} />
+            {course.bcg && <BcgBadge value={course.bcg} />}
+          </div>
         </div>
 
 
