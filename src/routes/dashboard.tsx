@@ -18,19 +18,16 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user === null) {
-      const t = setTimeout(() => {
-        if (!user) navigate({ to: "/login" });
-      }, 50);
-      return () => clearTimeout(t);
+    if (!loading && !user) {
+      navigate({ to: "/login" });
     }
-  }, [user, navigate]);
+  }, [loading, user, navigate]);
 
-  if (!user) {
+  if (loading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
         Carregando...
