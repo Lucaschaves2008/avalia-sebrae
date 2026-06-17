@@ -184,6 +184,9 @@ const SEED_COURSES: Course[] = [
       aplicacaoTransversal: "PA",
       integracaoComunitaria: "PA",
     },
+    ferramentasInclusao: "Recursos em libras, materiais com fonte ampliada e versão audiodescrita disponíveis.",
+    sinteseAvaliacao: "Solução madura, com forte aderência à BNCC e ampla oferta de materiais de apoio.",
+    pontosAtencao: "Revisar atratividade visual dos slides e reforçar conexão com EntreComp.",
   },
   {
     id: "c-seed-2",
@@ -197,6 +200,7 @@ const SEED_COURSES: Course[] = [
     atendimentosAno: 4300,
     ids: 74,
     bcg: "Interrogação",
+    dataHabilitacao: "2023-09-01",
     materials: {
       moa: true,
       planosAula: false,
