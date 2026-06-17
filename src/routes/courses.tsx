@@ -73,15 +73,16 @@ import { Toaster } from "@/components/ui/sonner";
 
 import { AuthProvider, useAuth, type AuthUser } from "@/lib/auth";
 import {
+  appendCourses,
   BCG_OPTIONS,
+  computeMaterialReadiness,
+  deleteCourse,
+  downloadCsvTemplate,
+  emptyCourse,
   FGV_FIELD_LABELS,
   FGV_LABELS,
   FGV_OPTIONS,
   MATERIAL_LABELS,
-  appendCourses,
-  deleteCourse,
-  downloadCsvTemplate,
-  emptyCourse,
   parseCoursesCsv,
   upsertCourse,
   useCoursesList,
@@ -90,6 +91,8 @@ import {
   type CourseFgv,
   type CourseMaterials,
   type FgvRating,
+  type ReadinessLevel,
+  type ReadinessResult,
 } from "@/lib/courses";
 import { SebraeLogo } from "@/components/SebraeLogo";
 import {
@@ -153,6 +156,7 @@ function CoursesPage() {
   const [bcgFilter, setBcgFilter] = useState<string>("all");
   const [publicoFilter, setPublicoFilter] = useState<string>("all");
   const [modalidadeFilter, setModalidadeFilter] = useState<string>("all");
+  const [esforcoFilter, setEsforcoFilter] = useState<string>("all");
   const [view, setView] = useState<"cards" | "table">("cards");
   const [detail, setDetail] = useState<Course | null>(null);
   const [editing, setEditing] = useState<Course | null>(null);
@@ -189,6 +193,10 @@ function CoursesPage() {
       if (bcgFilter !== "all" && c.bcg !== bcgFilter) return false;
       if (publicoFilter !== "all" && c.publicoAlvo !== publicoFilter) return false;
       if (modalidadeFilter !== "all" && c.modalidade !== modalidadeFilter) return false;
+      if (esforcoFilter !== "all") {
+        const r = computeMaterialReadiness(c);
+        if (r.level !== esforcoFilter) return false;
+      }
       if (!q) return true;
       return (
         c.solucao.toLowerCase().includes(q) ||
@@ -197,7 +205,7 @@ function CoursesPage() {
         c.modalidade.toLowerCase().includes(q)
       );
     });
-  }, [courses, query, bcgFilter, publicoFilter, modalidadeFilter]);
+  }, [courses, query, bcgFilter, publicoFilter, modalidadeFilter, esforcoFilter]);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -231,13 +239,15 @@ function CoursesPage() {
     setBcgFilter("all");
     setPublicoFilter("all");
     setModalidadeFilter("all");
+    setEsforcoFilter("all");
   }
 
   const hasFilters =
     !!query ||
     bcgFilter !== "all" ||
     publicoFilter !== "all" ||
-    modalidadeFilter !== "all";
+    modalidadeFilter !== "all" ||
+    esforcoFilter !== "all";
 
   if (!user) {
     return (
@@ -374,7 +384,7 @@ function CoursesPage() {
                 className="h-10 pl-9"
               />
             </div>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
               <Select value={publicoFilter} onValueChange={setPublicoFilter}>
                 <SelectTrigger className="h-10">
                   <SelectValue placeholder="Público-alvo" />
@@ -412,6 +422,17 @@ function CoursesPage() {
                       {b}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              <Select value={esforcoFilter} onValueChange={setEsforcoFilter}>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Esforço de confecção" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os níveis</SelectItem>
+                  <SelectItem value="pronto">Pronto / Baixo Esforço</SelectItem>
+                  <SelectItem value="medio">Médio Esforço</SelectItem>
+                  <SelectItem value="alto">Alto Esforço</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -480,6 +501,7 @@ function CoursesPage() {
                   <TableHead className="text-right">Atendimentos</TableHead>
                   <TableHead className="text-right">IDS</TableHead>
                   <TableHead>BCG</TableHead>
+                  <TableHead>Prontidão</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -509,6 +531,9 @@ function CoursesPage() {
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <ReadinessBadge result={computeMaterialReadiness(c)} />
                     </TableCell>
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-end gap-1">
@@ -617,6 +642,19 @@ function BcgBadge({ value }: { value: BCG }) {
   );
 }
 
+function ReadinessBadge({ result }: { result: ReadinessResult }) {
+  const styles: Record<ReadinessLevel, string> = {
+    pronto: "border-emerald-300 bg-emerald-50 text-emerald-800",
+    medio: "border-amber-300 bg-amber-50 text-amber-800",
+    alto: "border-rose-300 bg-rose-50 text-rose-800",
+  };
+  return (
+    <Badge variant="outline" className={styles[result.level]}>
+      {result.label} ({result.pct}%)
+    </Badge>
+  );
+}
+
 function CourseCard({
   course,
   onOpen,
@@ -628,6 +666,7 @@ function CourseCard({
   userJudgment?: Judgment;
   showJudgmentStatus?: boolean;
 }) {
+  const readiness = computeMaterialReadiness(course);
   const materialsCount = Object.values(course.materials).filter(Boolean).length;
   const totalMaterials = Object.keys(course.materials).length;
   const fgvScores = Object.values(course.fgv);
@@ -665,7 +704,10 @@ function CourseCard({
           <span className="rounded-md bg-muted px-2 py-0.5 font-mono text-[11px] text-muted-foreground">
             {course.codigo || "—"}
           </span>
-          {course.bcg && <BcgBadge value={course.bcg} />}
+          <div className="flex items-center gap-1.5">
+            <ReadinessBadge result={readiness} />
+            {course.bcg && <BcgBadge value={course.bcg} />}
+          </div>
         </div>
 
 
@@ -846,7 +888,7 @@ function CourseDetailSheet({
 
                 {/* Tab 2 — Materials */}
                 <TabsContent value="materiais" className="mt-5">
-                  <MaterialsChecklist materials={course.materials} />
+                  <MaterialsChecklist course={course} />
                 </TabsContent>
 
                 {/* Tab 3 — FGV */}
@@ -908,7 +950,9 @@ function InfoRow({
   );
 }
 
-function MaterialsChecklist({ materials }: { materials: CourseMaterials }) {
+function MaterialsChecklist({ course }: { course: Course }) {
+  const materials = course.materials;
+  const readiness = computeMaterialReadiness(course);
   const items = Object.keys(MATERIAL_LABELS) as (keyof CourseMaterials)[];
   const done = items.filter((k) => materials[k]).length;
   const pct = Math.round((done / items.length) * 100);
@@ -919,14 +963,17 @@ function MaterialsChecklist({ materials }: { materials: CourseMaterials }) {
         <div className="flex items-end justify-between">
           <div>
             <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Materiais disponíveis
+              Índice de Prontidão de Materiais
             </div>
             <div className="mt-1 text-2xl font-bold text-foreground">
               {done}
               <span className="text-base font-normal text-muted-foreground"> / {items.length}</span>
             </div>
           </div>
-          <div className="text-sm font-semibold text-emerald-600">{pct}%</div>
+          <div className="flex flex-col items-end gap-1">
+            <ReadinessBadge result={readiness} />
+            <div className="text-sm font-semibold text-emerald-600">{pct}% prontos</div>
+          </div>
         </div>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-border">
           <div
