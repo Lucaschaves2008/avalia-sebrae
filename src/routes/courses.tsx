@@ -1617,9 +1617,14 @@ function JudgmentPanel({
             </div>
             <Button
               onClick={handleSave}
+              disabled={saving}
               className="bg-primary text-primary-foreground hover:bg-[var(--primary-hover)]"
             >
-              {myJudgment ? "Atualizar julgamento" : "Salvar julgamento"}
+              {saving
+                ? "Salvando..."
+                : myJudgment
+                  ? "Atualizar julgamento"
+                  : "Salvar julgamento"}
             </Button>
           </div>
         </div>
