@@ -548,6 +548,9 @@ export const CSV_TEMPLATE = [
     "SA",
     "NAP",
     "NA",
+    "Conteúdo com versão em libras e materiais com fonte ampliada.",
+    "Curso bem estruturado, com forte aderência às competências.",
+    "Atenção ao alinhamento com a realidade local e à atratividade visual.",
   ],
 ];
 
