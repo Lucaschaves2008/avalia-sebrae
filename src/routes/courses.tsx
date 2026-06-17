@@ -511,67 +511,99 @@ function CoursesPage() {
                   <TableHead className="text-right">IDS</TableHead>
                   <TableHead>BCG</TableHead>
                   <TableHead>Prontidão</TableHead>
+                  {isGestor && <TableHead>Julgamento</TableHead>}
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((c) => (
-                  <TableRow
-                    key={c.id}
-                    className="cursor-pointer hover:bg-muted/30"
-                    onClick={() => setDetail(c)}
-                  >
-                    <TableCell className="font-mono text-xs">{c.codigo}</TableCell>
-                    <TableCell>
-                      <div className="font-medium text-foreground">{c.solucao}</div>
-                      {c.instrumento && (
-                        <div className="text-xs text-muted-foreground">{c.instrumento}</div>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-sm">{c.publicoAlvo}</TableCell>
-                    <TableCell className="text-sm">{c.modalidade}</TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {c.atendimentosAno.toLocaleString("pt-BR")}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">{c.ids}</TableCell>
-                    <TableCell>
-                      {c.bcg ? (
-                        <BcgBadge value={c.bcg} />
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <ReadinessBadge result={computeMaterialReadiness(c)} />
-                    </TableCell>
-                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex justify-end gap-1">
-                        {isAdmin && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-primary"
-                              onClick={() => setEditing(c)}
-                              aria-label="Editar"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                              onClick={() => setConfirmDelete(c)}
-                              aria-label="Excluir"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
+                {filtered.map((c) => {
+                  const userJudgment = isGestor && user ? findUserJudgment(judgments, c.id, user.id) : undefined;
+                  const judged = !!userJudgment;
+                  return (
+                    <TableRow
+                      key={c.id}
+                      className={`cursor-pointer hover:bg-muted/30 ${
+                        isGestor
+                          ? judged
+                            ? "border-l-4 border-l-emerald-500"
+                            : "border-l-4 border-l-rose-500"
+                          : ""
+                      }`}
+                      onClick={() => setDetail(c)}
+                    >
+                      <TableCell className="font-mono text-xs">{c.codigo}</TableCell>
+                      <TableCell>
+                        <div className="font-medium text-foreground">{c.solucao}</div>
+                        {c.instrumento && (
+                          <div className="text-xs text-muted-foreground">{c.instrumento}</div>
                         )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell className="text-sm">{c.publicoAlvo}</TableCell>
+                      <TableCell className="text-sm">{c.modalidade}</TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {c.atendimentosAno.toLocaleString("pt-BR")}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">{c.ids}</TableCell>
+                      <TableCell>
+                        {c.bcg ? (
+                          <BcgBadge value={c.bcg} />
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <ReadinessBadge result={computeMaterialReadiness(c)} />
+                      </TableCell>
+                      {isGestor && (
+                        <TableCell>
+                          {judged ? (
+                            <Badge
+                              variant="outline"
+                              className="border-emerald-300 bg-emerald-50 text-emerald-800 gap-1"
+                            >
+                              <CheckCircle2 className="h-3 w-3" />
+                              {DECISION_LABELS[userJudgment.decision] ?? userJudgment.decision}
+                            </Badge>
+                          ) : (
+                            <Badge
+                              variant="outline"
+                              className="border-rose-300 bg-rose-50 text-rose-800 gap-1"
+                            >
+                              <Clock className="h-3 w-3" />
+                              Pendente
+                            </Badge>
+                          )}
+                        </TableCell>
+                      )}
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-end gap-1">
+                          {isAdmin && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                onClick={() => setEditing(c)}
+                                aria-label="Editar"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                onClick={() => setConfirmDelete(c)}
+                                aria-label="Excluir"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
