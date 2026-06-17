@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { BookOpen, GraduationCap, LogOut, MapPin, Users } from "lucide-react";
+import { BookOpen, GraduationCap, LogOut, MapPin, UserCog, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { AuthProvider, useAuth } from "@/lib/auth";
@@ -68,6 +68,17 @@ function Dashboard() {
                 {user.role === "admin" ? "Administrador" : `Gestor — ${user.region}`}
               </div>
             </div>
+            {user.role === "admin" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate({ to: "/users" })}
+                className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+              >
+                <UserCog className="mr-2 h-4 w-4" />
+                Usuários
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
