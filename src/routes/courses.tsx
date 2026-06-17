@@ -170,13 +170,8 @@ function CoursesPage() {
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    if (user === null) {
-      const t = setTimeout(() => {
-        if (!user) navigate({ to: "/login" });
-      }, 50);
-      return () => clearTimeout(t);
-    }
-  }, [user, navigate]);
+    if (!loading && !user) navigate({ to: "/login" });
+  }, [loading, user, navigate]);
 
   const publicos = useMemo(
     () => Array.from(new Set(courses.map((c) => c.publicoAlvo).filter(Boolean))).sort(),
