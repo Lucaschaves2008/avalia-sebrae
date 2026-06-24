@@ -147,7 +147,7 @@ export const adminDeleteUser = createServerFn({ method: "POST" })
       // Logical deletion: mark profile as Inativo
       const { error: updErr } = await supabaseAdmin
         .from("profiles")
-        .update({ ...({ status: "Inativo" } as Record<string, unknown>) })
+        .update({ status: "Inativo" })
         .eq("id", data.userId);
       if (updErr) throw new Error(updErr.message);
       return { ok: true as const, mode: "logical" as const };
