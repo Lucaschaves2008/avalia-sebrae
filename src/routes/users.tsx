@@ -47,6 +47,7 @@ import {
   AuthProvider,
   DEFAULT_PASSWORD,
   REGIONS,
+  STATES_BY_REGION,
   createUser,
   deleteUser,
   updateUser,
@@ -72,7 +73,7 @@ export const Route = createFileRoute("/users")({
   ),
 });
 
-const userSchema = z.object({
+const baseSchema = z.object({
   name: z.string().trim().min(2, "Nome muito curto").max(100),
   email: z.string().trim().email("E-mail inválido").max(255),
   phone: z
@@ -81,9 +82,32 @@ const userSchema = z.object({
     .min(8, "Telefone inválido")
     .max(20, "Telefone muito longo"),
   unit: z.string().trim().min(2, "Informe a unidade").max(80),
-  region: z.enum(["Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"]),
   role: z.enum(["admin", "gestor"]),
   status: z.enum(["Ativo", "Inativo"]),
+  region: z.union([
+    z.literal(""),
+    z.enum(["Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"]),
+  ]),
+  state: z.string().nullable(),
+});
+
+const userSchema = baseSchema.superRefine((val, ctx) => {
+  if (val.role === "gestor") {
+    if (!val.region) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["region"],
+        message: "Região é obrigatória para Gestor Regional.",
+      });
+    }
+    if (!val.state) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["state"],
+        message: "Estado é obrigatório para Gestor Regional.",
+      });
+    }
+  }
 });
 
 type FormState = UserInput;
@@ -93,7 +117,8 @@ const EMPTY_FORM: FormState = {
   email: "",
   phone: "",
   unit: "",
-  region: "Sudeste",
+  region: "",
+  state: null,
   role: "gestor",
   status: "Ativo",
 };
@@ -144,6 +169,7 @@ function UsersPage() {
       phone: u.phone,
       unit: u.unit,
       region: u.region,
+      state: u.state,
       role: u.role,
       status: u.status,
     });
@@ -192,8 +218,19 @@ function UsersPage() {
       setConfirmDelete(null);
       return;
     }
-    await deleteUser(confirmDelete.id);
-    toast.success("Usuário excluído.");
+    const r = await deleteUser(confirmDelete.id);
+    if (!r.ok) {
+      toast.error(r.error);
+      setConfirmDelete(null);
+      return;
+    }
+    if (r.mode === "physical") {
+      toast.success("Usuário excluído definitivamente.");
+    } else {
+      toast.success(
+        "Usuário possui avaliações vinculadas — desativado (exclusão lógica).",
+      );
+    }
     setConfirmDelete(null);
   }
 
@@ -204,6 +241,11 @@ function UsersPage() {
       </div>
     );
   }
+
+  const isNational = form.role === "admin";
+  const availableStates = form.region
+    ? STATES_BY_REGION[form.region as Region]
+    : [];
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -285,7 +327,7 @@ function UsersPage() {
                   <TableHead>E-mail</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead>Unidade</TableHead>
-                  <TableHead>Região</TableHead>
+                  <TableHead>Região / UF</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -303,13 +345,22 @@ function UsersPage() {
                       <TableCell>
                         <div className="font-medium text-foreground">{u.name}</div>
                         <div className="text-xs text-muted-foreground">
-                          {u.role === "admin" ? "Administrador" : "Gestor Regional"}
+                          {u.role === "admin" ? "Gestor Nacional" : "Gestor Regional"}
                         </div>
                       </TableCell>
                       <TableCell className="text-sm">{u.email}</TableCell>
                       <TableCell className="text-sm">{u.phone}</TableCell>
                       <TableCell className="text-sm">{u.unit}</TableCell>
-                      <TableCell className="text-sm">{u.region}</TableCell>
+                      <TableCell className="text-sm">
+                        {u.role === "admin" && !u.state ? (
+                          <span className="text-muted-foreground">—</span>
+                        ) : (
+                          <>
+                            {u.region}
+                            {u.state ? ` / ${u.state}` : ""}
+                          </>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Badge
                           variant="outline"
@@ -409,7 +460,33 @@ function UsersPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="unit">Unidade de Vinculação</Label>
+              <Label htmlFor="role">Perfil</Label>
+              <Select
+                value={form.role}
+                onValueChange={(v) =>
+                  setForm({
+                    ...form,
+                    role: v as UserRole,
+                    // Resetting region/state for clarity when switching to national
+                    region: v === "admin" ? "" : form.region || "Sudeste",
+                    state: v === "admin" ? null : form.state,
+                  })
+                }
+              >
+                <SelectTrigger id="role">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Gestor Nacional</SelectItem>
+                  <SelectItem value="gestor">Gestor Regional</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="unit">
+                Unidade de Vinculação <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="unit"
                 value={form.unit}
@@ -421,15 +498,31 @@ function UsersPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="region">Região</Label>
+              <Label htmlFor="region">
+                Região{" "}
+                {isNational ? (
+                  <span className="text-xs text-muted-foreground">(opcional)</span>
+                ) : (
+                  <span className="text-destructive">*</span>
+                )}
+              </Label>
               <Select
-                value={form.region}
-                onValueChange={(v) => setForm({ ...form, region: v as Region })}
+                value={form.region || "__none__"}
+                onValueChange={(v) =>
+                  setForm({
+                    ...form,
+                    region: v === "__none__" ? "" : (v as Region),
+                    state: null,
+                  })
+                }
               >
                 <SelectTrigger id="region">
-                  <SelectValue />
+                  <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
+                  {isNational && (
+                    <SelectItem value="__none__">— Não vinculado —</SelectItem>
+                  )}
                   {REGIONS.map((r) => (
                     <SelectItem key={r} value={r}>
                       {r}
@@ -437,39 +530,74 @@ function UsersPage() {
                   ))}
                 </SelectContent>
               </Select>
+              {errors.region && (
+                <p className="text-xs text-destructive">{errors.region}</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role">Perfil</Label>
+              <Label htmlFor="state">
+                Estado (UF){" "}
+                {isNational ? (
+                  <span className="text-xs text-muted-foreground">(opcional)</span>
+                ) : (
+                  <span className="text-destructive">*</span>
+                )}
+              </Label>
               <Select
-                value={form.role}
-                onValueChange={(v) => setForm({ ...form, role: v as UserRole })}
+                value={form.state ?? "__none__"}
+                onValueChange={(v) =>
+                  setForm({ ...form, state: v === "__none__" ? null : v })
+                }
+                disabled={!form.region}
               >
-                <SelectTrigger id="role">
-                  <SelectValue />
+                <SelectTrigger id="state">
+                  <SelectValue
+                    placeholder={
+                      form.region ? "Selecione a UF..." : "Selecione a região antes"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Administrador</SelectItem>
-                  <SelectItem value="gestor">Gestor Regional</SelectItem>
+                  {isNational && (
+                    <SelectItem value="__none__">— Não vinculado —</SelectItem>
+                  )}
+                  {availableStates.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+              {errors.state && (
+                <p className="text-xs text-destructive">{errors.state}</p>
+              )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={form.status}
-                onValueChange={(v) => setForm({ ...form, status: v as UserStatus })}
-              >
-                <SelectTrigger id="status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Ativo">Ativo</SelectItem>
-                  <SelectItem value="Inativo">Inativo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {editing && (
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={form.status}
+                  onValueChange={(v) => setForm({ ...form, status: v as UserStatus })}
+                >
+                  <SelectTrigger id="status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Ativo">Ativo</SelectItem>
+                    <SelectItem value="Inativo">Inativo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {!editing && (
+              <div className="sm:col-span-2 rounded-md border border-dashed border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+                O novo usuário será criado automaticamente com status{" "}
+                <span className="font-semibold text-foreground">Ativo</span>.
+              </div>
+            )}
 
             <DialogFooter className="gap-2 sm:col-span-2 sm:gap-2">
               <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
@@ -492,9 +620,10 @@ function UsersPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir usuário?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita.{" "}
               <span className="font-medium text-foreground">{confirmDelete?.name}</span>{" "}
-              perderá imediatamente o acesso à plataforma.
+              será removido. Se houver avaliações vinculadas, o usuário será apenas
+              desativado (exclusão lógica). Caso contrário, será excluído
+              definitivamente do banco de dados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

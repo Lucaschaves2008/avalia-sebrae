@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { adminCreateUser } from "@/lib/admin-users.functions";
+import { adminCreateUser, adminDeleteUser } from "@/lib/admin-users.functions";
 
 export type UserRole = "admin" | "gestor";
 export type Region = "Norte" | "Nordeste" | "Centro-Oeste" | "Sudeste" | "Sul";
@@ -21,7 +21,19 @@ export const REGIONS: Region[] = [
   "Sudeste",
   "Sul",
 ];
+
+export const STATES_BY_REGION: Record<Region, string[]> = {
+  Norte: ["AC", "AP", "AM", "PA", "RO", "RR", "TO"],
+  Nordeste: ["AL", "BA", "CE", "MA", "PB", "PE", "PI", "RN", "SE"],
+  "Centro-Oeste": ["DF", "GO", "MT", "MS"],
+  Sudeste: ["ES", "MG", "RJ", "SP"],
+  Sul: ["PR", "RS", "SC"],
+};
+
 export const DEFAULT_PASSWORD = "Sebrae@2025";
+
+// Super administrator e-mail — hidden from CRUD listings.
+export const SUPER_ADMIN_EMAIL = "jusmar.chaves@providence.solutions";
 
 export interface AuthUser {
   id: string;
@@ -30,6 +42,7 @@ export interface AuthUser {
   phone: string;
   unit: string;
   region: Region;
+  state: string | null;
   role: UserRole;
   status: UserStatus;
   isFirstAccess: boolean;
@@ -40,10 +53,12 @@ export interface UserInput {
   email: string;
   phone: string;
   unit: string;
-  region: Region;
+  region: Region | "";
+  state: string | null;
   role: UserRole;
   status: UserStatus;
 }
+
 
 // ---------- Users list (reactive cache) ----------
 
@@ -65,18 +80,22 @@ async function fetchUsers(): Promise<AuthUser[]> {
   for (const r of rolesRes.data ?? []) {
     roleMap.set(r.user_id, r.role as UserRole);
   }
-  return profiles.map((p): AuthUser => ({
-    id: p.id,
-    email: p.email,
-    name: p.name,
-    phone: p.phone ?? "",
-    unit: p.unity,
-    region: p.region as Region,
-    role: roleMap.get(p.id) ?? "gestor",
-    status: "Ativo",
-    isFirstAccess: p.is_first_access ?? false,
-  }));
+  return profiles
+    .filter((p) => p.email !== SUPER_ADMIN_EMAIL)
+    .map((p): AuthUser => ({
+      id: p.id,
+      email: p.email,
+      name: p.name,
+      phone: p.phone ?? "",
+      unit: p.unity,
+      region: p.region as Region,
+      state: (p as { state?: string | null }).state ?? null,
+      role: roleMap.get(p.id) ?? "gestor",
+      status: ((p as { status?: UserStatus }).status ?? "Ativo") as UserStatus,
+      isFirstAccess: p.is_first_access ?? false,
+    }));
 }
+
 
 export async function refreshUsers() {
   usersCache = await fetchUsers();
@@ -104,17 +123,24 @@ export function useUsersList(): AuthUser[] {
 
 // ---------- Mutations ----------
 
+function normalizeRegion(input: UserInput): Region {
+  if (!input.region) return "Sudeste";
+  return input.region;
+}
+
 export async function createUser(
   input: UserInput,
 ): Promise<{ ok: true; user: AuthUser } | { ok: false; error: string }> {
   try {
+    const region = normalizeRegion(input);
     const res = await adminCreateUser({
       data: {
         name: input.name,
         email: input.email.trim(),
         phone: input.phone,
         unit: input.unit,
-        region: input.region,
+        region,
+        state: input.state ?? null,
         role: input.role,
         password: DEFAULT_PASSWORD,
       },
@@ -128,7 +154,8 @@ export async function createUser(
         name: input.name,
         phone: input.phone,
         unit: input.unit,
-        region: input.region,
+        region,
+        state: input.state ?? null,
         role: input.role,
         status: "Ativo",
         isFirstAccess: true,
@@ -143,6 +170,7 @@ export async function updateUser(
   id: string,
   input: UserInput,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  const region = normalizeRegion(input);
   const { error } = await supabase
     .from("profiles")
     .update({
@@ -150,7 +178,10 @@ export async function updateUser(
       email: input.email,
       phone: input.phone,
       unity: input.unit,
-      region: input.region,
+      region,
+      state: input.state ?? null,
+      status: input.status,
+
     })
     .eq("id", id);
   if (error) return { ok: false, error: error.message };
@@ -163,11 +194,18 @@ export async function updateUser(
   return { ok: true };
 }
 
-export async function deleteUser(id: string): Promise<void> {
-  // Removes the profile (cascade also handled by FK to auth.users when it cascades).
-  await supabase.from("profiles").delete().eq("id", id);
-  await refreshUsers();
+export async function deleteUser(
+  id: string,
+): Promise<{ ok: true; mode: "physical" | "logical" } | { ok: false; error: string }> {
+  try {
+    const res = await adminDeleteUser({ data: { userId: id } });
+    await refreshUsers();
+    return { ok: true, mode: res.mode };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Erro ao excluir usuário." };
+  }
 }
+
 
 // ---------- Auth context ----------
 
@@ -203,10 +241,12 @@ async function hydrateUser(authUserId: string): Promise<AuthUser | null> {
     phone: profile.phone ?? "",
     unit: profile.unity,
     region: profile.region as Region,
+    state: (profile as { state?: string | null }).state ?? null,
     role,
-    status: "Ativo",
+    status: ((profile as { status?: UserStatus }).status ?? "Ativo") as UserStatus,
     isFirstAccess: profile.is_first_access ?? false,
   };
+
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

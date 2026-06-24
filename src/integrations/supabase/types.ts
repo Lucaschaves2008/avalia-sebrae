@@ -188,6 +188,8 @@ export type Database = {
           name: string
           phone: string | null
           region: string
+          state: string | null
+          status: string
           unity: string
         }
         Insert: {
@@ -198,6 +200,8 @@ export type Database = {
           name: string
           phone?: string | null
           region: string
+          state?: string | null
+          status?: string
           unity: string
         }
         Update: {
@@ -208,6 +212,8 @@ export type Database = {
           name?: string
           phone?: string | null
           region?: string
+          state?: string | null
+          status?: string
           unity?: string
         }
         Relationships: []
