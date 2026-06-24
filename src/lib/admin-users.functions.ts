@@ -103,11 +103,59 @@ export const adminCreateUser = createServerFn({ method: "POST" })
         .neq("role", "admin");
     }
 
-    // Mark first access true
+    // Set first-access flag + state + status (default Ativo)
     await supabaseAdmin
       .from("profiles")
-      .update({ is_first_access: true })
+      .update({
+        is_first_access: true,
+        ...({ state: data.state ?? null, status: "Ativo" } as Record<string, unknown>),
+      })
       .eq("id", newUserId);
 
     return { ok: true as const, userId: newUserId };
   });
+
+export const adminDeleteUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { userId: string }) => input)
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin, error: roleErr } = await context.supabase.rpc(
+      "has_role",
+      { _user_id: context.userId, _role: "admin" },
+    );
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Apenas administradores podem excluir usuários.");
+
+    if (data.userId === context.userId) {
+      throw new Error("Você não pode excluir o próprio usuário.");
+    }
+
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+
+    // Check if user has any linked judgments
+    const { count, error: countErr } = await supabaseAdmin
+      .from("judgments")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", data.userId);
+    if (countErr) throw new Error(countErr.message);
+
+    if ((count ?? 0) > 0) {
+      // Logical deletion: mark profile as Inativo
+      const { error: updErr } = await supabaseAdmin
+        .from("profiles")
+        .update({ ...({ status: "Inativo" } as Record<string, unknown>) })
+        .eq("id", data.userId);
+      if (updErr) throw new Error(updErr.message);
+      return { ok: true as const, mode: "logical" as const };
+    }
+
+    // Physical deletion (cascades to profiles + user_roles via FK)
+    const { error: delErr } = await supabaseAdmin.auth.admin.deleteUser(
+      data.userId,
+    );
+    if (delErr) throw new Error(delErr.message);
+    return { ok: true as const, mode: "physical" as const };
+  });
+
