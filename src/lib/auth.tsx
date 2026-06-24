@@ -123,17 +123,24 @@ export function useUsersList(): AuthUser[] {
 
 // ---------- Mutations ----------
 
+function normalizeRegion(input: UserInput): Region {
+  if (!input.region) return "Sudeste";
+  return input.region;
+}
+
 export async function createUser(
   input: UserInput,
 ): Promise<{ ok: true; user: AuthUser } | { ok: false; error: string }> {
   try {
+    const region = normalizeRegion(input);
     const res = await adminCreateUser({
       data: {
         name: input.name,
         email: input.email.trim(),
         phone: input.phone,
         unit: input.unit,
-        region: input.region,
+        region,
+        state: input.state ?? null,
         role: input.role,
         password: DEFAULT_PASSWORD,
       },
@@ -147,7 +154,8 @@ export async function createUser(
         name: input.name,
         phone: input.phone,
         unit: input.unit,
-        region: input.region,
+        region,
+        state: input.state ?? null,
         role: input.role,
         status: "Ativo",
         isFirstAccess: true,
@@ -162,6 +170,7 @@ export async function updateUser(
   id: string,
   input: UserInput,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  const region = normalizeRegion(input);
   const { error } = await supabase
     .from("profiles")
     .update({
@@ -169,7 +178,8 @@ export async function updateUser(
       email: input.email,
       phone: input.phone,
       unity: input.unit,
-      region: input.region,
+      region,
+      ...({ state: input.state ?? null, status: input.status } as Record<string, unknown>),
     })
     .eq("id", id);
   if (error) return { ok: false, error: error.message };
@@ -182,11 +192,18 @@ export async function updateUser(
   return { ok: true };
 }
 
-export async function deleteUser(id: string): Promise<void> {
-  // Removes the profile (cascade also handled by FK to auth.users when it cascades).
-  await supabase.from("profiles").delete().eq("id", id);
-  await refreshUsers();
+export async function deleteUser(
+  id: string,
+): Promise<{ ok: true; mode: "physical" | "logical" } | { ok: false; error: string }> {
+  try {
+    const res = await adminDeleteUser({ data: { userId: id } });
+    await refreshUsers();
+    return { ok: true, mode: res.mode };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Erro ao excluir usuário." };
+  }
 }
+
 
 // ---------- Auth context ----------
 
