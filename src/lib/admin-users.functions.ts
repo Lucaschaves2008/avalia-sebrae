@@ -7,9 +7,11 @@ export type CreateUserPayload = {
   phone: string;
   unit: string;
   region: "Norte" | "Nordeste" | "Centro-Oeste" | "Sudeste" | "Sul";
+  state: string | null;
   role: "admin" | "gestor";
   password: string;
 };
+
 
 export const adminCreateUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
