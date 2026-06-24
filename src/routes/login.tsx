@@ -227,6 +227,12 @@ function LoginPage() {
                 <Label htmlFor="password">Senha</Label>
                 <button
                   type="button"
+                  onClick={() => {
+                    setForgotEmail(email);
+                    setForgotSent(false);
+                    setForgotError(null);
+                    setForgotOpen(true);
+                  }}
                   className="text-xs font-medium text-primary hover:underline"
                 >
                   Esqueci minha senha
