@@ -80,18 +80,22 @@ async function fetchUsers(): Promise<AuthUser[]> {
   for (const r of rolesRes.data ?? []) {
     roleMap.set(r.user_id, r.role as UserRole);
   }
-  return profiles.map((p): AuthUser => ({
-    id: p.id,
-    email: p.email,
-    name: p.name,
-    phone: p.phone ?? "",
-    unit: p.unity,
-    region: p.region as Region,
-    role: roleMap.get(p.id) ?? "gestor",
-    status: "Ativo",
-    isFirstAccess: p.is_first_access ?? false,
-  }));
+  return profiles
+    .filter((p) => p.email !== SUPER_ADMIN_EMAIL)
+    .map((p): AuthUser => ({
+      id: p.id,
+      email: p.email,
+      name: p.name,
+      phone: p.phone ?? "",
+      unit: p.unity,
+      region: p.region as Region,
+      state: (p as { state?: string | null }).state ?? null,
+      role: roleMap.get(p.id) ?? "gestor",
+      status: ((p as { status?: UserStatus }).status ?? "Ativo") as UserStatus,
+      isFirstAccess: p.is_first_access ?? false,
+    }));
 }
+
 
 export async function refreshUsers() {
   usersCache = await fetchUsers();
