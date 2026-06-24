@@ -303,6 +303,86 @@ function LoginPage() {
         </div>
       </div>
 
+      {/* Forgot password dialog */}
+      <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-secondary">
+              <Mail className="h-5 w-5 text-primary" />
+            </div>
+            <DialogTitle>Recuperar senha</DialogTitle>
+            <DialogDescription>
+              {forgotSent
+                ? "Se houver uma conta com este e-mail, você receberá um link para criar uma nova senha em instantes."
+                : "Informe seu e-mail corporativo e enviaremos um link para você definir uma nova senha."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {!forgotSent ? (
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="forgotEmail">E-mail</Label>
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="forgotEmail"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="seu.nome@sebrae.com.br"
+                    className="h-11 pl-9"
+                  />
+                </div>
+              </div>
+
+              {forgotError && (
+                <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {forgotError}
+                </div>
+              )}
+
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={forgotLoading}
+                  onClick={() => setForgotOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={forgotLoading}
+                  aria-busy={forgotLoading}
+                  className="bg-primary text-primary-foreground hover:bg-[var(--primary-hover)]"
+                >
+                  {forgotLoading ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Enviando...
+                    </span>
+                  ) : (
+                    "Enviar link de recuperação"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          ) : (
+            <DialogFooter>
+              <Button
+                type="button"
+                onClick={() => setForgotOpen(false)}
+                className="bg-primary text-primary-foreground hover:bg-[var(--primary-hover)]"
+              >
+                Entendi
+              </Button>
+            </DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* First access modal — mandatory password change (blocks navigation) */}
       <Dialog
         open={firstAccessOpen}
