@@ -239,10 +239,12 @@ async function hydrateUser(authUserId: string): Promise<AuthUser | null> {
     phone: profile.phone ?? "",
     unit: profile.unity,
     region: profile.region as Region,
+    state: (profile as { state?: string | null }).state ?? null,
     role,
-    status: "Ativo",
+    status: ((profile as { status?: UserStatus }).status ?? "Ativo") as UserStatus,
     isFirstAccess: profile.is_first_access ?? false,
   };
+
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
