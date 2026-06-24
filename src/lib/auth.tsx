@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { adminCreateUser } from "@/lib/admin-users.functions";
+import { adminCreateUser, adminDeleteUser } from "@/lib/admin-users.functions";
 
 export type UserRole = "admin" | "gestor";
 export type Region = "Norte" | "Nordeste" | "Centro-Oeste" | "Sudeste" | "Sul";
@@ -21,7 +21,19 @@ export const REGIONS: Region[] = [
   "Sudeste",
   "Sul",
 ];
+
+export const STATES_BY_REGION: Record<Region, string[]> = {
+  Norte: ["AC", "AP", "AM", "PA", "RO", "RR", "TO"],
+  Nordeste: ["AL", "BA", "CE", "MA", "PB", "PE", "PI", "RN", "SE"],
+  "Centro-Oeste": ["DF", "GO", "MT", "MS"],
+  Sudeste: ["ES", "MG", "RJ", "SP"],
+  Sul: ["PR", "RS", "SC"],
+};
+
 export const DEFAULT_PASSWORD = "Sebrae@2025";
+
+// Super administrator e-mail — hidden from CRUD listings.
+export const SUPER_ADMIN_EMAIL = "jusmar.chaves@providence.solutions";
 
 export interface AuthUser {
   id: string;
@@ -30,6 +42,7 @@ export interface AuthUser {
   phone: string;
   unit: string;
   region: Region;
+  state: string | null;
   role: UserRole;
   status: UserStatus;
   isFirstAccess: boolean;
@@ -40,10 +53,12 @@ export interface UserInput {
   email: string;
   phone: string;
   unit: string;
-  region: Region;
+  region: Region | "";
+  state: string | null;
   role: UserRole;
   status: UserStatus;
 }
+
 
 // ---------- Users list (reactive cache) ----------
 
