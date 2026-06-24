@@ -70,6 +70,29 @@ function LoginPage() {
   const [pwError, setPwError] = useState<string | null>(null);
   const [pwLoading, setPwLoading] = useState(false);
 
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotError, setForgotError] = useState<string | null>(null);
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (forgotLoading) return;
+    setForgotError(null);
+    setForgotLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setForgotLoading(false);
+    if (error) {
+      setForgotError("Não foi possível enviar o e-mail. Verifique o endereço e tente novamente.");
+      return;
+    }
+    setForgotSent(true);
+    toast.success("Enviamos um link de recuperação para o seu e-mail.");
+  }
+
   const criteria = useMemo(() => getPasswordCriteria(newPassword), [newPassword]);
   const allCriteriaMet = Object.values(criteria).every(Boolean);
   const passwordsMatch = newPassword === confirmPassword && confirmPassword.length > 0;
