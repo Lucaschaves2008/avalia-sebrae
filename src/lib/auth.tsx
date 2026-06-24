@@ -179,7 +179,9 @@ export async function updateUser(
       phone: input.phone,
       unity: input.unit,
       region,
-      ...({ state: input.state ?? null, status: input.status } as Record<string, unknown>),
+      state: input.state ?? null,
+      status: input.status,
+
     })
     .eq("id", id);
   if (error) return { ok: false, error: error.message };
