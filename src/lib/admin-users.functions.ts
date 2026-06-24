@@ -108,12 +108,14 @@ export const adminCreateUser = createServerFn({ method: "POST" })
       .from("profiles")
       .update({
         is_first_access: true,
-        ...({ state: data.state ?? null, status: "Ativo" } as Record<string, unknown>),
+        state: data.state ?? null,
+        status: "Ativo",
       })
       .eq("id", newUserId);
 
     return { ok: true as const, userId: newUserId };
   });
+
 
 export const adminDeleteUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
