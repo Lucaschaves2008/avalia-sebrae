@@ -73,6 +73,33 @@ function Dashboard() {
   const [regionFilter, setRegionFilter] = useState<Region | "all">("all");
   const [judgments, setJudgments] = useState<JudgmentRow[]>([]);
   const [loadingJudgments, setLoadingJudgments] = useState(true);
+  const [activeRegions, setActiveRegions] = useState<number>(0);
+
+  useEffect(() => {
+    if (!user || user.role !== "admin") return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("region, email")
+        .neq("email", "jusmar.chaves@providence.solutions");
+      if (cancelled) return;
+      if (error) {
+        console.error("[dashboard] regions fetch error:", error);
+        setActiveRegions(0);
+        return;
+      }
+      const set = new Set(
+        (data ?? [])
+          .map((p: { region: string | null }) => p.region)
+          .filter((r): r is string => !!r && (REGIONS as readonly string[]).includes(r)),
+      );
+      setActiveRegions(set.size);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login" });
@@ -171,7 +198,13 @@ function Dashboard() {
       value: `${readiness.avg}%`,
       icon: GraduationCap,
     },
-    { label: "Regiões ativas", value: String(REGIONS.length), icon: MapPin },
+    {
+      label: "Regiões ativas",
+      value: `${activeRegions} / ${REGIONS.length} (${
+        REGIONS.length ? Math.round((activeRegions / REGIONS.length) * 100) : 0
+      }%)`,
+      icon: MapPin,
+    },
   ];
 
   const gestorStats = [
