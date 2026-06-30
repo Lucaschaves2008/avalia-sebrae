@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsersRouteImport } from './routes/users'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as ProcessesRouteImport } from './routes/processes'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CoursesRouteImport } from './routes/courses'
@@ -30,6 +31,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProcessesRoute = ProcessesRouteImport.update({
+  id: '/processes',
+  path: '/processes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/processes': typeof ProcessesRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/processes': typeof ProcessesRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/processes': typeof ProcessesRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/dashboard'
     | '/login'
+    | '/processes'
     | '/reports'
     | '/reset-password'
     | '/users'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/dashboard'
     | '/login'
+    | '/processes'
     | '/reports'
     | '/reset-password'
     | '/users'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/dashboard'
     | '/login'
+    | '/processes'
     | '/reports'
     | '/reset-password'
     | '/users'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   CoursesRoute: typeof CoursesRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
+  ProcessesRoute: typeof ProcessesRoute
   ReportsRoute: typeof ReportsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   UsersRoute: typeof UsersRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/reports'
       preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/processes': {
+      id: '/processes'
+      path: '/processes'
+      fullPath: '/processes'
+      preLoaderRoute: typeof ProcessesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   CoursesRoute: CoursesRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
+  ProcessesRoute: ProcessesRoute,
   ReportsRoute: ReportsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   UsersRoute: UsersRoute,
