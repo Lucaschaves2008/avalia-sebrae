@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
-import { BookOpen, FileText, Gavel, LogOut, Pencil, Plus, Search, Trash2, UserCog } from "lucide-react";
+import { ArrowLeft, Gavel, LogOut, Pencil, Plus, Search, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
