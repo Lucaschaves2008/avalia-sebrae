@@ -205,6 +205,8 @@ function UsersPage() {
       status: u.status,
     });
     setErrors({});
+    setNewPassword("");
+    setShowPassword(false);
     setIsModalOpen(true);
   }
 
