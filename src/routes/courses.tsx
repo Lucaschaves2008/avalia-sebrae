@@ -1522,7 +1522,7 @@ function JudgmentPanel({
         decision: parsed.data.decision,
         updatesNeeded:
           parsed.data.decision === "ATUALIZADO" ? parsed.data.updates : undefined,
-        priority: parsed.data.decision === "INATIVACAO" ? "Baixa" : parsed.data.priority!,
+        priority: parsed.data.decision === "INATIVACAO" ? null : parsed.data.priority!,
         reason: parsed.data.reason,
       });
       toast.success(
