@@ -1555,7 +1555,7 @@ function JudgmentPanel({
                 variant="outline"
                 className="border-emerald-300 bg-emerald-50 text-emerald-800"
               >
-                <ClipboardCheck className="mr-1 h-3 w-3" /> Julgado
+                <ClipboardCheck className="mr-1 h-3 w-3" /> Avaliado
               </Badge>
             ) : (
               <Badge
