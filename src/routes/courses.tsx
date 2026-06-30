@@ -1477,9 +1477,7 @@ function JudgmentPanel({
           decision: z.enum(["MANTIDO", "ATUALIZADO", "INATIVACAO"], {
             errorMap: () => ({ message: "Selecione a decisão." }),
           }),
-          priority: z.enum(["Alta", "Média", "Baixa"], {
-            errorMap: () => ({ message: "Selecione a priorização." }),
-          }),
+          priority: z.enum(["Alta", "Média", "Baixa"]).optional(),
           reason: z.string().trim().min(1, "Informe o motivo / observação."),
           updates: z.string().trim().optional(),
         })
@@ -1490,6 +1488,13 @@ function JudgmentPanel({
               path: ["updates"],
               message:
                 "Por favor, descreva quais as atualizações necessárias para este curso.",
+            });
+          }
+          if (val.decision !== "INATIVACAO" && !val.priority) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["priority"],
+              message: "Selecione a priorização.",
             });
           }
         }),
@@ -1517,7 +1522,7 @@ function JudgmentPanel({
         decision: parsed.data.decision,
         updatesNeeded:
           parsed.data.decision === "ATUALIZADO" ? parsed.data.updates : undefined,
-        priority: parsed.data.priority,
+        priority: parsed.data.decision === "INATIVACAO" ? "Baixa" : parsed.data.priority!,
         reason: parsed.data.reason,
       });
       toast.success(
@@ -1606,22 +1611,24 @@ function JudgmentPanel({
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label>Priorização *</Label>
-            <Select
-              value={priority || undefined}
-              onValueChange={(v) => setPriority(v as JudgmentPriority)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a prioridade" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Alta">Alta</SelectItem>
-                <SelectItem value="Média">Média</SelectItem>
-                <SelectItem value="Baixa">Baixa</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {decision !== "INATIVACAO" && (
+            <div className="space-y-2">
+              <Label>Priorização *</Label>
+              <Select
+                value={priority || undefined}
+                onValueChange={(v) => setPriority(v as JudgmentPriority)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a prioridade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Alta">Alta</SelectItem>
+                  <SelectItem value="Média">Média</SelectItem>
+                  <SelectItem value="Baixa">Baixa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Motivo / Observação *</Label>
