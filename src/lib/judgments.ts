@@ -83,7 +83,7 @@ function mapRow(row: DbJudgment, profilesById: Map<string, DbProfile>): Judgment
     region: row.region as Region,
     decision: DB_TO_DECISION[row.decision] ?? "MANTIDO",
     updatesNeeded: row.updates_required ?? undefined,
-    priority: row.priority as JudgmentPriority,
+    priority: (row.priority ?? null) as JudgmentPriority | null,
     reason: row.notes,
     createdAt: row.updated_at,
     updatedAt: row.updated_at,
