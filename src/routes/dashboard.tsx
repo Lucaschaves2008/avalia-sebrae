@@ -266,7 +266,11 @@ function Dashboard() {
             <div className="hidden text-right text-white sm:block">
               <div className="text-sm font-semibold">{user.name}</div>
               <div className="text-xs text-white/70">
-                {isAdmin ? "Administrador" : `Gestor — ${user.region}`}
+                {isAdmin
+                  ? user.email === "jusmar.chaves@providence.solutions"
+                    ? "Super Administrador"
+                    : "Gestor Nacional"
+                  : `Gestor — ${user.region}`}
               </div>
             </div>
             {isAdmin && (
