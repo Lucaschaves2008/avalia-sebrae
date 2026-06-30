@@ -291,7 +291,7 @@ function Dashboard() {
             Bem-vindo(a), {user.name.split(" ")[0]}
           </h1>
           <p className="mt-1 text-muted-foreground">
-            Avaliação do portfólio de Cursos de Educação Empreendedora — visão em tempo real.
+            Avaliação do portfólio de Cursos da Educação Empreendedora — visão em tempo real.
           </p>
         </div>
 
