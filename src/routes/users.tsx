@@ -187,6 +187,8 @@ function UsersPage() {
     setEditing(null);
     setForm(EMPTY_FORM);
     setErrors({});
+    setNewPassword("");
+    setShowPassword(false);
     setIsModalOpen(true);
   }
 
