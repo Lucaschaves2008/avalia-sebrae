@@ -138,6 +138,7 @@ export async function upsertJudgment(
     );
   }
   const row = {
+    process_id: input.processId,
     course_id: input.courseId,
     user_id: input.userId,
     region: input.region,
@@ -148,13 +149,14 @@ export async function upsertJudgment(
   };
   const { data, error } = await supabase
     .from("judgments")
-    .upsert(row, { onConflict: "course_id,user_id" })
+    .upsert(row, { onConflict: "process_id,course_id,user_id" })
     .select("*")
     .single();
   if (error) throw error;
 
   const saved: Judgment = {
     id: (data as DbJudgment).id,
+    processId: input.processId,
     courseId: input.courseId,
     userId: input.userId,
     userName: input.userName,
@@ -168,9 +170,12 @@ export async function upsertJudgment(
     updatedAt: (data as DbJudgment).updated_at,
   };
 
-  // Optimistic local update — replace if exists for (courseId, userId), else append
+  // Optimistic local update — replace if exists for (processId, courseId, userId), else append
   const idx = cache.findIndex(
-    (j) => j.courseId === saved.courseId && j.userId === saved.userId,
+    (j) =>
+      j.processId === saved.processId &&
+      j.courseId === saved.courseId &&
+      j.userId === saved.userId,
   );
   if (idx >= 0) cache = [...cache.slice(0, idx), saved, ...cache.slice(idx + 1)];
   else cache = [...cache, saved];
