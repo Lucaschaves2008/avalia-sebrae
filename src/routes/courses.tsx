@@ -1557,6 +1557,10 @@ function JudgmentPanel({
       toast.error("Sessão expirada. Faça login novamente.");
       return;
     }
+    if (!processId) {
+      toast.error("Selecione um processo avaliativo antes de registrar a avaliação.");
+      return;
+    }
     const parsed = judgmentSchema.safeParse({ decision, priority: priority || undefined, reason, updates });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Verifique os campos do formulário.");
@@ -1565,6 +1569,7 @@ function JudgmentPanel({
     setSaving(true);
     try {
       await upsertJudgment({
+        processId,
         courseId: course.id,
         userId: currentUser.id, // captured from active session
         userName: currentUser.name,
