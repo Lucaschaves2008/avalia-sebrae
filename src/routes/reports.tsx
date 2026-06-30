@@ -194,8 +194,8 @@ function ManagersPerformanceReport() {
 
   return (
     <ReportCard
-      title="Relatório de Performance dos Gestores"
-      description="Visualize o engajamento de cada Gestor Regional no processo de avaliação dos cursos do portfólio."
+      title="Relatório de Performance dos Gestores Regionais"
+      description="Acompanhamento do engajamento de cada Gestor Regional no processo de avaliação dos cursos do portfólio."
       printTitle="Performance dos Gestores Regionais"
       printSubtitle={`Total de cursos no portfólio: ${totalCourses}`}
     >
