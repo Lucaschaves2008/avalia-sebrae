@@ -153,6 +153,10 @@ function Dashboard() {
         query = query.eq("region", regionFilter);
       }
 
+      if (selectedProcessId) {
+        query = query.eq("process_id", selectedProcessId);
+      }
+
       const { data, error } = await query;
       if (cancelled) return;
       if (error) {
@@ -167,7 +171,7 @@ function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, [user, regionFilter]);
+  }, [user, regionFilter, selectedProcessId]);
 
   // Material readiness aggregates
   const readiness = useMemo(() => {
