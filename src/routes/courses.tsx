@@ -108,6 +108,15 @@ import {
   type JudgmentDecision,
   type JudgmentPriority,
 } from "@/lib/judgments";
+import {
+  effectiveStatus,
+  isWithinPeriod,
+  SCOPE_LABELS,
+  STATUS_LABELS,
+  STATUS_STYLES,
+  useProcessesList,
+  type EvaluationProcess,
+} from "@/lib/processes";
 
 export const Route = createFileRoute("/courses")({
   head: () => ({
