@@ -79,6 +79,30 @@ function Dashboard() {
   const [judgments, setJudgments] = useState<JudgmentRow[]>([]);
   const [loadingJudgments, setLoadingJudgments] = useState(true);
   const [activeRegions, setActiveRegions] = useState<number>(0);
+  const processes = useProcessesList();
+  const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
+
+  // Auto-select the most recent active process for admins on first load
+  useEffect(() => {
+    if (selectedProcessId) return;
+    if (!user || user.role !== "admin") return;
+    const active = processes
+      .filter((p) => effectiveStatus(p) === "ATIVO")
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    if (active.length) setSelectedProcessId(active[0].id);
+  }, [processes, user, selectedProcessId]);
+
+  const selectedProcess: EvaluationProcess | null = useMemo(
+    () => processes.find((p) => p.id === selectedProcessId) ?? null,
+    [processes, selectedProcessId],
+  );
+
+  // Scope courses to selected process when applicable
+  const scopedCourses: Course[] = useMemo(() => {
+    if (!selectedProcess) return courses;
+    const ids = new Set(selectedProcess.courseIds);
+    return courses.filter((c) => ids.has(c.id));
+  }, [courses, selectedProcess]);
 
   useEffect(() => {
     if (!user || user.role !== "admin") return;
