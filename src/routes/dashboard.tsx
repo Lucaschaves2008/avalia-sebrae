@@ -173,18 +173,18 @@ function Dashboard() {
     };
   }, [user, regionFilter, selectedProcessId]);
 
-  // Material readiness aggregates
+  // Material readiness aggregates (scoped to selected process when applicable)
   const readiness = useMemo(() => {
     const buckets = { pronto: 0, medio: 0, alto: 0 };
     let sumPct = 0;
-    for (const c of courses) {
+    for (const c of scopedCourses) {
       const r = computeMaterialReadiness(c);
       buckets[r.level] += 1;
       sumPct += r.pct;
     }
-    const avg = courses.length ? Math.round(sumPct / courses.length) : 0;
-    return { ...buckets, avg, total: courses.length };
-  }, [courses]);
+    const avg = scopedCourses.length ? Math.round(sumPct / scopedCourses.length) : 0;
+    return { ...buckets, avg, total: scopedCourses.length };
+  }, [scopedCourses]);
 
   // Decision aggregates for pie chart
   const decisionData = useMemo(() => {
@@ -215,12 +215,12 @@ function Dashboard() {
 
   const isAdmin = user.role === "admin";
   const judgedCourseIds = new Set(judgments.map((j) => j.course_id));
-  const completude = courses.length
-    ? Math.round((judgedCourseIds.size / courses.length) * 100)
+  const completude = scopedCourses.length
+    ? Math.round((judgedCourseIds.size / scopedCourses.length) * 100)
     : 0;
 
   const adminStats = [
-    { label: "Cursos para avaliar", value: String(courses.length), icon: BookOpen },
+    { label: "Cursos para avaliar", value: String(scopedCourses.length), icon: BookOpen },
     {
       label: "Avaliações cadastradas",
       value: String(judgments.length),
