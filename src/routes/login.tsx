@@ -177,8 +177,11 @@ function LoginPage() {
             com a qualidade e a segurança SEBRAE.
           </p>
         </div>
-        <div className="relative text-xs text-white/60">
-          © {new Date().getFullYear()} SEBRAE — Todos os direitos reservados.
+        <div className="relative space-y-3">
+          <PrvdFooter variant="onDark" className="justify-start" />
+          <div className="text-xs text-white/60">
+            © {new Date().getFullYear()} SEBRAE — Todos os direitos reservados.
+          </div>
         </div>
       </div>
 
