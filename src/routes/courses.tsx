@@ -307,12 +307,12 @@ function CoursesPage() {
               Portfólio
             </span>
             <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
-              Gestão de Cursos
+              Avaliação de Cursos
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {isAdmin
                 ? "Importe, edite e gerencie as soluções educacionais do portfólio."
-                : "Consulte o portfólio de soluções educacionais do SEBRAE (somente leitura)."}
+                : "Avaliação dos cursos o portfólio de soluções educacionais do SEBRAE"}
             </p>
           </div>
           {isAdmin && (
