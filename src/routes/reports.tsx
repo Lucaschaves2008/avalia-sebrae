@@ -454,7 +454,7 @@ function CoursesList({
   return (
     <ul className="space-y-4">
       {items.map((item) => {
-        const priorities = item.judgments.map((j) => j.priority);
+        const priorities = item.judgments.map((j) => j.priority).filter((p): p is NonNullable<typeof p> => !!p);
         return (
           <li
             key={item.course.id}
