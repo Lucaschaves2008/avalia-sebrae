@@ -1521,7 +1521,7 @@ function JudgmentPanel({
         reason: parsed.data.reason,
       });
       toast.success(
-        myJudgment ? "Julgamento atualizado." : "Julgamento registrado com sucesso.",
+        myJudgment ? "Avaliação atualizada." : "Avaliação registrada com sucesso.",
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
