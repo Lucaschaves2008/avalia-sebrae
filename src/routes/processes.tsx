@@ -198,43 +198,58 @@ function ProcessesPage() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <header className="border-b border-border bg-card">
+      <header
+        className="border-b border-white/10"
+        style={{ background: "var(--gradient-primary)" }}
+      >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-6 py-4">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate({ to: "/dashboard" })}
-            >
-              <ArrowLeft className="mr-1 h-4 w-4" /> Voltar
-            </Button>
-            <SebraeLogo className="h-8" />
-            <div>
-              <h1 className="text-lg font-bold text-foreground">
-                Processos Avaliativos
-              </h1>
-              <p className="text-xs text-muted-foreground">
+            <SebraeLogo variant="onDark" height={36} />
+            <div className="hidden sm:block">
+              <h1 className="text-lg font-bold text-white">Processos Avaliativos</h1>
+              <p className="text-xs text-white/70">
                 Defina períodos, amplitude e cursos a serem avaliados.
               </p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="hidden text-xs text-muted-foreground sm:inline">
-              {user.email}
-            </span>
-            <Button variant="outline" size="sm" onClick={() => navigate({ to: "/users" })}>
+            <div className="hidden text-right text-white sm:block">
+              <div className="text-sm font-semibold">{user.name}</div>
+              <div className="text-xs text-white/70">{user.email}</div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate({ to: "/users" })}
+              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+            >
               <UserCog className="mr-2 h-4 w-4" />
               Usuários
             </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate({ to: "/courses" })}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate({ to: "/courses" })}
+              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+            >
               <BookOpen className="mr-2 h-4 w-4" />
               Cursos
             </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate({ to: "/processes" })}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate({ to: "/processes" })}
+              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+            >
               <Gavel className="mr-2 h-4 w-4" />
               Processos
             </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate({ to: "/reports" })}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate({ to: "/reports" })}
+              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+            >
               <FileText className="mr-2 h-4 w-4" />
               Relatórios
             </Button>
@@ -245,14 +260,15 @@ function ProcessesPage() {
                 void logout();
                 navigate({ to: "/login" });
               }}
+              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
             >
               <LogOut className="mr-2 h-4 w-4" />
               Sair
             </Button>
           </div>
-
         </div>
       </header>
+
 
       <main className="mx-auto max-w-7xl px-6 py-6">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
