@@ -878,7 +878,7 @@ function CourseDetailSheet({
                   <TabsTrigger value="materiais">Materiais</TabsTrigger>
                   <TabsTrigger value="fgv">Avaliação FGV</TabsTrigger>
                   <TabsTrigger value="julgamento" className="relative">
-                    Julgamento
+                    Avaliação
                     {isGestor && (
                       <span
                         className={`ml-1.5 h-1.5 w-1.5 rounded-full ${
