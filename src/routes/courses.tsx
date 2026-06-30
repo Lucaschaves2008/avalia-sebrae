@@ -1530,7 +1530,7 @@ function JudgmentPanel({
         toast.error(msg);
       } else {
         console.error("[judgments] save error:", err);
-        toast.error("Erro ao salvar julgamento. Tente novamente em instantes.");
+        toast.error("Erro ao salvar avaliação. Tente novamente em instantes.");
       }
     } finally {
       setSaving(false);
