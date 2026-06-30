@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
-import { Pencil, Plus, Search, Trash2, UserCog, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, KeyRound, Pencil, Plus, Search, Trash2, UserCog, ArrowLeft } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { adminSetUserPassword } from "@/lib/admin-users.functions";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -134,6 +136,33 @@ function UsersPage() {
   const [confirmDelete, setConfirmDelete] = useState<AuthUser | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+  const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+  const setUserPasswordFn = useServerFn(adminSetUserPassword);
+  const isSuperAdmin =
+    user?.email?.toLowerCase() === "jusmar.chaves@providence.solutions";
+
+  async function handleChangePassword() {
+    if (!editing) return;
+    if (newPassword.length < 8) {
+      toast.error("A nova senha deve ter ao menos 8 caracteres.");
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      await setUserPasswordFn({
+        data: { userId: editing.id, newPassword },
+      });
+      toast.success(`Senha de ${editing.name} atualizada com sucesso.`);
+      setNewPassword("");
+      setShowPassword(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao alterar senha.");
+    } finally {
+      setSavingPassword(false);
+    }
+  }
 
   // Admin guard
   useEffect(() => {
@@ -158,6 +187,8 @@ function UsersPage() {
     setEditing(null);
     setForm(EMPTY_FORM);
     setErrors({});
+    setNewPassword("");
+    setShowPassword(false);
     setIsModalOpen(true);
   }
 
@@ -174,6 +205,8 @@ function UsersPage() {
       status: u.status,
     });
     setErrors({});
+    setNewPassword("");
+    setShowPassword(false);
     setIsModalOpen(true);
   }
 
@@ -591,6 +624,53 @@ function UsersPage() {
                 </Select>
               </div>
             )}
+
+            {editing && isSuperAdmin && editing.id !== user?.id && (
+              <div className="sm:col-span-2 space-y-2 rounded-md border border-amber-200 bg-amber-50 p-3">
+                <div className="flex items-center gap-2 text-sm font-semibold text-amber-900">
+                  <KeyRound className="h-4 w-4" />
+                  Alterar senha de acesso (Super Administrador)
+                </div>
+                <p className="text-xs text-amber-800">
+                  Por segurança, a senha atual fica criptografada e não pode ser exibida.
+                  Defina uma nova senha — o usuário poderá entrar imediatamente com ela.
+                </p>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      id="new-password"
+                      type={showPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Nova senha (mín. 8 caracteres)"
+                      autoComplete="new-password"
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((s) => !s)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleChangePassword}
+                    disabled={savingPassword || newPassword.length < 8}
+                    className="bg-amber-600 text-white hover:bg-amber-700"
+                  >
+                    {savingPassword ? "Salvando..." : "Salvar senha"}
+                  </Button>
+                </div>
+              </div>
+            )}
+
 
             {!editing && (
               <div className="sm:col-span-2 rounded-md border border-dashed border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
