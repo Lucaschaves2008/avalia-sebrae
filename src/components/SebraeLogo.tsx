@@ -1,18 +1,39 @@
-export function SebraeLogo({ className }: { className?: string }) {
+import sebraeLogoAsset from "@/assets/sebrae-logo.svg.asset.json";
+
+interface SebraeLogoProps {
+  className?: string;
+  /**
+   * "onDark" wraps the blue official logo in a white rounded plate so it stays
+   * visible over dark/blue backgrounds. "onLight" renders the bare logo for
+   * use over white/light surfaces.
+   */
+  variant?: "onDark" | "onLight";
+  /** Height of the logo in pixels. Width auto-scales to preserve ratio. */
+  height?: number;
+}
+
+export function SebraeLogo({
+  className,
+  variant = "onDark",
+  height = 40,
+}: SebraeLogoProps) {
+  const img = (
+    <img
+      src={sebraeLogoAsset.url}
+      alt="SEBRAE — Educação Empreendedora"
+      style={{ height, width: "auto" }}
+      className="block"
+    />
+  );
+
+  if (variant === "onLight") {
+    return <div className={className}>{img}</div>;
+  }
+
   return (
     <div className={className}>
-      <div className="flex items-center gap-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-secondary">
-          <span className="text-lg font-black tracking-tighter text-primary">Se</span>
-        </div>
-        <div className="leading-tight">
-          <div className="text-lg font-extrabold tracking-tight text-primary-foreground">
-            SEBRAE
-          </div>
-          <div className="text-[10px] font-medium uppercase tracking-widest text-secondary">
-            Educação Empreendedora
-          </div>
-        </div>
+      <div className="inline-flex items-center rounded-lg bg-white px-3 py-2 shadow-sm ring-1 ring-white/30">
+        {img}
       </div>
     </div>
   );

@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { AuthProvider, REGIONS, useAuth, type Region } from "@/lib/auth";
 import { SebraeLogo } from "@/components/SebraeLogo";
+import { PrvdFooter } from "@/components/PrvdFooter";
 import { supabase } from "@/integrations/supabase/client";
 import { useCoursesList, computeMaterialReadiness } from "@/lib/courses";
 
@@ -194,7 +195,7 @@ function Dashboard() {
         style={{ background: "var(--gradient-primary)" }}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <SebraeLogo />
+          <SebraeLogo variant="onDark" height={36} />
           <div className="flex items-center gap-3">
             <div className="hidden text-right text-white sm:block">
               <div className="text-sm font-semibold">{user.name}</div>
@@ -418,6 +419,12 @@ function Dashboard() {
           </div>
         )}
       </main>
+
+      <footer className="border-t border-border bg-card/50">
+        <div className="mx-auto max-w-7xl px-6 py-6">
+          <PrvdFooter variant="onLight" />
+        </div>
+      </footer>
     </div>
   );
 }

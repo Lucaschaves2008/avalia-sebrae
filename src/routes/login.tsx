@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { SebraeLogo } from "@/components/SebraeLogo";
+import { PrvdFooter } from "@/components/PrvdFooter";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/login")({
@@ -176,8 +177,11 @@ function LoginPage() {
             com a qualidade e a segurança SEBRAE.
           </p>
         </div>
-        <div className="relative text-xs text-white/60">
-          © {new Date().getFullYear()} SEBRAE — Todos os direitos reservados.
+        <div className="relative space-y-3">
+          <PrvdFooter variant="onDark" className="justify-start" />
+          <div className="text-xs text-white/60">
+            © {new Date().getFullYear()} SEBRAE — Todos os direitos reservados.
+          </div>
         </div>
       </div>
 
@@ -185,14 +189,7 @@ function LoginPage() {
       <div className="flex items-center justify-center bg-background px-6 py-12">
         <div className="w-full max-w-md">
           <div className="mb-8 lg:hidden">
-            <div className="inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded bg-secondary text-sm font-black text-primary">
-                Se
-              </div>
-              <span className="text-sm font-bold text-primary-foreground">
-                SEBRAE
-              </span>
-            </div>
+            <SebraeLogo variant="onLight" height={36} />
           </div>
 
           <div className="mb-8">
@@ -300,6 +297,8 @@ function LoginPage() {
               automaticamente promovido a Administrador.
             </p>
           </div>
+
+          <PrvdFooter variant="onLight" className="mt-8" />
         </div>
       </div>
 
