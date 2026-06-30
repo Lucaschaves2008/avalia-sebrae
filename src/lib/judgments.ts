@@ -7,6 +7,7 @@ export type JudgmentPriority = "Alta" | "Média" | "Baixa";
 
 export interface Judgment {
   id: string;
+  processId: string;
   courseId: string;
   userId: string;
   userName: string;
