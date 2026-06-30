@@ -14,7 +14,7 @@ export interface Judgment {
   region: Region;
   decision: JudgmentDecision;
   updatesNeeded?: string;
-  priority: JudgmentPriority;
+  priority: JudgmentPriority | null;
   reason: string;
   createdAt: string;
   updatedAt: string;
