@@ -647,6 +647,8 @@ function CoursesPage() {
             </Table>
           </div>
         )}
+          </>
+        )}
       </main>
 
       {/* Detail Sheet */}
