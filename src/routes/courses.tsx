@@ -1489,6 +1489,8 @@ function JudgmentPanel({
   currentUser,
   isGestor,
   isAdmin,
+  processId,
+  processName,
   judgments,
   myJudgment,
 }: {
@@ -1496,6 +1498,8 @@ function JudgmentPanel({
   currentUser: AuthUser | null;
   isGestor: boolean;
   isAdmin: boolean;
+  processId: string | null;
+  processName: string | null;
   judgments: Judgment[];
   myJudgment?: Judgment;
 }) {
