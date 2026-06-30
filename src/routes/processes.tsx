@@ -365,8 +365,9 @@ function ProcessesPage() {
 
       {/* Editor dialog */}
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-2xl">
+          <DialogHeader className="border-b px-6 py-4">
+
             <DialogTitle className="flex items-center gap-2">
               <Gavel className="h-4 w-4 text-primary" />
               {editing?.id ? "Editar processo" : "Novo processo avaliativo"}
