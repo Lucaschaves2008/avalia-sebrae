@@ -625,6 +625,53 @@ function UsersPage() {
               </div>
             )}
 
+            {editing && isSuperAdmin && editing.id !== user?.id && (
+              <div className="sm:col-span-2 space-y-2 rounded-md border border-amber-200 bg-amber-50 p-3">
+                <div className="flex items-center gap-2 text-sm font-semibold text-amber-900">
+                  <KeyRound className="h-4 w-4" />
+                  Alterar senha de acesso (Super Administrador)
+                </div>
+                <p className="text-xs text-amber-800">
+                  Por segurança, a senha atual fica criptografada e não pode ser exibida.
+                  Defina uma nova senha — o usuário poderá entrar imediatamente com ela.
+                </p>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      id="new-password"
+                      type={showPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Nova senha (mín. 8 caracteres)"
+                      autoComplete="new-password"
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((s) => !s)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleChangePassword}
+                    disabled={savingPassword || newPassword.length < 8}
+                    className="bg-amber-600 text-white hover:bg-amber-700"
+                  >
+                    {savingPassword ? "Salvando..." : "Salvar senha"}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+
             {!editing && (
               <div className="sm:col-span-2 rounded-md border border-dashed border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
                 O novo usuário será criado automaticamente com status{" "}
