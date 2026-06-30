@@ -514,8 +514,10 @@ function CoursesPage() {
                 key={c.id}
                 course={c}
                 onOpen={() => setDetail(c)}
-                userJudgment={user ? findUserJudgment(judgments, c.id, user.id) : undefined}
-                showJudgmentStatus={isGestor}
+                userJudgment={
+                  user ? findUserJudgment(scopedJudgments, c.id, user.id) : undefined
+                }
+                showJudgmentStatus={isGestor && !!selectedProcessId}
               />
             ))}
           </div>
