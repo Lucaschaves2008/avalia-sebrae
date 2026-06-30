@@ -198,7 +198,13 @@ function Dashboard() {
       value: `${readiness.avg}%`,
       icon: GraduationCap,
     },
-    { label: "Regiões ativas", value: String(REGIONS.length), icon: MapPin },
+    {
+      label: "Regiões ativas",
+      value: `${activeRegions} / ${REGIONS.length} (${
+        REGIONS.length ? Math.round((activeRegions / REGIONS.length) * 100) : 0
+      }%)`,
+      icon: MapPin,
+    },
   ];
 
   const gestorStats = [
