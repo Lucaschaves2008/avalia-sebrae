@@ -1477,9 +1477,7 @@ function JudgmentPanel({
           decision: z.enum(["MANTIDO", "ATUALIZADO", "INATIVACAO"], {
             errorMap: () => ({ message: "Selecione a decisão." }),
           }),
-          priority: z.enum(["Alta", "Média", "Baixa"], {
-            errorMap: () => ({ message: "Selecione a priorização." }),
-          }),
+          priority: z.enum(["Alta", "Média", "Baixa"]).optional(),
           reason: z.string().trim().min(1, "Informe o motivo / observação."),
           updates: z.string().trim().optional(),
         })
@@ -1490,6 +1488,13 @@ function JudgmentPanel({
               path: ["updates"],
               message:
                 "Por favor, descreva quais as atualizações necessárias para este curso.",
+            });
+          }
+          if (val.decision !== "INATIVACAO" && !val.priority) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["priority"],
+              message: "Selecione a priorização.",
             });
           }
         }),
