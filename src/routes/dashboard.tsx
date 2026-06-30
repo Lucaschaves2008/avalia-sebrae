@@ -246,12 +246,12 @@ function Dashboard() {
   ];
 
   const gestorStats = [
-    { label: "Cursos para avaliar", value: String(courses.length), icon: BookOpen },
+    { label: "Cursos para avaliar", value: String(scopedCourses.length), icon: BookOpen },
     { label: "Suas avaliações", value: String(judgments.length), icon: Gavel },
     { label: "% de completude", value: `${completude}%`, icon: ClipboardCheck },
     {
       label: "Cursos pendentes de avaliação",
-      value: String(Math.max(courses.length - judgedCourseIds.size, 0)),
+      value: String(Math.max(scopedCourses.length - judgedCourseIds.size, 0)),
       icon: GraduationCap,
     },
   ];
