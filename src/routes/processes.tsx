@@ -378,118 +378,121 @@ function ProcessesPage() {
           </DialogHeader>
 
           {editing && (
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="proc-name">Nome do processo *</Label>
-                <Input
-                  id="proc-name"
-                  value={editing.name}
-                  onChange={(e) =>
-                    setEditing({ ...editing, name: e.target.value })
-                  }
-                  placeholder="Ex.: Avaliação Anual 2026"
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="proc-desc">Descrição</Label>
-                <Textarea
-                  id="proc-desc"
-                  value={editing.description}
-                  onChange={(e) =>
-                    setEditing({ ...editing, description: e.target.value })
-                  }
-                  placeholder="Contexto / observações sobre este processo"
-                  rows={2}
-                />
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="proc-start">Data inicial *</Label>
+                  <Label htmlFor="proc-name">Nome do processo *</Label>
                   <Input
-                    id="proc-start"
-                    type="date"
-                    value={editing.startDate}
+                    id="proc-name"
+                    value={editing.name}
                     onChange={(e) =>
-                      setEditing({ ...editing, startDate: e.target.value })
+                      setEditing({ ...editing, name: e.target.value })
                     }
+                    placeholder="Ex.: Avaliação Anual 2026"
                   />
                 </div>
+
                 <div className="grid gap-2">
-                  <Label htmlFor="proc-end">Data final *</Label>
-                  <Input
-                    id="proc-end"
-                    type="date"
-                    value={editing.endDate}
+                  <Label htmlFor="proc-desc">Descrição</Label>
+                  <Textarea
+                    id="proc-desc"
+                    value={editing.description}
                     onChange={(e) =>
-                      setEditing({ ...editing, endDate: e.target.value })
+                      setEditing({ ...editing, description: e.target.value })
                     }
+                    placeholder="Contexto / observações sobre este processo"
+                    rows={2}
                   />
                 </div>
-              </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="grid gap-2">
-                  <Label>Amplitude *</Label>
-                  <Select
-                    value={editing.scope}
-                    onValueChange={(v) =>
-                      setEditing({ ...editing, scope: v as ProcessScope })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="NACIONAL">
-                        {SCOPE_LABELS.NACIONAL}
-                      </SelectItem>
-                      <SelectItem value="REGIONAL">
-                        {SCOPE_LABELS.REGIONAL}
-                      </SelectItem>
-                      <SelectItem value="AMBOS">{SCOPE_LABELS.AMBOS}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="proc-start">Data inicial *</Label>
+                    <Input
+                      id="proc-start"
+                      type="date"
+                      value={editing.startDate}
+                      onChange={(e) =>
+                        setEditing({ ...editing, startDate: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="proc-end">Data final *</Label>
+                    <Input
+                      id="proc-end"
+                      type="date"
+                      value={editing.endDate}
+                      onChange={(e) =>
+                        setEditing({ ...editing, endDate: e.target.value })
+                      }
+                    />
+                  </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label>Status *</Label>
-                  <Select
-                    value={editing.status}
-                    onValueChange={(v) =>
-                      setEditing({ ...editing, status: v as ProcessStatus })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ATIVO">Ativo</SelectItem>
-                      <SelectItem value="INATIVO">Inativo</SelectItem>
-                      <SelectItem value="FINALIZADO">Finalizado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Após o vencimento, o status efetivo passa a "Finalizado"
-                    automaticamente.
-                  </p>
-                </div>
-              </div>
 
-              <CourseSelector
-                courses={courses}
-                selected={editing.courseIds}
-                onChange={(ids) => setEditing({ ...editing, courseIds: ids })}
-              />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label>Amplitude *</Label>
+                    <Select
+                      value={editing.scope}
+                      onValueChange={(v) =>
+                        setEditing({ ...editing, scope: v as ProcessScope })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NACIONAL">
+                          {SCOPE_LABELS.NACIONAL}
+                        </SelectItem>
+                        <SelectItem value="REGIONAL">
+                          {SCOPE_LABELS.REGIONAL}
+                        </SelectItem>
+                        <SelectItem value="AMBOS">{SCOPE_LABELS.AMBOS}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Status *</Label>
+                    <Select
+                      value={editing.status}
+                      onValueChange={(v) =>
+                        setEditing({ ...editing, status: v as ProcessStatus })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ATIVO">Ativo</SelectItem>
+                        <SelectItem value="INATIVO">Inativo</SelectItem>
+                        <SelectItem value="FINALIZADO">Finalizado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Após o vencimento, o status efetivo passa a "Finalizado"
+                      automaticamente.
+                    </p>
+                  </div>
+                </div>
+
+                <CourseSelector
+                  courses={courses}
+                  selected={editing.courseIds}
+                  onChange={(ids) => setEditing({ ...editing, courseIds: ids })}
+                />
+              </div>
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="border-t bg-card px-6 py-4">
             <Button variant="outline" onClick={() => setEditing(null)}>
               Cancelar
             </Button>
             <Button onClick={handleSave}>Salvar</Button>
           </DialogFooter>
+
         </DialogContent>
       </Dialog>
 
