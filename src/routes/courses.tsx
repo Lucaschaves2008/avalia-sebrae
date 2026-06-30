@@ -1568,8 +1568,8 @@ function JudgmentPanel({
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
           {isGestor
-            ? `Registre sua avaliação como Gestor da Região ${currentUser?.region}. O julgamento será vinculado ao seu usuário e à sua região.`
-            : "Visualização consolidada dos julgamentos realizados pelos gestores regionais."}
+            ? `Registre sua avaliação como Gestor da Região ${currentUser?.region}. A avaliação será vinculada ao seu usuário e à sua região.`
+            : "Visualização consolidada das avaliações realizadas pelos gestores regionais."}
         </p>
       </div>
 
