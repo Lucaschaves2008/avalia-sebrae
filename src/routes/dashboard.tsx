@@ -339,6 +339,41 @@ function Dashboard() {
           </p>
         </div>
 
+        {isAdmin && (
+          <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <Gavel className="h-4 w-4 text-primary" />
+              <div>
+                <div className="text-sm font-semibold text-foreground">
+                  Processo avaliativo
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Os indicadores abaixo refletem o processo selecionado.
+                </div>
+              </div>
+            </div>
+            <Select
+              value={selectedProcessId ?? "all"}
+              onValueChange={(v) => setSelectedProcessId(v === "all" ? null : v)}
+            >
+              <SelectTrigger className="w-full sm:w-80">
+                <SelectValue placeholder="Selecione um processo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os processos (visão geral)</SelectItem>
+                {processes
+                  .slice()
+                  .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+                  .map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name} — {effectiveStatus(p)}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map(({ label, value, icon: Icon }) => (
             <div
