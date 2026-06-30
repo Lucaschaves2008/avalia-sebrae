@@ -82,12 +82,17 @@ function Dashboard() {
   const processes = useProcessesList();
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
 
-  // Auto-select the most recent active process for admins on first load
+  // Auto-select the most recent active process on first load
   useEffect(() => {
     if (selectedProcessId) return;
-    if (!user || user.role !== "admin") return;
+    if (!user) return;
     const active = processes
       .filter((p) => effectiveStatus(p) === "ATIVO")
+      .filter((p) =>
+        user.role === "admin"
+          ? p.scope === "NACIONAL" || p.scope === "AMBOS"
+          : p.scope === "REGIONAL" || p.scope === "AMBOS",
+      )
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     if (active.length) setSelectedProcessId(active[0].id);
   }, [processes, user, selectedProcessId]);
@@ -241,12 +246,12 @@ function Dashboard() {
   ];
 
   const gestorStats = [
-    { label: "Cursos para avaliar", value: String(courses.length), icon: BookOpen },
+    { label: "Cursos para avaliar", value: String(scopedCourses.length), icon: BookOpen },
     { label: "Suas avaliações", value: String(judgments.length), icon: Gavel },
     { label: "% de completude", value: `${completude}%`, icon: ClipboardCheck },
     {
       label: "Cursos pendentes de avaliação",
-      value: String(Math.max(courses.length - judgedCourseIds.size, 0)),
+      value: String(Math.max(scopedCourses.length - judgedCourseIds.size, 0)),
       icon: GraduationCap,
     },
   ];
@@ -291,7 +296,7 @@ function Dashboard() {
               className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
             >
               <BookOpen className="mr-2 h-4 w-4" />
-              Cursos
+              {isAdmin ? "Cursos" : "Avaliações"}
             </Button>
             {isAdmin && (
               <Button
@@ -344,40 +349,49 @@ function Dashboard() {
           </p>
         </div>
 
-        {isAdmin && (
-          <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <Gavel className="h-4 w-4 text-primary" />
-              <div>
-                <div className="text-sm font-semibold text-foreground">
-                  Processo avaliativo
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Os indicadores abaixo refletem o processo selecionado.
+        {(() => {
+          const availableProcesses = processes
+            .filter((p) =>
+              isAdmin
+                ? p.scope === "NACIONAL" || p.scope === "AMBOS"
+                : p.scope === "REGIONAL" || p.scope === "AMBOS",
+            )
+            .slice()
+            .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+          return (
+            <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <Gavel className="h-4 w-4 text-primary" />
+                <div>
+                  <div className="text-sm font-semibold text-foreground">
+                    Processo avaliativo
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Os indicadores abaixo refletem o processo selecionado.
+                  </div>
                 </div>
               </div>
-            </div>
-            <Select
-              value={selectedProcessId ?? "all"}
-              onValueChange={(v) => setSelectedProcessId(v === "all" ? null : v)}
-            >
-              <SelectTrigger className="w-full sm:w-80">
-                <SelectValue placeholder="Selecione um processo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os processos (visão geral)</SelectItem>
-                {processes
-                  .slice()
-                  .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-                  .map((p) => (
+              <Select
+                value={selectedProcessId ?? (isAdmin ? "all" : "")}
+                onValueChange={(v) => setSelectedProcessId(v === "all" ? null : v)}
+              >
+                <SelectTrigger className="w-full sm:w-80">
+                  <SelectValue placeholder="Selecione um processo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {isAdmin && (
+                    <SelectItem value="all">Todos os processos (visão geral)</SelectItem>
+                  )}
+                  {availableProcesses.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.name} — {effectiveStatus(p)}
                     </SelectItem>
                   ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+                </SelectContent>
+              </Select>
+            </div>
+          );
+        })()}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map(({ label, value, icon: Icon }) => (
