@@ -206,7 +206,7 @@ function ManagersPerformanceReport() {
             <tr>
               <th className="px-4 py-3 text-left font-semibold">Gestor</th>
               <th className="px-4 py-3 text-left font-semibold">Regional</th>
-              <th className="px-4 py-3 text-center font-semibold">Julgados</th>
+              <th className="px-4 py-3 text-center font-semibold">Avaliados</th>
               <th className="px-4 py-3 text-center font-semibold">Pendentes</th>
               <th className="px-4 py-3 text-center font-semibold">Mantidos</th>
               <th className="px-4 py-3 text-center font-semibold">Atualizar</th>
