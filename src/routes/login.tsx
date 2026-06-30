@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { SebraeLogo } from "@/components/SebraeLogo";
+import { PrvdFooter } from "@/components/PrvdFooter";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/login")({
