@@ -291,6 +291,17 @@ function Dashboard() {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => navigate({ to: "/processes" })}
+                className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+              >
+                <Gavel className="mr-2 h-4 w-4" />
+                Processos
+              </Button>
+            )}
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => navigate({ to: "/users" })}
                 className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
               >
