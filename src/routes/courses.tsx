@@ -1611,22 +1611,24 @@ function JudgmentPanel({
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label>Priorização *</Label>
-            <Select
-              value={priority || undefined}
-              onValueChange={(v) => setPriority(v as JudgmentPriority)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a prioridade" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Alta">Alta</SelectItem>
-                <SelectItem value="Média">Média</SelectItem>
-                <SelectItem value="Baixa">Baixa</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {decision !== "INATIVACAO" && (
+            <div className="space-y-2">
+              <Label>Priorização *</Label>
+              <Select
+                value={priority || undefined}
+                onValueChange={(v) => setPriority(v as JudgmentPriority)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a prioridade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Alta">Alta</SelectItem>
+                  <SelectItem value="Média">Média</SelectItem>
+                  <SelectItem value="Baixa">Baixa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Motivo / Observação *</Label>
