@@ -84,9 +84,8 @@ function ReportsPage() {
             Relatórios
           </h1>
           <p className="mt-1 text-muted-foreground">
-            Gere relatórios consolidados em layout SEBRAE — otimizados para
-            impressão ou exportação em PDF (via janela de impressão do
-            navegador).
+            Relatórios otimizados para impressão ou exportação em PDF (via
+            janela de impressão do navegador).
           </p>
         </div>
 
