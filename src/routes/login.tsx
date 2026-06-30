@@ -281,8 +281,7 @@ function LoginPage() {
 
             <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
               <ShieldCheck className="h-4 w-4 text-primary" />
-              Ambiente protegido. O acesso é monitorado pela Segurança da
-              Informação SEBRAE.
+              Ambiente protegido.
             </div>
           </form>
 
@@ -291,9 +290,7 @@ function LoginPage() {
               Primeiro acesso
             </div>
             <p>
-              Não possui cadastro? Solicite ao administrador o cadastro da sua
-              conta. O primeiro usuário a se cadastrar no sistema é
-              automaticamente promovido a Administrador.
+              Não possui acesso? Solicite ao administrador (juliana.chaves@sebrae.com.br) seu cadastro para realização das avaliações.
             </p>
           </div>
 
