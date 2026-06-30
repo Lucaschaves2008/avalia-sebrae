@@ -128,6 +128,78 @@ export type Database = {
         }
         Relationships: []
       }
+      evaluation_process_courses: {
+        Row: {
+          course_id: string
+          created_at: string
+          process_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          process_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          process_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_process_courses_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluation_process_courses_process_id_fkey"
+            columns: ["process_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_processes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evaluation_processes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string
+          id: string
+          name: string
+          scope: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date: string
+          id?: string
+          name: string
+          scope: string
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string
+          id?: string
+          name?: string
+          scope?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       judgments: {
         Row: {
           course_id: string
@@ -135,6 +207,7 @@ export type Database = {
           id: string
           notes: string
           priority: string | null
+          process_id: string
           region: string
           updated_at: string
           updates_required: string | null
@@ -146,6 +219,7 @@ export type Database = {
           id?: string
           notes: string
           priority?: string | null
+          process_id: string
           region: string
           updated_at?: string
           updates_required?: string | null
@@ -157,6 +231,7 @@ export type Database = {
           id?: string
           notes?: string
           priority?: string | null
+          process_id?: string
           region?: string
           updated_at?: string
           updates_required?: string | null
@@ -168,6 +243,13 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "judgments_process_id_fkey"
+            columns: ["process_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_processes"
             referencedColumns: ["id"]
           },
           {

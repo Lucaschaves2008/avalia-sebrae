@@ -108,6 +108,15 @@ import {
   type JudgmentDecision,
   type JudgmentPriority,
 } from "@/lib/judgments";
+import {
+  effectiveStatus,
+  isWithinPeriod,
+  SCOPE_LABELS,
+  STATUS_LABELS,
+  STATUS_STYLES,
+  useProcessesList,
+  type EvaluationProcess,
+} from "@/lib/processes";
 
 export const Route = createFileRoute("/courses")({
   head: () => ({
@@ -150,6 +159,7 @@ function CoursesPage() {
   const navigate = useNavigate();
   const courses = useCoursesList();
   const judgments = useJudgmentsList();
+  const processes = useProcessesList();
   const isAdmin = user?.role === "admin";
   const isGestor = user?.role === "gestor";
 
@@ -169,10 +179,33 @@ function CoursesPage() {
     errors: string[];
   } | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login" });
   }, [loading, user, navigate]);
+
+  // Active processes visible to current user
+  const activeProcessesForUser = useMemo<EvaluationProcess[]>(() => {
+    return processes.filter((p) => {
+      if (effectiveStatus(p) !== "ATIVO") return false;
+      if (!isWithinPeriod(p)) return false;
+      if (isGestor) return p.scope === "REGIONAL" || p.scope === "AMBOS";
+      if (isAdmin) return p.scope === "NACIONAL" || p.scope === "AMBOS";
+      return false;
+    });
+  }, [processes, isGestor, isAdmin]);
+
+  const selectedProcess = useMemo(
+    () => processes.find((p) => p.id === selectedProcessId) ?? null,
+    [processes, selectedProcessId],
+  );
+
+  // Judgments filtered to the active process scope (when one is selected)
+  const scopedJudgments = useMemo(() => {
+    if (!selectedProcessId) return judgments;
+    return judgments.filter((j) => j.processId === selectedProcessId);
+  }, [judgments, selectedProcessId]);
 
   const publicos = useMemo(
     () => Array.from(new Set(courses.map((c) => c.publicoAlvo).filter(Boolean))).sort(),
@@ -185,7 +218,11 @@ function CoursesPage() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return courses.filter((c) => {
+    // When a process is selected, restrict to the courses bound to that process
+    const inProcess = selectedProcess
+      ? courses.filter((c) => selectedProcess.courseIds.includes(c.id))
+      : courses;
+    return inProcess.filter((c) => {
       if (bcgFilter !== "all" && c.bcg !== bcgFilter) return false;
       if (publicoFilter !== "all" && c.publicoAlvo !== publicoFilter) return false;
       if (modalidadeFilter !== "all" && c.modalidade !== modalidadeFilter) return false;
@@ -201,7 +238,7 @@ function CoursesPage() {
         c.modalidade.toLowerCase().includes(q)
       );
     });
-  }, [courses, query, bcgFilter, publicoFilter, modalidadeFilter, esforcoFilter]);
+  }, [courses, selectedProcess, query, bcgFilter, publicoFilter, modalidadeFilter, esforcoFilter]);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -380,6 +417,19 @@ function CoursesPage() {
           </div>
         )}
 
+        {isGestor && !selectedProcessId ? (
+          <GestorProcessPicker
+            processes={activeProcessesForUser}
+            onSelect={(p) => setSelectedProcessId(p.id)}
+          />
+        ) : (
+          <>
+        {(isGestor || isAdmin) && selectedProcess && (
+          <SelectedProcessBanner
+            process={selectedProcess}
+            onChange={() => setSelectedProcessId(null)}
+          />
+        )}
 
         {/* Filters bar */}
         <div className="mb-5 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
@@ -477,8 +527,10 @@ function CoursesPage() {
                 key={c.id}
                 course={c}
                 onOpen={() => setDetail(c)}
-                userJudgment={user ? findUserJudgment(judgments, c.id, user.id) : undefined}
-                showJudgmentStatus={isGestor}
+                userJudgment={
+                  user ? findUserJudgment(scopedJudgments, c.id, user.id) : undefined
+                }
+                showJudgmentStatus={isGestor && !!selectedProcessId}
               />
             ))}
           </div>
@@ -504,7 +556,7 @@ function CoursesPage() {
               </TableHeader>
               <TableBody>
                 {filtered.map((c) => {
-                  const userJudgment = isGestor && user ? findUserJudgment(judgments, c.id, user.id) : undefined;
+                  const userJudgment = isGestor && user ? findUserJudgment(scopedJudgments, c.id, user.id) : undefined;
                   const judged = !!userJudgment;
                   return (
                     <TableRow
@@ -595,6 +647,8 @@ function CoursesPage() {
             </Table>
           </div>
         )}
+          </>
+        )}
       </main>
 
       {/* Detail Sheet */}
@@ -604,7 +658,9 @@ function CoursesPage() {
         isAdmin={isAdmin}
         isGestor={isGestor}
         currentUser={user}
-        judgments={detail ? judgmentsForCourse(judgments, detail.id) : []}
+        processId={selectedProcessId}
+        processName={selectedProcess?.name ?? null}
+        judgments={detail ? judgmentsForCourse(scopedJudgments, detail.id) : []}
         onEdit={(c) => {
           setDetail(null);
           setEditing(c);
@@ -820,6 +876,8 @@ function CourseDetailSheet({
   isAdmin,
   isGestor,
   currentUser,
+  processId,
+  processName,
   judgments,
   onEdit,
 }: {
@@ -828,6 +886,8 @@ function CourseDetailSheet({
   isAdmin: boolean;
   isGestor: boolean;
   currentUser: AuthUser | null;
+  processId: string | null;
+  processName: string | null;
   judgments: Judgment[];
   onEdit: (c: Course) => void;
 }) {
@@ -952,6 +1012,8 @@ function CourseDetailSheet({
                     currentUser={currentUser}
                     isGestor={isGestor}
                     isAdmin={isAdmin}
+                    processId={processId}
+                    processName={processName}
                     judgments={judgments}
                     myJudgment={myJudgment}
                   />
@@ -1442,6 +1504,8 @@ function JudgmentPanel({
   currentUser,
   isGestor,
   isAdmin,
+  processId,
+  processName,
   judgments,
   myJudgment,
 }: {
@@ -1449,6 +1513,8 @@ function JudgmentPanel({
   currentUser: AuthUser | null;
   isGestor: boolean;
   isAdmin: boolean;
+  processId: string | null;
+  processName: string | null;
   judgments: Judgment[];
   myJudgment?: Judgment;
 }) {
@@ -1506,6 +1572,10 @@ function JudgmentPanel({
       toast.error("Sessão expirada. Faça login novamente.");
       return;
     }
+    if (!processId) {
+      toast.error("Selecione um processo avaliativo antes de registrar a avaliação.");
+      return;
+    }
     const parsed = judgmentSchema.safeParse({ decision, priority: priority || undefined, reason, updates });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Verifique os campos do formulário.");
@@ -1514,6 +1584,7 @@ function JudgmentPanel({
     setSaving(true);
     try {
       await upsertJudgment({
+        processId,
         courseId: course.id,
         userId: currentUser.id, // captured from active session
         userName: currentUser.name,
@@ -1739,6 +1810,112 @@ function JudgmentPanel({
         )}
         {!isGestor && !isAdmin && null}
       </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Process selection UI (used by Regional gestors and optionally by Admins)
+// ============================================================================
+
+function GestorProcessPicker({
+  processes,
+  onSelect,
+}: {
+  processes: EvaluationProcess[];
+  onSelect: (p: EvaluationProcess) => void;
+}) {
+  if (processes.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-border bg-card p-16 text-center">
+        <Gavel className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+        <h3 className="text-base font-semibold text-foreground">
+          Nenhum processo avaliativo ativo
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Aguarde a abertura de um novo processo pelo Gestor Nacional.
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
+      <div className="mb-4">
+        <h2 className="text-lg font-bold text-foreground">
+          Processos avaliativos ativos
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Selecione um processo para iniciar ou continuar suas avaliações.
+        </p>
+      </div>
+      <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        {processes.map((p) => (
+          <li key={p.id}>
+            <button
+              onClick={() => onSelect(p)}
+              className="group flex w-full flex-col gap-2 rounded-lg border border-border bg-background p-4 text-left transition hover:border-primary hover:shadow-md"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="text-sm font-semibold text-foreground group-hover:text-primary">
+                  {p.name}
+                </h3>
+                <Badge variant="outline" className={STATUS_STYLES[effectiveStatus(p)]}>
+                  {STATUS_LABELS[effectiveStatus(p)]}
+                </Badge>
+              </div>
+              {p.description && (
+                <p className="line-clamp-2 text-xs text-muted-foreground">
+                  {p.description}
+                </p>
+              )}
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>
+                  {new Date(`${p.startDate}T00:00:00`).toLocaleDateString("pt-BR")} —{" "}
+                  {new Date(`${p.endDate}T00:00:00`).toLocaleDateString("pt-BR")}
+                </span>
+                <span className="font-medium text-foreground">
+                  {p.courseIds.length} curso(s)
+                </span>
+              </div>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function SelectedProcessBanner({
+  process,
+  onChange,
+}: {
+  process: EvaluationProcess;
+  onChange: () => void;
+}) {
+  const eff = effectiveStatus(process);
+  return (
+    <div className="mb-4 flex flex-col gap-2 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-start gap-3">
+        <Gavel className="mt-0.5 h-5 w-5 text-primary" />
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-foreground">{process.name}</h3>
+            <Badge variant="outline" className={STATUS_STYLES[eff]}>
+              {STATUS_LABELS[eff]}
+            </Badge>
+            <Badge variant="outline">{SCOPE_LABELS[process.scope]}</Badge>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Período:{" "}
+            {new Date(`${process.startDate}T00:00:00`).toLocaleDateString("pt-BR")} —{" "}
+            {new Date(`${process.endDate}T00:00:00`).toLocaleDateString("pt-BR")} •{" "}
+            {process.courseIds.length} curso(s) vinculado(s)
+          </p>
+        </div>
+      </div>
+      <Button variant="outline" size="sm" onClick={onChange}>
+        Trocar processo
+      </Button>
     </div>
   );
 }

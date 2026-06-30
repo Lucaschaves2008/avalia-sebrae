@@ -31,7 +31,12 @@ import { AuthProvider, REGIONS, useAuth, type Region } from "@/lib/auth";
 import { SebraeLogo } from "@/components/SebraeLogo";
 import { PrvdFooter } from "@/components/PrvdFooter";
 import { supabase } from "@/integrations/supabase/client";
-import { useCoursesList, computeMaterialReadiness } from "@/lib/courses";
+import { useCoursesList, computeMaterialReadiness, type Course } from "@/lib/courses";
+import {
+  effectiveStatus,
+  useProcessesList,
+  type EvaluationProcess,
+} from "@/lib/processes";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -74,6 +79,30 @@ function Dashboard() {
   const [judgments, setJudgments] = useState<JudgmentRow[]>([]);
   const [loadingJudgments, setLoadingJudgments] = useState(true);
   const [activeRegions, setActiveRegions] = useState<number>(0);
+  const processes = useProcessesList();
+  const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
+
+  // Auto-select the most recent active process for admins on first load
+  useEffect(() => {
+    if (selectedProcessId) return;
+    if (!user || user.role !== "admin") return;
+    const active = processes
+      .filter((p) => effectiveStatus(p) === "ATIVO")
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    if (active.length) setSelectedProcessId(active[0].id);
+  }, [processes, user, selectedProcessId]);
+
+  const selectedProcess: EvaluationProcess | null = useMemo(
+    () => processes.find((p) => p.id === selectedProcessId) ?? null,
+    [processes, selectedProcessId],
+  );
+
+  // Scope courses to selected process when applicable
+  const scopedCourses: Course[] = useMemo(() => {
+    if (!selectedProcess) return courses;
+    const ids = new Set(selectedProcess.courseIds);
+    return courses.filter((c) => ids.has(c.id));
+  }, [courses, selectedProcess]);
 
   useEffect(() => {
     if (!user || user.role !== "admin") return;
@@ -124,6 +153,10 @@ function Dashboard() {
         query = query.eq("region", regionFilter);
       }
 
+      if (selectedProcessId) {
+        query = query.eq("process_id", selectedProcessId);
+      }
+
       const { data, error } = await query;
       if (cancelled) return;
       if (error) {
@@ -138,20 +171,20 @@ function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, [user, regionFilter]);
+  }, [user, regionFilter, selectedProcessId]);
 
-  // Material readiness aggregates
+  // Material readiness aggregates (scoped to selected process when applicable)
   const readiness = useMemo(() => {
     const buckets = { pronto: 0, medio: 0, alto: 0 };
     let sumPct = 0;
-    for (const c of courses) {
+    for (const c of scopedCourses) {
       const r = computeMaterialReadiness(c);
       buckets[r.level] += 1;
       sumPct += r.pct;
     }
-    const avg = courses.length ? Math.round(sumPct / courses.length) : 0;
-    return { ...buckets, avg, total: courses.length };
-  }, [courses]);
+    const avg = scopedCourses.length ? Math.round(sumPct / scopedCourses.length) : 0;
+    return { ...buckets, avg, total: scopedCourses.length };
+  }, [scopedCourses]);
 
   // Decision aggregates for pie chart
   const decisionData = useMemo(() => {
@@ -182,12 +215,12 @@ function Dashboard() {
 
   const isAdmin = user.role === "admin";
   const judgedCourseIds = new Set(judgments.map((j) => j.course_id));
-  const completude = courses.length
-    ? Math.round((judgedCourseIds.size / courses.length) * 100)
+  const completude = scopedCourses.length
+    ? Math.round((judgedCourseIds.size / scopedCourses.length) * 100)
     : 0;
 
   const adminStats = [
-    { label: "Cursos para avaliar", value: String(courses.length), icon: BookOpen },
+    { label: "Cursos para avaliar", value: String(scopedCourses.length), icon: BookOpen },
     {
       label: "Avaliações cadastradas",
       value: String(judgments.length),
@@ -258,6 +291,17 @@ function Dashboard() {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => navigate({ to: "/processes" })}
+                className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+              >
+                <Gavel className="mr-2 h-4 w-4" />
+                Processos
+              </Button>
+            )}
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => navigate({ to: "/users" })}
                 className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
               >
@@ -294,6 +338,41 @@ function Dashboard() {
             Avaliação do portfólio de Cursos da Educação Empreendedora — visão em tempo real.
           </p>
         </div>
+
+        {isAdmin && (
+          <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <Gavel className="h-4 w-4 text-primary" />
+              <div>
+                <div className="text-sm font-semibold text-foreground">
+                  Processo avaliativo
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Os indicadores abaixo refletem o processo selecionado.
+                </div>
+              </div>
+            </div>
+            <Select
+              value={selectedProcessId ?? "all"}
+              onValueChange={(v) => setSelectedProcessId(v === "all" ? null : v)}
+            >
+              <SelectTrigger className="w-full sm:w-80">
+                <SelectValue placeholder="Selecione um processo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os processos (visão geral)</SelectItem>
+                {processes
+                  .slice()
+                  .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+                  .map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name} — {effectiveStatus(p)}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map(({ label, value, icon: Icon }) => (
