@@ -161,3 +161,39 @@ export const adminDeleteUser = createServerFn({ method: "POST" })
     return { ok: true as const, mode: "physical" as const };
   });
 
+const SUPER_ADMIN_EMAIL = "jusmar.chaves@providence.solutions";
+
+export const adminSetUserPassword = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: { userId: string; newPassword: string }) => input,
+  )
+  .handler(async ({ data, context }) => {
+    const callerEmail = (context.claims?.email as string | undefined)?.toLowerCase();
+    if (callerEmail !== SUPER_ADMIN_EMAIL) {
+      throw new Error(
+        "Apenas o Super Administrador pode alterar senhas de outros usuários.",
+      );
+    }
+    if (!data.newPassword || data.newPassword.length < 8) {
+      throw new Error("A nova senha deve ter ao menos 8 caracteres.");
+    }
+
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(
+      data.userId,
+      { password: data.newPassword },
+    );
+    if (error) throw new Error(error.message);
+
+    await supabaseAdmin
+      .from("profiles")
+      .update({ is_first_access: false })
+      .eq("id", data.userId);
+
+    return { ok: true as const };
+  });
+
