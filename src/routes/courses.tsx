@@ -420,19 +420,6 @@ function CoursesPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={bcgFilter} onValueChange={setBcgFilter}>
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Matriz BCG" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as classificações</SelectItem>
-                  {BCG_OPTIONS.map((b) => (
-                    <SelectItem key={b} value={b}>
-                      {b}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
               <Select value={esforcoFilter} onValueChange={setEsforcoFilter}>
                 <SelectTrigger className="h-10">
                   <SelectValue placeholder="Esforço de confecção" />
