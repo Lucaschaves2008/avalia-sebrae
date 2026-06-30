@@ -275,7 +275,7 @@ function Dashboard() {
                   ? user.email === "jusmar.chaves@providence.solutions"
                     ? "Super Administrador"
                     : "Gestor Nacional"
-                  : `Gestor — ${user.region}`}
+                  : `Gestor Regional — ${user.region}`}
               </div>
             </div>
             {isAdmin && (
