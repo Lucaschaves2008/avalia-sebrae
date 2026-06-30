@@ -313,7 +313,7 @@ function GlobalEvaluationReport() {
     >
       {total === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
-          Ainda não há julgamentos registrados pelas regionais.
+          Ainda não há avaliações registradas pelas regionais.
         </div>
       ) : (
         <div className="space-y-8">
