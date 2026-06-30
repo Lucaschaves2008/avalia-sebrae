@@ -1546,7 +1546,7 @@ function JudgmentPanel({
           <div className="flex items-center gap-2">
             <Gavel className="h-4 w-4 text-primary" />
             <span className="text-sm font-semibold text-foreground">
-              Módulo de Julgamento
+              Módulo de Avaliação
             </span>
           </div>
           {isGestor &&
