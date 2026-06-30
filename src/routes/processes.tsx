@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
-import { ArrowLeft, BookOpen, FileText, Gavel, LogOut, Pencil, Plus, Search, Trash2, UserCog } from "lucide-react";
+import { BookOpen, FileText, Gavel, LogOut, Pencil, Plus, Search, Trash2, UserCog } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -198,43 +198,58 @@ function ProcessesPage() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <header className="border-b border-border bg-card">
+      <header
+        className="border-b border-white/10"
+        style={{ background: "var(--gradient-primary)" }}
+      >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-6 py-4">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate({ to: "/dashboard" })}
-            >
-              <ArrowLeft className="mr-1 h-4 w-4" /> Voltar
-            </Button>
-            <SebraeLogo className="h-8" />
-            <div>
-              <h1 className="text-lg font-bold text-foreground">
-                Processos Avaliativos
-              </h1>
-              <p className="text-xs text-muted-foreground">
+            <SebraeLogo variant="onDark" height={36} />
+            <div className="hidden sm:block">
+              <h1 className="text-lg font-bold text-white">Processos Avaliativos</h1>
+              <p className="text-xs text-white/70">
                 Defina períodos, amplitude e cursos a serem avaliados.
               </p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="hidden text-xs text-muted-foreground sm:inline">
-              {user.email}
-            </span>
-            <Button variant="outline" size="sm" onClick={() => navigate({ to: "/users" })}>
+            <div className="hidden text-right text-white sm:block">
+              <div className="text-sm font-semibold">{user.name}</div>
+              <div className="text-xs text-white/70">{user.email}</div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate({ to: "/users" })}
+              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+            >
               <UserCog className="mr-2 h-4 w-4" />
               Usuários
             </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate({ to: "/courses" })}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate({ to: "/courses" })}
+              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+            >
               <BookOpen className="mr-2 h-4 w-4" />
               Cursos
             </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate({ to: "/processes" })}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate({ to: "/processes" })}
+              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+            >
               <Gavel className="mr-2 h-4 w-4" />
               Processos
             </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate({ to: "/reports" })}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate({ to: "/reports" })}
+              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+            >
               <FileText className="mr-2 h-4 w-4" />
               Relatórios
             </Button>
@@ -245,14 +260,15 @@ function ProcessesPage() {
                 void logout();
                 navigate({ to: "/login" });
               }}
+              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
             >
               <LogOut className="mr-2 h-4 w-4" />
               Sair
             </Button>
           </div>
-
         </div>
       </header>
+
 
       <main className="mx-auto max-w-7xl px-6 py-6">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -349,8 +365,9 @@ function ProcessesPage() {
 
       {/* Editor dialog */}
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-2xl">
+          <DialogHeader className="border-b px-6 py-4">
+
             <DialogTitle className="flex items-center gap-2">
               <Gavel className="h-4 w-4 text-primary" />
               {editing?.id ? "Editar processo" : "Novo processo avaliativo"}
@@ -361,118 +378,121 @@ function ProcessesPage() {
           </DialogHeader>
 
           {editing && (
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="proc-name">Nome do processo *</Label>
-                <Input
-                  id="proc-name"
-                  value={editing.name}
-                  onChange={(e) =>
-                    setEditing({ ...editing, name: e.target.value })
-                  }
-                  placeholder="Ex.: Avaliação Anual 2026"
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="proc-desc">Descrição</Label>
-                <Textarea
-                  id="proc-desc"
-                  value={editing.description}
-                  onChange={(e) =>
-                    setEditing({ ...editing, description: e.target.value })
-                  }
-                  placeholder="Contexto / observações sobre este processo"
-                  rows={2}
-                />
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="proc-start">Data inicial *</Label>
+                  <Label htmlFor="proc-name">Nome do processo *</Label>
                   <Input
-                    id="proc-start"
-                    type="date"
-                    value={editing.startDate}
+                    id="proc-name"
+                    value={editing.name}
                     onChange={(e) =>
-                      setEditing({ ...editing, startDate: e.target.value })
+                      setEditing({ ...editing, name: e.target.value })
                     }
+                    placeholder="Ex.: Avaliação Anual 2026"
                   />
                 </div>
+
                 <div className="grid gap-2">
-                  <Label htmlFor="proc-end">Data final *</Label>
-                  <Input
-                    id="proc-end"
-                    type="date"
-                    value={editing.endDate}
+                  <Label htmlFor="proc-desc">Descrição</Label>
+                  <Textarea
+                    id="proc-desc"
+                    value={editing.description}
                     onChange={(e) =>
-                      setEditing({ ...editing, endDate: e.target.value })
+                      setEditing({ ...editing, description: e.target.value })
                     }
+                    placeholder="Contexto / observações sobre este processo"
+                    rows={2}
                   />
                 </div>
-              </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="grid gap-2">
-                  <Label>Amplitude *</Label>
-                  <Select
-                    value={editing.scope}
-                    onValueChange={(v) =>
-                      setEditing({ ...editing, scope: v as ProcessScope })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="NACIONAL">
-                        {SCOPE_LABELS.NACIONAL}
-                      </SelectItem>
-                      <SelectItem value="REGIONAL">
-                        {SCOPE_LABELS.REGIONAL}
-                      </SelectItem>
-                      <SelectItem value="AMBOS">{SCOPE_LABELS.AMBOS}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="proc-start">Data inicial *</Label>
+                    <Input
+                      id="proc-start"
+                      type="date"
+                      value={editing.startDate}
+                      onChange={(e) =>
+                        setEditing({ ...editing, startDate: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="proc-end">Data final *</Label>
+                    <Input
+                      id="proc-end"
+                      type="date"
+                      value={editing.endDate}
+                      onChange={(e) =>
+                        setEditing({ ...editing, endDate: e.target.value })
+                      }
+                    />
+                  </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label>Status *</Label>
-                  <Select
-                    value={editing.status}
-                    onValueChange={(v) =>
-                      setEditing({ ...editing, status: v as ProcessStatus })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ATIVO">Ativo</SelectItem>
-                      <SelectItem value="INATIVO">Inativo</SelectItem>
-                      <SelectItem value="FINALIZADO">Finalizado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Após o vencimento, o status efetivo passa a "Finalizado"
-                    automaticamente.
-                  </p>
-                </div>
-              </div>
 
-              <CourseSelector
-                courses={courses}
-                selected={editing.courseIds}
-                onChange={(ids) => setEditing({ ...editing, courseIds: ids })}
-              />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label>Amplitude *</Label>
+                    <Select
+                      value={editing.scope}
+                      onValueChange={(v) =>
+                        setEditing({ ...editing, scope: v as ProcessScope })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NACIONAL">
+                          {SCOPE_LABELS.NACIONAL}
+                        </SelectItem>
+                        <SelectItem value="REGIONAL">
+                          {SCOPE_LABELS.REGIONAL}
+                        </SelectItem>
+                        <SelectItem value="AMBOS">{SCOPE_LABELS.AMBOS}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Status *</Label>
+                    <Select
+                      value={editing.status}
+                      onValueChange={(v) =>
+                        setEditing({ ...editing, status: v as ProcessStatus })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ATIVO">Ativo</SelectItem>
+                        <SelectItem value="INATIVO">Inativo</SelectItem>
+                        <SelectItem value="FINALIZADO">Finalizado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Após o vencimento, o status efetivo passa a "Finalizado"
+                      automaticamente.
+                    </p>
+                  </div>
+                </div>
+
+                <CourseSelector
+                  courses={courses}
+                  selected={editing.courseIds}
+                  onChange={(ids) => setEditing({ ...editing, courseIds: ids })}
+                />
+              </div>
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="border-t bg-card px-6 py-4">
             <Button variant="outline" onClick={() => setEditing(null)}>
               Cancelar
             </Button>
             <Button onClick={handleSave}>Salvar</Button>
           </DialogFooter>
+
         </DialogContent>
       </Dialog>
 
