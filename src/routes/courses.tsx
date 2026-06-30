@@ -643,7 +643,9 @@ function CoursesPage() {
         isAdmin={isAdmin}
         isGestor={isGestor}
         currentUser={user}
-        judgments={detail ? judgmentsForCourse(judgments, detail.id) : []}
+        processId={selectedProcessId}
+        processName={selectedProcess?.name ?? null}
+        judgments={detail ? judgmentsForCourse(scopedJudgments, detail.id) : []}
         onEdit={(c) => {
           setDetail(null);
           setEditing(c);
