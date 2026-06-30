@@ -162,7 +162,7 @@ function Dashboard() {
   const adminStats = [
     { label: "Cursos no portfólio", value: String(courses.length), icon: BookOpen },
     {
-      label: "Julgamentos registrados",
+      label: "Avaliações cadastradas",
       value: String(judgments.length),
       icon: ClipboardCheck,
     },
@@ -258,7 +258,7 @@ function Dashboard() {
             Bem-vindo(a), {user.name.split(" ")[0]}
           </h1>
           <p className="mt-1 text-muted-foreground">
-            Portfólio de Cursos de Educação Empreendedora — visão em tempo real.
+            Avaliação do portfólio de Cursos de Educação Empreendedora — visão em tempo real.
           </p>
         </div>
 
@@ -288,12 +288,12 @@ function Dashboard() {
               <div>
                 <h2 className="text-lg font-semibold text-foreground">
                   {isAdmin
-                    ? "Distribuição de decisões"
+                    ? "Distribuição das avaliações"
                     : "Suas decisões registradas"}
                 </h2>
                 <p className="mt-1 text-xs text-muted-foreground">
                   {isAdmin
-                    ? "Agrupamento de julgamentos por decisão das regionais."
+                    ? "Agrupamento de avaliações e decisão das regionais."
                     : "Resumo dos julgamentos que você registrou."}
                 </p>
               </div>
