@@ -1506,7 +1506,7 @@ function JudgmentPanel({
       toast.error("Sessão expirada. Faça login novamente.");
       return;
     }
-    const parsed = judgmentSchema.safeParse({ decision, priority, reason, updates });
+    const parsed = judgmentSchema.safeParse({ decision, priority: priority || undefined, reason, updates });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Verifique os campos do formulário.");
       return;
