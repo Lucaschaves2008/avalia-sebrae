@@ -997,6 +997,8 @@ function CourseDetailSheet({
                     currentUser={currentUser}
                     isGestor={isGestor}
                     isAdmin={isAdmin}
+                    processId={processId}
+                    processName={processName}
                     judgments={judgments}
                     myJudgment={myJudgment}
                   />
