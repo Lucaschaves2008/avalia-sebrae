@@ -861,6 +861,8 @@ function CourseDetailSheet({
   isAdmin,
   isGestor,
   currentUser,
+  processId,
+  processName,
   judgments,
   onEdit,
 }: {
@@ -869,6 +871,8 @@ function CourseDetailSheet({
   isAdmin: boolean;
   isGestor: boolean;
   currentUser: AuthUser | null;
+  processId: string | null;
+  processName: string | null;
   judgments: Judgment[];
   onEdit: (c: Course) => void;
 }) {
