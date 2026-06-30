@@ -361,7 +361,7 @@ function Dashboard() {
               Índice de Prontidão de Materiais
             </h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              Calculado pela soma dos 10 materiais por curso dividida por 10.
+              Indicador do esforço para atualização e completude de materiais vinculados aos cursos
             </p>
 
             <div className="mt-5 space-y-3">
