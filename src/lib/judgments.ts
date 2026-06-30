@@ -61,12 +61,13 @@ function notify() {
 
 type DbJudgment = {
   id: string;
+  process_id: string;
   course_id: string;
   user_id: string;
   region: string;
   decision: string;
   updates_required: string | null;
-  priority: string;
+  priority: string | null;
   notes: string;
   updated_at: string;
 };
@@ -77,6 +78,7 @@ function mapRow(row: DbJudgment, profilesById: Map<string, DbProfile>): Judgment
   const p = profilesById.get(row.user_id);
   return {
     id: row.id,
+    processId: row.process_id,
     courseId: row.course_id,
     userId: row.user_id,
     userName: p?.name ?? "",
