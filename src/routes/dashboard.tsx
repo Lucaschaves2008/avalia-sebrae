@@ -269,35 +269,6 @@ function Dashboard() {
                 {isAdmin ? "Administrador" : `Gestor — ${user.region}`}
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate({ to: "/courses" })}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              <BookOpen className="mr-2 h-4 w-4" />
-              Cursos
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate({ to: "/reports" })}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Relatórios
-            </Button>
-            {isAdmin && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate({ to: "/processes" })}
-                className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-              >
-                <Gavel className="mr-2 h-4 w-4" />
-                Processos
-              </Button>
-            )}
             {isAdmin && (
               <Button
                 variant="outline"
@@ -312,6 +283,35 @@ function Dashboard() {
             <Button
               variant="outline"
               size="sm"
+              onClick={() => navigate({ to: "/courses" })}
+              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
+              Cursos
+            </Button>
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate({ to: "/processes" })}
+                className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+              >
+                <Gavel className="mr-2 h-4 w-4" />
+                Processos
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate({ to: "/reports" })}
+              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Relatórios
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => {
                 logout();
                 navigate({ to: "/login" });
@@ -321,6 +321,7 @@ function Dashboard() {
               <LogOut className="mr-2 h-4 w-4" />
               Sair
             </Button>
+
           </div>
         </div>
       </header>
