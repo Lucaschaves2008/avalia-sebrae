@@ -82,12 +82,17 @@ function Dashboard() {
   const processes = useProcessesList();
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
 
-  // Auto-select the most recent active process for admins on first load
+  // Auto-select the most recent active process on first load
   useEffect(() => {
     if (selectedProcessId) return;
-    if (!user || user.role !== "admin") return;
+    if (!user) return;
     const active = processes
       .filter((p) => effectiveStatus(p) === "ATIVO")
+      .filter((p) =>
+        user.role === "admin"
+          ? p.scope === "NACIONAL" || p.scope === "AMBOS"
+          : p.scope === "REGIONAL" || p.scope === "AMBOS",
+      )
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     if (active.length) setSelectedProcessId(active[0].id);
   }, [processes, user, selectedProcessId]);
