@@ -196,7 +196,7 @@ function ManagersPerformanceReport() {
   return (
     <ReportCard
       title="Relatório de Performance dos Gestores"
-      description="Visualize o engajamento de cada Gestor Regional no processo de julgamento dos cursos do portfólio."
+      description="Visualize o engajamento de cada Gestor Regional no processo de avaliação dos cursos do portfólio."
       printTitle="Performance dos Gestores Regionais"
       printSubtitle={`Total de cursos no portfólio: ${totalCourses}`}
     >
@@ -206,7 +206,7 @@ function ManagersPerformanceReport() {
             <tr>
               <th className="px-4 py-3 text-left font-semibold">Gestor</th>
               <th className="px-4 py-3 text-left font-semibold">Regional</th>
-              <th className="px-4 py-3 text-center font-semibold">Julgados</th>
+              <th className="px-4 py-3 text-center font-semibold">Avaliados</th>
               <th className="px-4 py-3 text-center font-semibold">Pendentes</th>
               <th className="px-4 py-3 text-center font-semibold">Mantidos</th>
               <th className="px-4 py-3 text-center font-semibold">Atualizar</th>
@@ -307,13 +307,13 @@ function GlobalEvaluationReport() {
   return (
     <ReportCard
       title="Relatório de Avaliação Global e Priorização"
-      description="Consolidação dos julgamentos das regionais, agrupando os cursos por decisão dominante."
+      description="Consolidação das avaliações das regionais, agrupando os cursos por decisão dominante."
       printTitle="Avaliação Global e Priorização do Portfólio"
-      printSubtitle={`${total} curso(s) julgado(s) pelas regionais`}
+      printSubtitle={`${total} curso(s) avaliado(s) pelas regionais`}
     >
       {total === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
-          Ainda não há julgamentos registrados pelas regionais.
+          Ainda não há avaliações registradas pelas regionais.
         </div>
       ) : (
         <div className="space-y-8">

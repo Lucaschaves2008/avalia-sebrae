@@ -727,7 +727,7 @@ function CourseCard({
           {judged ? (
             <>
               <ClipboardCheck className="h-3.5 w-3.5" />
-              Julgamento concluído
+              Avaliação concluída
               {userJudgment?.decision && (
                 <span className="ml-1 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold">
                   {DECISION_LABELS[userJudgment.decision] ?? userJudgment.decision}
@@ -737,7 +737,7 @@ function CourseCard({
           ) : (
             <>
               <Clock className="h-3.5 w-3.5" />
-              Pendente de julgamento — clique para avaliar
+              Pendente de avaliação — clique para avaliar
             </>
           )}
         </div>
@@ -878,7 +878,7 @@ function CourseDetailSheet({
                   <TabsTrigger value="materiais">Materiais</TabsTrigger>
                   <TabsTrigger value="fgv">Avaliação FGV</TabsTrigger>
                   <TabsTrigger value="julgamento" className="relative">
-                    Julgamento
+                    Avaliação
                     {isGestor && (
                       <span
                         className={`ml-1.5 h-1.5 w-1.5 rounded-full ${
@@ -1521,7 +1521,7 @@ function JudgmentPanel({
         reason: parsed.data.reason,
       });
       toast.success(
-        myJudgment ? "Julgamento atualizado." : "Julgamento registrado com sucesso.",
+        myJudgment ? "Avaliação atualizada." : "Avaliação registrada com sucesso.",
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
@@ -1530,7 +1530,7 @@ function JudgmentPanel({
         toast.error(msg);
       } else {
         console.error("[judgments] save error:", err);
-        toast.error("Erro ao salvar julgamento. Tente novamente em instantes.");
+        toast.error("Erro ao salvar avaliação. Tente novamente em instantes.");
       }
     } finally {
       setSaving(false);
@@ -1546,7 +1546,7 @@ function JudgmentPanel({
           <div className="flex items-center gap-2">
             <Gavel className="h-4 w-4 text-primary" />
             <span className="text-sm font-semibold text-foreground">
-              Módulo de Julgamento
+              Módulo de Avaliação
             </span>
           </div>
           {isGestor &&
@@ -1555,7 +1555,7 @@ function JudgmentPanel({
                 variant="outline"
                 className="border-emerald-300 bg-emerald-50 text-emerald-800"
               >
-                <ClipboardCheck className="mr-1 h-3 w-3" /> Julgado
+                <ClipboardCheck className="mr-1 h-3 w-3" /> Avaliado
               </Badge>
             ) : (
               <Badge
@@ -1568,8 +1568,8 @@ function JudgmentPanel({
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
           {isGestor
-            ? `Registre sua avaliação como Gestor da Região ${currentUser?.region}. O julgamento será vinculado ao seu usuário e à sua região.`
-            : "Visualização consolidada dos julgamentos realizados pelos gestores regionais."}
+            ? `Registre sua avaliação como Gestor da Região ${currentUser?.region}. A avaliação será vinculada ao seu usuário e à sua região.`
+            : "Visualização consolidada das avaliações realizadas pelos gestores regionais."}
         </p>
       </div>
 
@@ -1653,8 +1653,8 @@ function JudgmentPanel({
               {saving
                 ? "Salvando..."
                 : myJudgment
-                  ? "Atualizar julgamento"
-                  : "Salvar julgamento"}
+                  ? "Atualizar avaliação"
+                  : "Salvar avaliação"}
             </Button>
           </div>
         </div>
