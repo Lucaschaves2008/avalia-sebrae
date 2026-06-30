@@ -297,6 +297,8 @@ function LoginPage() {
               automaticamente promovido a Administrador.
             </p>
           </div>
+
+          <PrvdFooter variant="onLight" className="mt-8" />
         </div>
       </div>
 
