@@ -84,9 +84,8 @@ function ReportsPage() {
             Relatórios
           </h1>
           <p className="mt-1 text-muted-foreground">
-            Gere relatórios consolidados em layout SEBRAE — otimizados para
-            impressão ou exportação em PDF (via janela de impressão do
-            navegador).
+            Relatórios otimizados para impressão ou exportação em PDF (via
+            janela de impressão do navegador).
           </p>
         </div>
 
@@ -195,8 +194,8 @@ function ManagersPerformanceReport() {
 
   return (
     <ReportCard
-      title="Relatório de Performance dos Gestores"
-      description="Visualize o engajamento de cada Gestor Regional no processo de avaliação dos cursos do portfólio."
+      title="Relatório de Performance dos Gestores Regionais"
+      description="Acompanhamento do engajamento de cada Gestor Regional no processo de avaliação dos cursos do portfólio."
       printTitle="Performance dos Gestores Regionais"
       printSubtitle={`Total de cursos no portfólio: ${totalCourses}`}
     >
