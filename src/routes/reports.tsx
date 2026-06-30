@@ -309,7 +309,7 @@ function GlobalEvaluationReport() {
       title="Relatório de Avaliação Global e Priorização"
       description="Consolidação das avaliações das regionais, agrupando os cursos por decisão dominante."
       printTitle="Avaliação Global e Priorização do Portfólio"
-      printSubtitle={`${total} curso(s) julgado(s) pelas regionais`}
+      printSubtitle={`${total} curso(s) avaliado(s) pelas regionais`}
     >
       {total === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
