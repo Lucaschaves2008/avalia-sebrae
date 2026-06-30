@@ -307,7 +307,7 @@ function GlobalEvaluationReport() {
   return (
     <ReportCard
       title="Relatório de Avaliação Global e Priorização"
-      description="Consolidação dos julgamentos das regionais, agrupando os cursos por decisão dominante."
+      description="Consolidação das avaliações das regionais, agrupando os cursos por decisão dominante."
       printTitle="Avaliação Global e Priorização do Portfólio"
       printSubtitle={`${total} curso(s) julgado(s) pelas regionais`}
     >
