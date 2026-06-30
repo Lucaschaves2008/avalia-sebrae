@@ -136,6 +136,33 @@ function UsersPage() {
   const [confirmDelete, setConfirmDelete] = useState<AuthUser | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+  const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+  const setUserPasswordFn = useServerFn(adminSetUserPassword);
+  const isSuperAdmin =
+    user?.email?.toLowerCase() === "jusmar.chaves@providence.solutions";
+
+  async function handleChangePassword() {
+    if (!editing) return;
+    if (newPassword.length < 8) {
+      toast.error("A nova senha deve ter ao menos 8 caracteres.");
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      await setUserPasswordFn({
+        data: { userId: editing.id, newPassword },
+      });
+      toast.success(`Senha de ${editing.name} atualizada com sucesso.`);
+      setNewPassword("");
+      setShowPassword(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao alterar senha.");
+    } finally {
+      setSavingPassword(false);
+    }
+  }
 
   // Admin guard
   useEffect(() => {
