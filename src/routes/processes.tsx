@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
-import { ArrowLeft, Gavel, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { ArrowLeft, BookOpen, FileText, Gavel, LogOut, Pencil, Plus, Search, Trash2, UserCog } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -218,14 +218,39 @@ function ProcessesPage() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="hidden text-xs text-muted-foreground sm:inline">
               {user.email}
             </span>
-            <Button variant="outline" size="sm" onClick={() => void logout()}>
+            <Button variant="outline" size="sm" onClick={() => navigate({ to: "/users" })}>
+              <UserCog className="mr-2 h-4 w-4" />
+              Usuários
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate({ to: "/courses" })}>
+              <BookOpen className="mr-2 h-4 w-4" />
+              Cursos
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate({ to: "/processes" })}>
+              <Gavel className="mr-2 h-4 w-4" />
+              Processos
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate({ to: "/reports" })}>
+              <FileText className="mr-2 h-4 w-4" />
+              Relatórios
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                void logout();
+                navigate({ to: "/login" });
+              }}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
               Sair
             </Button>
           </div>
+
         </div>
       </header>
 
