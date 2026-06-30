@@ -1653,8 +1653,8 @@ function JudgmentPanel({
               {saving
                 ? "Salvando..."
                 : myJudgment
-                  ? "Atualizar julgamento"
-                  : "Salvar julgamento"}
+                  ? "Atualizar avaliação"
+                  : "Salvar avaliação"}
             </Button>
           </div>
         </div>
