@@ -1,10 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, FileText, Printer, AlertTriangle, RefreshCw, XCircle, CheckCircle2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AuthProvider, useAuth, useUsersList } from "@/lib/auth";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { AuthProvider, useAuth } from "@/lib/auth";
 import { SebraeLogo } from "@/components/SebraeLogo";
 import { useCoursesList, type Course } from "@/lib/courses";
 import {
@@ -13,6 +20,7 @@ import {
   PRIORITY_STYLES,
   type Judgment,
 } from "@/lib/judgments";
+import { useProcessesList, effectiveStatus, type EvaluationProcess } from "@/lib/processes";
 
 export const Route = createFileRoute("/reports")({
   head: () => ({
@@ -28,10 +36,19 @@ export const Route = createFileRoute("/reports")({
 function ReportsPage() {
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
+  const processes = useProcessesList();
+  const [processId, setProcessId] = useState<string>("");
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login" });
   }, [loading, user, navigate]);
+
+  // Auto-select most recent ATIVO process
+  useEffect(() => {
+    if (processId || processes.length === 0) return;
+    const active = processes.find((p) => effectiveStatus(p) === "ATIVO");
+    setProcessId((active ?? processes[0]).id);
+  }, [processes, processId]);
 
   if (loading || !user) {
     return (
@@ -40,6 +57,8 @@ function ReportsPage() {
       </div>
     );
   }
+
+  const selectedProcess = processes.find((p) => p.id === processId);
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -84,15 +103,49 @@ function ReportsPage() {
             Relatórios
           </h1>
           <p className="mt-1 text-muted-foreground">
-            Relatórios otimizados para impressão ou exportação em PDF (via
-            janela de impressão do navegador).
+            Relatório otimizado para impressão ou exportação em PDF (via janela
+            de impressão do navegador).
           </p>
+
+          <div className="mt-5 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
+            <div className="flex-1 min-w-[260px]">
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Processo avaliativo
+              </label>
+              <Select value={processId} onValueChange={setProcessId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um processo..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {processes.length === 0 && (
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                      Nenhum processo cadastrado.
+                    </div>
+                  )}
+                  {processes.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name} — {effectiveStatus(p)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedProcess && (
+              <div className="text-xs text-muted-foreground">
+                Período: {selectedProcess.startDate} a {selectedProcess.endDate}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="space-y-10 print:space-y-0">
-          <ManagersPerformanceReport />
-          <div className="print-break" />
-          <GlobalEvaluationReport />
+          {selectedProcess ? (
+            <GlobalEvaluationReport process={selectedProcess} />
+          ) : (
+            <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground print:hidden">
+              Selecione um processo avaliativo para visualizar o relatório.
+            </div>
+          )}
         </div>
       </main>
 
@@ -161,115 +214,17 @@ function ReportCard({
   );
 }
 
-// ---------- Relatório 1: Performance dos Gestores ----------
+// ---------- Relatório: Avaliação Global ----------
 
-function ManagersPerformanceReport() {
-  const users = useUsersList();
-  const courses = useCoursesList();
-  const judgments = useJudgmentsList();
-
-  const rows = useMemo(() => {
-    const gestores = users.filter((u) => u.role === "gestor");
-    const totalCourses = courses.length;
-    return gestores.map((g) => {
-      const userJudgments = judgments.filter((j) => j.userId === g.id);
-      const julgados = userJudgments.length;
-      const pendentes = Math.max(totalCourses - julgados, 0);
-      const mantidos = userJudgments.filter((j) => j.decision === "MANTIDO").length;
-      const atualizados = userJudgments.filter((j) => j.decision === "ATUALIZADO").length;
-      const inativacoes = userJudgments.filter((j) => j.decision === "INATIVACAO").length;
-      return {
-        user: g,
-        julgados,
-        pendentes,
-        mantidos,
-        atualizados,
-        inativacoes,
-        progresso: totalCourses ? Math.round((julgados / totalCourses) * 100) : 0,
-      };
-    });
-  }, [users, courses, judgments]);
-
-  const totalCourses = courses.length;
-
-  return (
-    <ReportCard
-      title="Relatório de Performance dos Gestores Regionais"
-      description="Acompanhamento do engajamento de cada Gestor Regional no processo de avaliação dos cursos do portfólio."
-      printTitle="Performance dos Gestores Regionais"
-      printSubtitle={`Total de cursos no portfólio: ${totalCourses}`}
-    >
-      <div className="overflow-hidden rounded-lg border border-border print:border-gray-300">
-        <table className="w-full text-sm">
-          <thead className="bg-primary text-white print:bg-[#005CA9]">
-            <tr>
-              <th className="px-4 py-3 text-left font-semibold">Gestor</th>
-              <th className="px-4 py-3 text-left font-semibold">Regional</th>
-              <th className="px-4 py-3 text-center font-semibold">Avaliados</th>
-              <th className="px-4 py-3 text-center font-semibold">Pendentes</th>
-              <th className="px-4 py-3 text-center font-semibold">Mantidos</th>
-              <th className="px-4 py-3 text-center font-semibold">Atualizar</th>
-              <th className="px-4 py-3 text-center font-semibold">Inativar</th>
-              <th className="px-4 py-3 text-center font-semibold">Progresso</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border bg-card">
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
-                  Nenhum gestor cadastrado.
-                </td>
-              </tr>
-            )}
-            {rows.map((r) => (
-              <tr key={r.user.id} className="hover:bg-muted/40 print:hover:bg-transparent">
-                <td className="px-4 py-3">
-                  <div className="font-medium text-foreground">{r.user.name}</div>
-                  <div className="text-xs text-muted-foreground">{r.user.email}</div>
-                </td>
-                <td className="px-4 py-3">
-                  <Badge variant="outline" className="border-primary/30 text-primary">
-                    {r.user.region}
-                  </Badge>
-                </td>
-                <td className="px-4 py-3 text-center font-semibold text-emerald-700">
-                  {r.julgados}
-                </td>
-                <td className="px-4 py-3 text-center font-semibold text-amber-700">
-                  {r.pendentes}
-                </td>
-                <td className="px-4 py-3 text-center">{r.mantidos}</td>
-                <td className="px-4 py-3 text-center">{r.atualizados}</td>
-                <td className="px-4 py-3 text-center">{r.inativacoes}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted print:bg-gray-200">
-                      <div
-                        className="h-full bg-primary print:bg-[#005CA9]"
-                        style={{ width: `${r.progresso}%` }}
-                      />
-                    </div>
-                    <span className="w-10 text-right text-xs font-semibold">
-                      {r.progresso}%
-                    </span>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </ReportCard>
-  );
-}
-
-// ---------- Relatório 2: Avaliação Global ----------
-
-function GlobalEvaluationReport() {
-  const courses = useCoursesList();
-  const judgments = useJudgmentsList();
+function GlobalEvaluationReport({ process }: { process: EvaluationProcess }) {
+  const allCourses = useCoursesList();
+  const allJudgments = useJudgmentsList();
 
   const sections = useMemo(() => {
+    const courseIds = new Set(process.courseIds);
+    const courses = allCourses.filter((c) => courseIds.has(c.id));
+    const judgments = allJudgments.filter((j) => j.processId === process.id);
+
     const byCourse = new Map<string, Judgment[]>();
     for (const j of judgments) {
       const arr = byCourse.get(j.courseId) ?? [];
@@ -286,7 +241,6 @@ function GlobalEvaluationReport() {
           ATUALIZADO: js.filter((j) => j.decision === "ATUALIZADO").length,
           INATIVACAO: js.filter((j) => j.decision === "INATIVACAO").length,
         };
-        // Decisão dominante (maior contagem; empate -> ordem MANTIDO > ATUALIZADO > INATIVACAO)
         const order: Array<keyof typeof counts> = ["MANTIDO", "ATUALIZADO", "INATIVACAO"];
         const dominant = order.reduce((a, b) => (counts[b] > counts[a] ? b : a));
         return { course, judgments: js, counts, dominant };
@@ -298,7 +252,7 @@ function GlobalEvaluationReport() {
       atualizados: items.filter((i) => i.dominant === "ATUALIZADO"),
       inativacoes: items.filter((i) => i.dominant === "INATIVACAO"),
     };
-  }, [courses, judgments]);
+  }, [allCourses, allJudgments, process]);
 
   const total =
     sections.mantidos.length + sections.atualizados.length + sections.inativacoes.length;
@@ -306,17 +260,16 @@ function GlobalEvaluationReport() {
   return (
     <ReportCard
       title="Relatório de Avaliação Global e Priorização"
-      description="Consolidação das avaliações das regionais, agrupando os cursos por decisão dominante."
+      description={`Consolidação das avaliações das regionais para o processo "${process.name}", agrupando os cursos por decisão dominante.`}
       printTitle="Avaliação Global e Priorização do Portfólio"
-      printSubtitle={`${total} curso(s) avaliado(s) pelas regionais`}
+      printSubtitle={`Processo: ${process.name} · ${total} curso(s) avaliado(s) pelas regionais`}
     >
       {total === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
-          Ainda não há avaliações registradas pelas regionais.
+          Ainda não há avaliações registradas para este processo.
         </div>
       ) : (
         <div className="space-y-8">
-          {/* MANTIDOS */}
           <SectionBlock
             icon={<CheckCircle2 className="h-5 w-5" />}
             title="Cursos Indicados para Manutenção"
@@ -332,15 +285,11 @@ function GlobalEvaluationReport() {
                 no portfólio.
               </div>
             </div>
-            <CoursesList
-              items={sections.mantidos}
-              renderExtra={() => null}
-            />
+            <CoursesList items={sections.mantidos} renderExtra={() => null} />
           </SectionBlock>
 
           <div className="print-break" />
 
-          {/* ATUALIZADOS */}
           <SectionBlock
             icon={<RefreshCw className="h-5 w-5" />}
             title="Cursos Indicados para Atualização"
@@ -380,7 +329,6 @@ function GlobalEvaluationReport() {
 
           <div className="print-break" />
 
-          {/* INATIVACOES */}
           <SectionBlock
             icon={<XCircle className="h-5 w-5" />}
             title="Cursos Indicados para Inativação"
@@ -453,7 +401,9 @@ function CoursesList({
   return (
     <ul className="space-y-4">
       {items.map((item) => {
-        const priorities = item.judgments.map((j) => j.priority).filter((p): p is NonNullable<typeof p> => !!p);
+        const priorities = item.judgments
+          .map((j) => j.priority)
+          .filter((p): p is NonNullable<typeof p> => !!p);
         return (
           <li
             key={item.course.id}
@@ -471,12 +421,13 @@ function CoursesList({
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
                 {priorities.map((p, i) => (
-                  <span
+                  <Badge
                     key={i}
+                    variant="outline"
                     className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${PRIORITY_STYLES[p]}`}
                   >
                     {p}
-                  </span>
+                  </Badge>
                 ))}
               </div>
             </div>
@@ -506,8 +457,6 @@ function CoursesList({
     </ul>
   );
 }
-
-// ---------- Print styles ----------
 
 function PrintStyles() {
   return (
