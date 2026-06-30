@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
-import { BookOpen, FileText, Gavel, LogOut, Pencil, Plus, Search, Trash2, UserCog } from "lucide-react";
+import { ArrowLeft, Gavel, LogOut, Pencil, Plus, Search, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -202,56 +202,17 @@ function ProcessesPage() {
         className="border-b border-white/10"
         style={{ background: "var(--gradient-primary)" }}
       >
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <SebraeLogo variant="onDark" height={36} />
-            <div className="hidden sm:block">
-              <h1 className="text-lg font-bold text-white">Processos Avaliativos</h1>
-              <p className="text-xs text-white/70">
-                Defina períodos, amplitude e cursos a serem avaliados.
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="hidden text-right text-white sm:block">
-              <div className="text-sm font-semibold">{user.name}</div>
-              <div className="text-xs text-white/70">{user.email}</div>
-            </div>
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <SebraeLogo variant="onDark" height={36} />
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate({ to: "/users" })}
+              onClick={() => navigate({ to: "/dashboard" })}
               className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
             >
-              <UserCog className="mr-2 h-4 w-4" />
-              Usuários
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate({ to: "/courses" })}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              <BookOpen className="mr-2 h-4 w-4" />
-              Cursos
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate({ to: "/processes" })}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              <Gavel className="mr-2 h-4 w-4" />
-              Processos
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate({ to: "/reports" })}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Relatórios
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Painel
             </Button>
             <Button
               variant="outline"
@@ -269,8 +230,20 @@ function ProcessesPage() {
         </div>
       </header>
 
+      <main className="mx-auto max-w-7xl px-6 py-10">
+        <div className="mb-6">
+          <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
+            <Gavel className="h-3.5 w-3.5" />
+            Avaliação
+          </span>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
+            Processos Avaliativos
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Defina períodos, amplitude e cursos a serem avaliados.
+          </p>
+        </div>
 
-      <main className="mx-auto max-w-7xl px-6 py-6">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full sm:max-w-sm">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
