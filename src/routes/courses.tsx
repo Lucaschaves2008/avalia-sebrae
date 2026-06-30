@@ -417,6 +417,19 @@ function CoursesPage() {
           </div>
         )}
 
+        {isGestor && !selectedProcessId ? (
+          <GestorProcessPicker
+            processes={activeProcessesForUser}
+            onSelect={(p) => setSelectedProcessId(p.id)}
+          />
+        ) : (
+          <>
+        {(isGestor || isAdmin) && selectedProcess && (
+          <SelectedProcessBanner
+            process={selectedProcess}
+            onChange={() => setSelectedProcessId(null)}
+          />
+        )}
 
         {/* Filters bar */}
         <div className="mb-5 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
