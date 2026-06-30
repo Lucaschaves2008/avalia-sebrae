@@ -166,21 +166,20 @@ function LoginPage() {
         <div className="relative space-y-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-medium text-white backdrop-blur">
             <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
-            Portal de Gestão
+            Educação Empreendedora
           </div>
           <h1 className="text-4xl font-bold leading-tight text-white">
-            Portfólio de Cursos de{" "}
+            Sistema de avaliação do Portfólio de Cursos da&nbsp;
             <span className="text-secondary">Educação Empreendedora</span>
           </h1>
           <p className="max-w-md text-base text-white/80">
-            Gerencie cursos, turmas e indicadores regionais em um único ambiente,
-            com a qualidade e a segurança SEBRAE.
+            {"\n"}
           </p>
         </div>
         <div className="relative space-y-3">
           <PrvdFooter variant="onDark" className="justify-start" />
           <div className="text-xs text-white/60">
-            © {new Date().getFullYear()} SEBRAE — Todos os direitos reservados.
+            © {new Date().getFullYear()}&nbsp;— Todos os direitos reservados.
           </div>
         </div>
       </div>
@@ -194,10 +193,10 @@ function LoginPage() {
 
           <div className="mb-8">
             <h2 className="text-2xl font-bold tracking-tight text-foreground">
-              Acessar plataforma
+              Acesso ao sistema
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Informe suas credenciais corporativas para continuar.
+              Informe suas credenciais para continuar.
             </p>
           </div>
 
