@@ -1522,7 +1522,7 @@ function JudgmentPanel({
         decision: parsed.data.decision,
         updatesNeeded:
           parsed.data.decision === "ATUALIZADO" ? parsed.data.updates : undefined,
-        priority: parsed.data.decision === "INATIVACAO" ? "Baixa" : parsed.data.priority!,
+        priority: parsed.data.decision === "INATIVACAO" ? null : parsed.data.priority!,
         reason: parsed.data.reason,
       });
       toast.success(
@@ -1700,9 +1700,11 @@ function JudgmentPanel({
                       >
                         {DECISION_LABELS[j.decision]}
                       </Badge>
-                      <Badge variant="outline" className={PRIORITY_STYLES[j.priority]}>
-                        Prioridade {j.priority}
-                      </Badge>
+                      {j.priority && (
+                        <Badge variant="outline" className={PRIORITY_STYLES[j.priority]}>
+                          Prioridade {j.priority}
+                        </Badge>
+                      )}
                       {isMine && (
                         <Badge variant="secondary" className="bg-primary/10 text-primary">
                           Seu julgamento

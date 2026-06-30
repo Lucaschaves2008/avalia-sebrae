@@ -134,7 +134,7 @@ export type Database = {
           decision: string
           id: string
           notes: string
-          priority: string
+          priority: string | null
           region: string
           updated_at: string
           updates_required: string | null
@@ -145,7 +145,7 @@ export type Database = {
           decision: string
           id?: string
           notes: string
-          priority: string
+          priority?: string | null
           region: string
           updated_at?: string
           updates_required?: string | null
@@ -156,7 +156,7 @@ export type Database = {
           decision?: string
           id?: string
           notes?: string
-          priority?: string
+          priority?: string | null
           region?: string
           updated_at?: string
           updates_required?: string | null
