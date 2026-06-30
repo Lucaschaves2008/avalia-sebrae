@@ -160,7 +160,7 @@ function Dashboard() {
     : 0;
 
   const adminStats = [
-    { label: "Cursos no portfólio", value: String(courses.length), icon: BookOpen },
+    { label: "Cursos para avaliar", value: String(courses.length), icon: BookOpen },
     {
       label: "Avaliações cadastradas",
       value: String(judgments.length),
@@ -175,11 +175,11 @@ function Dashboard() {
   ];
 
   const gestorStats = [
-    { label: "Cursos no portfólio", value: String(courses.length), icon: BookOpen },
-    { label: "Seus julgamentos", value: String(judgments.length), icon: Gavel },
-    { label: "Completude", value: `${completude}%`, icon: ClipboardCheck },
+    { label: "Cursos para avaliar", value: String(courses.length), icon: BookOpen },
+    { label: "Suas avaliações", value: String(judgments.length), icon: Gavel },
+    { label: "% de completude", value: `${completude}%`, icon: ClipboardCheck },
     {
-      label: "Cursos pendentes",
+      label: "Cursos pendentes de avaliação",
       value: String(Math.max(courses.length - judgedCourseIds.size, 0)),
       icon: GraduationCap,
     },
