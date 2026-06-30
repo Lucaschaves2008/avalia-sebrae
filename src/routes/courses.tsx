@@ -543,7 +543,7 @@ function CoursesPage() {
               </TableHeader>
               <TableBody>
                 {filtered.map((c) => {
-                  const userJudgment = isGestor && user ? findUserJudgment(judgments, c.id, user.id) : undefined;
+                  const userJudgment = isGestor && user ? findUserJudgment(scopedJudgments, c.id, user.id) : undefined;
                   const judged = !!userJudgment;
                   return (
                     <TableRow
