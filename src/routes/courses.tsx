@@ -1813,3 +1813,109 @@ function JudgmentPanel({
     </div>
   );
 }
+
+// ============================================================================
+// Process selection UI (used by Regional gestors and optionally by Admins)
+// ============================================================================
+
+function GestorProcessPicker({
+  processes,
+  onSelect,
+}: {
+  processes: EvaluationProcess[];
+  onSelect: (p: EvaluationProcess) => void;
+}) {
+  if (processes.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-border bg-card p-16 text-center">
+        <Gavel className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+        <h3 className="text-base font-semibold text-foreground">
+          Nenhum processo avaliativo ativo
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Aguarde a abertura de um novo processo pelo Gestor Nacional.
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
+      <div className="mb-4">
+        <h2 className="text-lg font-bold text-foreground">
+          Processos avaliativos ativos
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Selecione um processo para iniciar ou continuar suas avaliações.
+        </p>
+      </div>
+      <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        {processes.map((p) => (
+          <li key={p.id}>
+            <button
+              onClick={() => onSelect(p)}
+              className="group flex w-full flex-col gap-2 rounded-lg border border-border bg-background p-4 text-left transition hover:border-primary hover:shadow-md"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="text-sm font-semibold text-foreground group-hover:text-primary">
+                  {p.name}
+                </h3>
+                <Badge variant="outline" className={STATUS_STYLES[effectiveStatus(p)]}>
+                  {STATUS_LABELS[effectiveStatus(p)]}
+                </Badge>
+              </div>
+              {p.description && (
+                <p className="line-clamp-2 text-xs text-muted-foreground">
+                  {p.description}
+                </p>
+              )}
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>
+                  {new Date(`${p.startDate}T00:00:00`).toLocaleDateString("pt-BR")} —{" "}
+                  {new Date(`${p.endDate}T00:00:00`).toLocaleDateString("pt-BR")}
+                </span>
+                <span className="font-medium text-foreground">
+                  {p.courseIds.length} curso(s)
+                </span>
+              </div>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function SelectedProcessBanner({
+  process,
+  onChange,
+}: {
+  process: EvaluationProcess;
+  onChange: () => void;
+}) {
+  const eff = effectiveStatus(process);
+  return (
+    <div className="mb-4 flex flex-col gap-2 rounded-xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-start gap-3">
+        <Gavel className="mt-0.5 h-5 w-5 text-primary" />
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-foreground">{process.name}</h3>
+            <Badge variant="outline" className={STATUS_STYLES[eff]}>
+              {STATUS_LABELS[eff]}
+            </Badge>
+            <Badge variant="outline">{SCOPE_LABELS[process.scope]}</Badge>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Período:{" "}
+            {new Date(`${process.startDate}T00:00:00`).toLocaleDateString("pt-BR")} —{" "}
+            {new Date(`${process.endDate}T00:00:00`).toLocaleDateString("pt-BR")} •{" "}
+            {process.courseIds.length} curso(s) vinculado(s)
+          </p>
+        </div>
+      </div>
+      <Button variant="outline" size="sm" onClick={onChange}>
+        Trocar processo
+      </Button>
+    </div>
+  );
+}
