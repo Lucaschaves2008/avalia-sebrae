@@ -727,7 +727,7 @@ function CourseCard({
           {judged ? (
             <>
               <ClipboardCheck className="h-3.5 w-3.5" />
-              Julgamento concluído
+              Avaliação concluída
               {userJudgment?.decision && (
                 <span className="ml-1 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold">
                   {DECISION_LABELS[userJudgment.decision] ?? userJudgment.decision}
