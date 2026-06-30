@@ -31,7 +31,12 @@ import { AuthProvider, REGIONS, useAuth, type Region } from "@/lib/auth";
 import { SebraeLogo } from "@/components/SebraeLogo";
 import { PrvdFooter } from "@/components/PrvdFooter";
 import { supabase } from "@/integrations/supabase/client";
-import { useCoursesList, computeMaterialReadiness } from "@/lib/courses";
+import { useCoursesList, computeMaterialReadiness, type Course } from "@/lib/courses";
+import {
+  effectiveStatus,
+  useProcessesList,
+  type EvaluationProcess,
+} from "@/lib/processes";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
