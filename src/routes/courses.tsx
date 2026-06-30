@@ -159,6 +159,7 @@ function CoursesPage() {
   const navigate = useNavigate();
   const courses = useCoursesList();
   const judgments = useJudgmentsList();
+  const processes = useProcessesList();
   const isAdmin = user?.role === "admin";
   const isGestor = user?.role === "gestor";
 
@@ -178,10 +179,33 @@ function CoursesPage() {
     errors: string[];
   } | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login" });
   }, [loading, user, navigate]);
+
+  // Active processes visible to current user
+  const activeProcessesForUser = useMemo<EvaluationProcess[]>(() => {
+    return processes.filter((p) => {
+      if (effectiveStatus(p) !== "ATIVO") return false;
+      if (!isWithinPeriod(p)) return false;
+      if (isGestor) return p.scope === "REGIONAL" || p.scope === "AMBOS";
+      if (isAdmin) return p.scope === "NACIONAL" || p.scope === "AMBOS";
+      return false;
+    });
+  }, [processes, isGestor, isAdmin]);
+
+  const selectedProcess = useMemo(
+    () => processes.find((p) => p.id === selectedProcessId) ?? null,
+    [processes, selectedProcessId],
+  );
+
+  // Judgments filtered to the active process scope (when one is selected)
+  const scopedJudgments = useMemo(() => {
+    if (!selectedProcessId) return judgments;
+    return judgments.filter((j) => j.processId === selectedProcessId);
+  }, [judgments, selectedProcessId]);
 
   const publicos = useMemo(
     () => Array.from(new Set(courses.map((c) => c.publicoAlvo).filter(Boolean))).sort(),
@@ -194,7 +218,11 @@ function CoursesPage() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return courses.filter((c) => {
+    // When a process is selected, restrict to the courses bound to that process
+    const inProcess = selectedProcess
+      ? courses.filter((c) => selectedProcess.courseIds.includes(c.id))
+      : courses;
+    return inProcess.filter((c) => {
       if (bcgFilter !== "all" && c.bcg !== bcgFilter) return false;
       if (publicoFilter !== "all" && c.publicoAlvo !== publicoFilter) return false;
       if (modalidadeFilter !== "all" && c.modalidade !== modalidadeFilter) return false;
@@ -210,7 +238,7 @@ function CoursesPage() {
         c.modalidade.toLowerCase().includes(q)
       );
     });
-  }, [courses, query, bcgFilter, publicoFilter, modalidadeFilter, esforcoFilter]);
+  }, [courses, selectedProcess, query, bcgFilter, publicoFilter, modalidadeFilter, esforcoFilter]);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
