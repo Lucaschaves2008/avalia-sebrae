@@ -737,7 +737,7 @@ function CourseCard({
           ) : (
             <>
               <Clock className="h-3.5 w-3.5" />
-              Pendente de julgamento — clique para avaliar
+              Pendente de avaliação — clique para avaliar
             </>
           )}
         </div>
