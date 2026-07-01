@@ -386,16 +386,23 @@ function OpinionEditor({
         </div>
       </div>
 
-      {locked && (
+      {locked ? (
         <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
           <CheckCircle2 className="mr-2 inline h-4 w-4" />
           Este parecer está <strong>finalizado</strong> e não permite alterações.
         </div>
+      ) : (
+        <FinalizeOpinionBar
+          opinion={opinion}
+          decided={decided}
+          total={total}
+        />
       )}
 
       {isSuperAdmin && (
         <SuperAdminOverride opinion={opinion} />
       )}
+
 
       <div className="space-y-3">
         {opinion.items.map((item) => {
@@ -417,7 +424,47 @@ function OpinionEditor({
   );
 }
 
+function FinalizeOpinionBar({
+  opinion,
+  decided,
+  total,
+}: {
+  opinion: FinalOpinion;
+  decided: number;
+  total: number;
+}) {
+  const [saving, setSaving] = useState(false);
+  const allDecided = total > 0 && decided === total;
+  async function finalize() {
+    if (!allDecided) return;
+    if (!confirm("Ao finalizar, o parecer será encerrado e o processo avaliativo será concluído. Deseja continuar?")) return;
+    setSaving(true);
+    try {
+      await overrideOpinionStatus(opinion.id, "FINALIZADO");
+      toast.success("Parecer finalizado.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao finalizar.");
+    } finally {
+      setSaving(false);
+    }
+  }
+  return (
+    <div className="mb-4 flex flex-col gap-2 rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="text-muted-foreground">
+        {allDecided
+          ? "Todos os pareceres foram emitidos. Você pode finalizar quando desejar."
+          : `Emita todos os pareceres (${decided}/${total}) para habilitar a finalização.`}
+      </div>
+      <Button size="sm" onClick={finalize} disabled={!allDecided || saving}>
+        <CheckCircle2 className="mr-2 h-4 w-4" />
+        {saving ? "Finalizando..." : "Finalizar parecer"}
+      </Button>
+    </div>
+  );
+}
+
 function SuperAdminOverride({ opinion }: { opinion: FinalOpinion }) {
+
   const [saving, setSaving] = useState(false);
   async function change(status: OpinionStatus) {
     setSaving(true);
