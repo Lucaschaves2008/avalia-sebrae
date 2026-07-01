@@ -9,6 +9,7 @@ import {
   UserCog,
   ClipboardCheck,
   Gavel,
+  ShieldCheck,
 } from "lucide-react";
 import {
   PieChart,
