@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export type FinalDecision = "MANTER" | "ATUALIZAR" | "INATIVAR";
+export type FinalPriority = "ALTA" | "MEDIA" | "BAIXA";
 export type OpinionStatus = "NAO_INICIADO" | "EM_ANDAMENTO" | "FINALIZADO";
 
 export interface FinalOpinionItem {
@@ -9,11 +10,13 @@ export interface FinalOpinionItem {
   opinionId: string;
   courseId: string;
   decision: FinalDecision | null;
+  priority: FinalPriority | null;
   observation: string;
   decidedBy: string | null;
   decidedAt: string | null;
   updatedAt: string;
 }
+
 
 export interface FinalOpinion {
   id: string;
