@@ -14,6 +14,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ProcessesRouteImport } from './routes/processes'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as FinalOpinionsRouteImport } from './routes/final-opinions'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as IndexRouteImport } from './routes/index'
@@ -43,6 +44,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinalOpinionsRoute = FinalOpinionsRouteImport.update({
+  id: '/final-opinions',
+  path: '/final-opinions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
+  '/final-opinions': typeof FinalOpinionsRoute
   '/login': typeof LoginRoute
   '/processes': typeof ProcessesRoute
   '/reports': typeof ReportsRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
+  '/final-opinions': typeof FinalOpinionsRoute
   '/login': typeof LoginRoute
   '/processes': typeof ProcessesRoute
   '/reports': typeof ReportsRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
+  '/final-opinions': typeof FinalOpinionsRoute
   '/login': typeof LoginRoute
   '/processes': typeof ProcessesRoute
   '/reports': typeof ReportsRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/courses'
     | '/dashboard'
+    | '/final-opinions'
     | '/login'
     | '/processes'
     | '/reports'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/courses'
     | '/dashboard'
+    | '/final-opinions'
     | '/login'
     | '/processes'
     | '/reports'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/courses'
     | '/dashboard'
+    | '/final-opinions'
     | '/login'
     | '/processes'
     | '/reports'
@@ -127,6 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CoursesRoute: typeof CoursesRoute
   DashboardRoute: typeof DashboardRoute
+  FinalOpinionsRoute: typeof FinalOpinionsRoute
   LoginRoute: typeof LoginRoute
   ProcessesRoute: typeof ProcessesRoute
   ReportsRoute: typeof ReportsRoute
@@ -171,6 +184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/final-opinions': {
+      id: '/final-opinions'
+      path: '/final-opinions'
+      fullPath: '/final-opinions'
+      preLoaderRoute: typeof FinalOpinionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -199,6 +219,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CoursesRoute: CoursesRoute,
   DashboardRoute: DashboardRoute,
+  FinalOpinionsRoute: FinalOpinionsRoute,
   LoginRoute: LoginRoute,
   ProcessesRoute: ProcessesRoute,
   ReportsRoute: ReportsRoute,
