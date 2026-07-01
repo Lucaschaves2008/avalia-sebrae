@@ -200,6 +200,92 @@ export type Database = {
         }
         Relationships: []
       }
+      final_opinion_items: {
+        Row: {
+          course_id: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision: string | null
+          id: string
+          observation: string
+          opinion_id: string
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision?: string | null
+          id?: string
+          observation?: string
+          opinion_id: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision?: string | null
+          id?: string
+          observation?: string
+          opinion_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "final_opinion_items_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "final_opinion_items_opinion_id_fkey"
+            columns: ["opinion_id"]
+            isOneToOne: false
+            referencedRelation: "final_opinions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      final_opinions: {
+        Row: {
+          created_at: string
+          finalized_at: string | null
+          id: string
+          process_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          finalized_at?: string | null
+          id?: string
+          process_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          finalized_at?: string | null
+          id?: string
+          process_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "final_opinions_process_id_fkey"
+            columns: ["process_id"]
+            isOneToOne: true
+            referencedRelation: "evaluation_processes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       judgments: {
         Row: {
           course_id: string

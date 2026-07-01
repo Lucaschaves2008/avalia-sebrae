@@ -9,6 +9,7 @@ import {
   UserCog,
   ClipboardCheck,
   Gavel,
+  ShieldCheck,
 } from "lucide-react";
 import {
   PieChart,
@@ -307,6 +308,17 @@ function Dashboard() {
               >
                 <Gavel className="mr-2 h-4 w-4" />
                 Processos
+              </Button>
+            )}
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate({ to: "/final-opinions" })}
+                className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+              >
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                Parecer Final
               </Button>
             )}
             <Button
