@@ -162,31 +162,29 @@ export function useFinalOpinionsList(): FinalOpinion[] {
 
 // ---------- Mutations ----------
 
-/** Save (or clear) a single item's decision + observation. Auto-syncs cache. */
+/** Save (or clear) a single item's decision + priority + observation. Auto-syncs cache. */
 export async function saveOpinionItem(input: {
   itemId: string;
   decision: FinalDecision | null;
+  priority: FinalPriority | null;
   observation: string;
   userId: string;
 }): Promise<void> {
-  const row: {
-    decision: FinalDecision | null;
-    observation: string;
-    decided_by: string | null;
-    decided_at: string | null;
-  } = {
+  const row = {
     decision: input.decision,
+    priority: input.priority,
     observation: input.observation,
     decided_by: input.decision ? input.userId : null,
     decided_at: input.decision ? new Date().toISOString() : null,
   };
   const { error } = await supabase
     .from("final_opinion_items")
-    .update(row)
+    .update(row as never)
     .eq("id", input.itemId);
   if (error) throw new Error(error.message);
   await refreshFinalOpinions();
 }
+
 
 /** Super-admin manual override for opinion status. */
 export async function overrideOpinionStatus(
