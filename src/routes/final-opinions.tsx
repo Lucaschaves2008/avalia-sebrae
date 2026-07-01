@@ -52,6 +52,7 @@ import { useJudgmentsList, type Judgment } from "@/lib/judgments";
 import {
   DECISION_BTN_STYLES,
   DECISION_LABELS,
+  PRIORITY_LABELS,
   STATUS_LABELS,
   STATUS_STYLES,
   overrideOpinionStatus,
@@ -60,8 +61,10 @@ import {
   type FinalDecision,
   type FinalOpinion,
   type FinalOpinionItem,
+  type FinalPriority,
   type OpinionStatus,
 } from "@/lib/final-opinions";
+
 
 export const Route = createFileRoute("/final-opinions")({
   head: () => ({ meta: [{ title: "Parecer Final — SEBRAE" }] }),
