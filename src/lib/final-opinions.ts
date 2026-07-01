@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export type FinalDecision = "MANTER" | "ATUALIZAR" | "INATIVAR";
+export type FinalPriority = "ALTA" | "MEDIA" | "BAIXA";
 export type OpinionStatus = "NAO_INICIADO" | "EM_ANDAMENTO" | "FINALIZADO";
 
 export interface FinalOpinionItem {
@@ -9,11 +10,13 @@ export interface FinalOpinionItem {
   opinionId: string;
   courseId: string;
   decision: FinalDecision | null;
+  priority: FinalPriority | null;
   observation: string;
   decidedBy: string | null;
   decidedAt: string | null;
   updatedAt: string;
 }
+
 
 export interface FinalOpinion {
   id: string;
@@ -26,10 +29,17 @@ export interface FinalOpinion {
 }
 
 export const DECISION_LABELS: Record<FinalDecision, string> = {
-  MANTER: "Manter no portfólio",
+  MANTER: "Manter",
   ATUALIZAR: "Atualizar",
   INATIVAR: "Inativar",
 };
+
+export const PRIORITY_LABELS: Record<FinalPriority, string> = {
+  ALTA: "Alta",
+  MEDIA: "Média",
+  BAIXA: "Baixa",
+};
+
 
 export const DECISION_STYLES: Record<FinalDecision, string> = {
   MANTER: "border-emerald-300 bg-emerald-50 text-emerald-800",
@@ -86,6 +96,7 @@ type DbItem = {
   opinion_id: string;
   course_id: string;
   decision: string | null;
+  priority: string | null;
   observation: string;
   decided_by: string | null;
   decided_at: string | null;
@@ -105,13 +116,14 @@ async function fetchAll(): Promise<FinalOpinion[]> {
     return [];
   }
   const itemsByOpinion = new Map<string, FinalOpinionItem[]>();
-  for (const r of (iRes.data ?? []) as DbItem[]) {
+  for (const r of (iRes.data ?? []) as unknown as DbItem[]) {
     const arr = itemsByOpinion.get(r.opinion_id) ?? [];
     arr.push({
       id: r.id,
       opinionId: r.opinion_id,
       courseId: r.course_id,
       decision: (r.decision as FinalDecision | null) ?? null,
+      priority: (r.priority as FinalPriority | null) ?? null,
       observation: r.observation ?? "",
       decidedBy: r.decided_by,
       decidedAt: r.decided_at,
@@ -119,6 +131,7 @@ async function fetchAll(): Promise<FinalOpinion[]> {
     });
     itemsByOpinion.set(r.opinion_id, arr);
   }
+
   return ((oRes.data ?? []) as DbOpinion[]).map((r) => ({
     id: r.id,
     processId: r.process_id,
@@ -156,31 +169,29 @@ export function useFinalOpinionsList(): FinalOpinion[] {
 
 // ---------- Mutations ----------
 
-/** Save (or clear) a single item's decision + observation. Auto-syncs cache. */
+/** Save (or clear) a single item's decision + priority + observation. Auto-syncs cache. */
 export async function saveOpinionItem(input: {
   itemId: string;
   decision: FinalDecision | null;
+  priority: FinalPriority | null;
   observation: string;
   userId: string;
 }): Promise<void> {
-  const row: {
-    decision: FinalDecision | null;
-    observation: string;
-    decided_by: string | null;
-    decided_at: string | null;
-  } = {
+  const row = {
     decision: input.decision,
+    priority: input.priority,
     observation: input.observation,
     decided_by: input.decision ? input.userId : null,
     decided_at: input.decision ? new Date().toISOString() : null,
   };
   const { error } = await supabase
     .from("final_opinion_items")
-    .update(row)
+    .update(row as never)
     .eq("id", input.itemId);
   if (error) throw new Error(error.message);
   await refreshFinalOpinions();
 }
+
 
 /** Super-admin manual override for opinion status. */
 export async function overrideOpinionStatus(
