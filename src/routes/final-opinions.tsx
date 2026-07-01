@@ -386,16 +386,23 @@ function OpinionEditor({
         </div>
       </div>
 
-      {locked && (
+      {locked ? (
         <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
           <CheckCircle2 className="mr-2 inline h-4 w-4" />
           Este parecer está <strong>finalizado</strong> e não permite alterações.
         </div>
+      ) : (
+        <FinalizeOpinionBar
+          opinion={opinion}
+          decided={decided}
+          total={total}
+        />
       )}
 
       {isSuperAdmin && (
         <SuperAdminOverride opinion={opinion} />
       )}
+
 
       <div className="space-y-3">
         {opinion.items.map((item) => {
