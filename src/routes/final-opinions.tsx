@@ -522,7 +522,7 @@ function CourseOpinionRow({
               {item.courseId}
             </span>
             <h4 className="text-sm font-semibold text-foreground">
-              {course?.solutionName ?? "(curso não encontrado)"}
+              {course?.solucao ?? "(curso não encontrado)"}
             </h4>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
