@@ -516,6 +516,7 @@ function CourseOpinionRow({
   disabled: boolean;
 }) {
   const [decision, setDecision] = useState<FinalDecision | null>(item.decision);
+  const [priority, setPriority] = useState<FinalPriority | null>(item.priority);
   const [obs, setObs] = useState(item.observation);
   const [saving, setSaving] = useState<"idle" | "saving" | "saved">("idle");
   const [expanded, setExpanded] = useState(false);
@@ -524,13 +525,18 @@ function CourseOpinionRow({
   const counts = { MANTIDO: 0, ATUALIZADO: 0, INATIVACAO: 0 };
   for (const j of regionalJudgments) counts[j.decision] += 1;
 
-  async function persist(nextDecision: FinalDecision | null, nextObs: string) {
+  async function persist(
+    nextDecision: FinalDecision | null,
+    nextPriority: FinalPriority | null,
+    nextObs: string,
+  ) {
     if (disabled) return;
     setSaving("saving");
     try {
       await saveOpinionItem({
         itemId: item.id,
         decision: nextDecision,
+        priority: nextPriority,
         observation: nextObs,
         userId,
       });
@@ -546,14 +552,22 @@ function CourseOpinionRow({
     if (disabled) return;
     const next = d === decision ? null : d;
     setDecision(next);
-    void persist(next, obs);
+    void persist(next, priority, obs);
+  }
+
+  function pickPriority(p: FinalPriority | "NONE") {
+    if (disabled) return;
+    const next = p === "NONE" ? null : p;
+    setPriority(next);
+    void persist(decision, next, obs);
   }
 
   // Autosave observation on blur
   function blurObs() {
     if (obs === item.observation) return;
-    void persist(decision, obs);
+    void persist(decision, priority, obs);
   }
+
 
   const cardBorder = decision
     ? decision === "MANTER"
