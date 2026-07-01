@@ -89,6 +89,7 @@ type DbItem = {
   opinion_id: string;
   course_id: string;
   decision: string | null;
+  priority: string | null;
   observation: string;
   decided_by: string | null;
   decided_at: string | null;
@@ -108,13 +109,14 @@ async function fetchAll(): Promise<FinalOpinion[]> {
     return [];
   }
   const itemsByOpinion = new Map<string, FinalOpinionItem[]>();
-  for (const r of (iRes.data ?? []) as DbItem[]) {
+  for (const r of (iRes.data ?? []) as unknown as DbItem[]) {
     const arr = itemsByOpinion.get(r.opinion_id) ?? [];
     arr.push({
       id: r.id,
       opinionId: r.opinion_id,
       courseId: r.course_id,
       decision: (r.decision as FinalDecision | null) ?? null,
+      priority: (r.priority as FinalPriority | null) ?? null,
       observation: r.observation ?? "",
       decidedBy: r.decided_by,
       decidedAt: r.decided_at,
@@ -122,6 +124,7 @@ async function fetchAll(): Promise<FinalOpinion[]> {
     });
     itemsByOpinion.set(r.opinion_id, arr);
   }
+
   return ((oRes.data ?? []) as DbOpinion[]).map((r) => ({
     id: r.id,
     processId: r.process_id,
