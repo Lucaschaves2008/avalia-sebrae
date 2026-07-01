@@ -29,10 +29,17 @@ export interface FinalOpinion {
 }
 
 export const DECISION_LABELS: Record<FinalDecision, string> = {
-  MANTER: "Manter no portfólio",
+  MANTER: "Manter",
   ATUALIZAR: "Atualizar",
   INATIVAR: "Inativar",
 };
+
+export const PRIORITY_LABELS: Record<FinalPriority, string> = {
+  ALTA: "Alta",
+  MEDIA: "Média",
+  BAIXA: "Baixa",
+};
+
 
 export const DECISION_STYLES: Record<FinalDecision, string> = {
   MANTER: "border-emerald-300 bg-emerald-50 text-emerald-800",
