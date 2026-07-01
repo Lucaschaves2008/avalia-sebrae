@@ -649,8 +649,8 @@ function CourseOpinionRow({
           )}
         </div>
 
-        {/* Decision buttons */}
-        <div className="flex shrink-0 flex-col items-end gap-1">
+        {/* Decision buttons + priority */}
+        <div className="flex shrink-0 flex-col items-end gap-2">
           <div className="flex gap-1">
             {(Object.keys(DECISION_LABELS) as FinalDecision[]).map((d) => {
               const active = decision === d;
@@ -670,6 +670,28 @@ function CourseOpinionRow({
               );
             })}
           </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-muted-foreground">
+              Priorização final:
+            </span>
+            <Select
+              value={priority ?? "NONE"}
+              onValueChange={(v) => pickPriority(v as FinalPriority | "NONE")}
+              disabled={disabled}
+            >
+              <SelectTrigger className="h-7 w-32 bg-white text-xs">
+                <SelectValue placeholder="—" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="NONE">—</SelectItem>
+                {(Object.keys(PRIORITY_LABELS) as FinalPriority[]).map((p) => (
+                  <SelectItem key={p} value={p}>
+                    {PRIORITY_LABELS[p]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <span className="text-[10px] text-muted-foreground">
             {saving === "saving"
               ? "Salvando..."
@@ -680,6 +702,7 @@ function CourseOpinionRow({
                   : "Aguardando parecer"}
           </span>
         </div>
+
       </div>
 
       <div className="mt-3">
