@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, Check, X } from "lucide-react";
 import { toast } from "sonner";
@@ -48,7 +48,9 @@ function getPasswordCriteria(password: string) {
 
 function CriteriaItem({ met, label }: { met: boolean; label: string }) {
   return (
-    <div className={`flex items-center gap-2 text-xs ${met ? "text-emerald-600" : "text-muted-foreground"}`}>
+    <div
+      className={`flex items-center gap-2 text-xs ${met ? "text-emerald-600" : "text-muted-foreground"}`}
+    >
       {met ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5 opacity-50" />}
       <span>{label}</span>
     </div>
@@ -168,9 +170,7 @@ function LoginPage() {
             Sistema de avaliação do Portfólio de Cursos da&nbsp;
             <span className="text-secondary">Educação Empreendedora</span>
           </h1>
-          <p className="max-w-md text-base text-white/80">
-            {"\n"}
-          </p>
+          <p className="max-w-md text-base text-white/80">{"\n"}</p>
         </div>
         <div className="relative space-y-3">
           <PrvdFooter variant="onDark" className="justify-start" />
@@ -188,9 +188,7 @@ function LoginPage() {
           </div>
 
           <div className="mb-8">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">
-              Acesso ao sistema
-            </h2>
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">Acesso ao sistema</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Informe suas credenciais para continuar.
             </p>
@@ -274,17 +272,22 @@ function LoginPage() {
                 "Entrar"
               )}
             </Button>
-
           </form>
 
           <div className="mt-8 rounded-lg border border-dashed border-border bg-muted/30 p-4 text-xs text-muted-foreground">
-            <div className="mb-2 font-semibold text-foreground">
-              Primeiro acesso
-            </div>
+            <div className="mb-2 font-semibold text-foreground">Primeiro acesso</div>
             <p>
-              Não possui acesso? Solicite ao administrador (juliana.chaves@sebrae.com.br) seu cadastro para realização das avaliações.
+              Não possui acesso? Solicite ao administrador (juliana.chaves@sebrae.com.br) seu
+              cadastro para realização das avaliações.
             </p>
           </div>
+
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Problemas para entrar nesta rede?{" "}
+            <Link to="/diagnostico" className="font-medium text-primary hover:underline">
+              Executar diagnóstico de conexão
+            </Link>
+          </p>
 
           <PrvdFooter variant="onLight" className="mt-8" />
         </div>
@@ -389,8 +392,7 @@ function LoginPage() {
             </div>
             <DialogTitle>Primeiro acesso detectado</DialogTitle>
             <DialogDescription>
-              Por segurança, é obrigatório definir uma nova senha antes de
-              acessar a plataforma.
+              Por segurança, é obrigatório definir uma nova senha antes de acessar a plataforma.
             </DialogDescription>
           </DialogHeader>
 
@@ -424,7 +426,9 @@ function LoginPage() {
 
             {/* Real-time validation checklist */}
             <div className="space-y-1.5 rounded-lg border border-border bg-muted/30 p-3">
-              <div className="mb-1 text-xs font-semibold text-foreground">Critérios de segurança</div>
+              <div className="mb-1 text-xs font-semibold text-foreground">
+                Critérios de segurança
+              </div>
               <CriteriaItem met={criteria.minLength} label="Mínimo de 8 caracteres" />
               <CriteriaItem met={criteria.hasUpper} label="Pelo menos 1 letra maiúscula" />
               <CriteriaItem met={criteria.hasLower} label="Pelo menos 1 letra minúscula" />

@@ -7,20 +7,28 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { isAuthRetryableFetchError } from "@supabase/supabase-js";
+
 import { supabase } from "@/integrations/supabase/client";
 import { adminCreateUser, adminDeleteUser } from "@/lib/admin-users.functions";
+
+// Falhas de rede (queda de conexão, bloqueio de proxy corporativo como o
+// Zscaler) chegam do supabase-js com mensagens técnicas em inglês
+// ("Failed to fetch"). Traduzimos para uma orientação útil ao usuário.
+const NETWORK_ERROR_MESSAGE =
+  "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente. " +
+  "Se o problema continuar, abra a página /diagnostico e envie o relatório à TI.";
+
+function isNetworkError(error: { message?: string }): boolean {
+  if (isAuthRetryableFetchError(error)) return true;
+  return /fetch|network|timeout|aborted|load failed/i.test(error.message ?? "");
+}
 
 export type UserRole = "admin" | "gestor";
 export type Region = "Norte" | "Nordeste" | "Centro-Oeste" | "Sudeste" | "Sul";
 export type UserStatus = "Ativo" | "Inativo";
 
-export const REGIONS: Region[] = [
-  "Norte",
-  "Nordeste",
-  "Centro-Oeste",
-  "Sudeste",
-  "Sul",
-];
+export const REGIONS: Region[] = ["Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"];
 
 export const STATES_BY_REGION: Record<Region, string[]> = {
   Norte: ["AC", "AP", "AM", "PA", "RO", "RR", "TO"],
@@ -59,7 +67,6 @@ export interface UserInput {
   status: UserStatus;
 }
 
-
 // ---------- Users list (reactive cache) ----------
 
 let usersCache: AuthUser[] = [];
@@ -82,20 +89,21 @@ async function fetchUsers(): Promise<AuthUser[]> {
   }
   return profiles
     .filter((p) => p.email !== SUPER_ADMIN_EMAIL)
-    .map((p): AuthUser => ({
-      id: p.id,
-      email: p.email,
-      name: p.name,
-      phone: p.phone ?? "",
-      unit: p.unity,
-      region: p.region as Region,
-      state: (p as { state?: string | null }).state ?? null,
-      role: roleMap.get(p.id) ?? "gestor",
-      status: ((p as { status?: UserStatus }).status ?? "Ativo") as UserStatus,
-      isFirstAccess: p.is_first_access ?? false,
-    }));
+    .map(
+      (p): AuthUser => ({
+        id: p.id,
+        email: p.email,
+        name: p.name,
+        phone: p.phone ?? "",
+        unit: p.unity,
+        region: p.region as Region,
+        state: (p as { state?: string | null }).state ?? null,
+        role: roleMap.get(p.id) ?? "gestor",
+        status: ((p as { status?: UserStatus }).status ?? "Ativo") as UserStatus,
+        isFirstAccess: p.is_first_access ?? false,
+      }),
+    );
 }
-
 
 export async function refreshUsers() {
   usersCache = await fetchUsers();
@@ -181,7 +189,6 @@ export async function updateUser(
       region,
       state: input.state ?? null,
       status: input.status,
-
     })
     .eq("id", id);
   if (error) return { ok: false, error: error.message };
@@ -206,7 +213,6 @@ export async function deleteUser(
   }
 }
 
-
 // ---------- Auth context ----------
 
 interface AuthContextValue {
@@ -220,9 +226,7 @@ interface AuthContextValue {
     input: UserInput & { password: string },
   ) => Promise<{ ok: true } | { ok: false; error: string }>;
   logout: () => Promise<void>;
-  changePassword: (
-    newPassword: string,
-  ) => Promise<{ ok: true } | { ok: false; error: string }>;
+  changePassword: (newPassword: string) => Promise<{ ok: true } | { ok: false; error: string }>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -246,7 +250,6 @@ async function hydrateUser(authUserId: string): Promise<AuthUser | null> {
     status: ((profile as { status?: UserStatus }).status ?? "Ativo") as UserStatus,
     isFirstAccess: profile.is_first_access ?? false,
   };
-
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -279,7 +282,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: email.trim(),
       password,
     });
-    if (error) return { ok: false, error: error.message };
+    if (error) {
+      return { ok: false, error: isNetworkError(error) ? NETWORK_ERROR_MESSAGE : error.message };
+    }
     if (!data.user) return { ok: false, error: "Falha no login." };
     const u = await hydrateUser(data.user.id);
     if (!u) return { ok: false, error: "Perfil não encontrado." };
@@ -315,10 +320,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) return { ok: false, error: error.message };
       if (user) {
-        await supabase
-          .from("profiles")
-          .update({ is_first_access: false })
-          .eq("id", user.id);
+        await supabase.from("profiles").update({ is_first_access: false }).eq("id", user.id);
         setUser({ ...user, isFirstAccess: false });
       }
       return { ok: true };
@@ -327,9 +329,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <AuthContext.Provider
-      value={{ user, loading, login, signUp, logout, changePassword }}
-    >
+    <AuthContext.Provider value={{ user, loading, login, signUp, logout, changePassword }}>
       {children}
     </AuthContext.Provider>
   );

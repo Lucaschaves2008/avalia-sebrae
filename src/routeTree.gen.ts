@@ -15,9 +15,11 @@ import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ProcessesRouteImport } from './routes/processes'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FinalOpinionsRouteImport } from './routes/final-opinions'
+import { Route as DiagnosticoRouteImport } from './routes/diagnostico'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SupaApiSplatRouteImport } from './routes/supa-api.$'
 
 const UsersRoute = UsersRouteImport.update({
   id: '/users',
@@ -49,6 +51,11 @@ const FinalOpinionsRoute = FinalOpinionsRouteImport.update({
   path: '/final-opinions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DiagnosticoRoute = DiagnosticoRouteImport.update({
+  id: '/diagnostico',
+  path: '/diagnostico',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -64,40 +71,51 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SupaApiSplatRoute = SupaApiSplatRouteImport.update({
+  id: '/supa-api/$',
+  path: '/supa-api/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
+  '/diagnostico': typeof DiagnosticoRoute
   '/final-opinions': typeof FinalOpinionsRoute
   '/login': typeof LoginRoute
   '/processes': typeof ProcessesRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
+  '/supa-api/$': typeof SupaApiSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
+  '/diagnostico': typeof DiagnosticoRoute
   '/final-opinions': typeof FinalOpinionsRoute
   '/login': typeof LoginRoute
   '/processes': typeof ProcessesRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
+  '/supa-api/$': typeof SupaApiSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
+  '/diagnostico': typeof DiagnosticoRoute
   '/final-opinions': typeof FinalOpinionsRoute
   '/login': typeof LoginRoute
   '/processes': typeof ProcessesRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
+  '/supa-api/$': typeof SupaApiSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -105,46 +123,54 @@ export interface FileRouteTypes {
     | '/'
     | '/courses'
     | '/dashboard'
+    | '/diagnostico'
     | '/final-opinions'
     | '/login'
     | '/processes'
     | '/reports'
     | '/reset-password'
     | '/users'
+    | '/supa-api/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/courses'
     | '/dashboard'
+    | '/diagnostico'
     | '/final-opinions'
     | '/login'
     | '/processes'
     | '/reports'
     | '/reset-password'
     | '/users'
+    | '/supa-api/$'
   id:
     | '__root__'
     | '/'
     | '/courses'
     | '/dashboard'
+    | '/diagnostico'
     | '/final-opinions'
     | '/login'
     | '/processes'
     | '/reports'
     | '/reset-password'
     | '/users'
+    | '/supa-api/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CoursesRoute: typeof CoursesRoute
   DashboardRoute: typeof DashboardRoute
+  DiagnosticoRoute: typeof DiagnosticoRoute
   FinalOpinionsRoute: typeof FinalOpinionsRoute
   LoginRoute: typeof LoginRoute
   ProcessesRoute: typeof ProcessesRoute
   ReportsRoute: typeof ReportsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   UsersRoute: typeof UsersRoute
+  SupaApiSplatRoute: typeof SupaApiSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -191,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FinalOpinionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/diagnostico': {
+      id: '/diagnostico'
+      path: '/diagnostico'
+      fullPath: '/diagnostico'
+      preLoaderRoute: typeof DiagnosticoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -212,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/supa-api/$': {
+      id: '/supa-api/$'
+      path: '/supa-api/$'
+      fullPath: '/supa-api/$'
+      preLoaderRoute: typeof SupaApiSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -219,13 +259,25 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CoursesRoute: CoursesRoute,
   DashboardRoute: DashboardRoute,
+  DiagnosticoRoute: DiagnosticoRoute,
   FinalOpinionsRoute: FinalOpinionsRoute,
   LoginRoute: LoginRoute,
   ProcessesRoute: ProcessesRoute,
   ReportsRoute: ReportsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   UsersRoute: UsersRoute,
+  SupaApiSplatRoute: SupaApiSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
