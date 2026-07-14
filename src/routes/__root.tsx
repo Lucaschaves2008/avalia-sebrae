@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { ConnectionBanner } from "../components/ConnectionBanner";
 
 function NotFoundComponent() {
   return (
@@ -78,17 +79,37 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "AVALIA SEBRAE - Cursos da Educação Empreendedora" },
-      { name: "description", content: "Sistema de avaliação do portifólio de cursos da Educação empreendedora do SEBRAE." },
+      {
+        name: "description",
+        content:
+          "Sistema de avaliação do portifólio de cursos da Educação empreendedora do SEBRAE.",
+      },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "AVALIA SEBRAE - Cursos da Educação Empreendedora" },
-      { property: "og:description", content: "Sistema de avaliação do portifólio de cursos da Educação empreendedora do SEBRAE." },
+      {
+        property: "og:description",
+        content:
+          "Sistema de avaliação do portifólio de cursos da Educação empreendedora do SEBRAE.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "AVALIA SEBRAE - Cursos da Educação Empreendedora" },
-      { name: "twitter:description", content: "Sistema de avaliação do portifólio de cursos da Educação empreendedora do SEBRAE." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/25c22f00-6935-45bb-8ed7-c9b9626f9bc0/id-preview-68edef14--81758dd2-0424-43d3-a1d1-1364bd0a8e8b.lovable.app-1782847431550.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/25c22f00-6935-45bb-8ed7-c9b9626f9bc0/id-preview-68edef14--81758dd2-0424-43d3-a1d1-1364bd0a8e8b.lovable.app-1782847431550.png" },
+      {
+        name: "twitter:description",
+        content:
+          "Sistema de avaliação do portifólio de cursos da Educação empreendedora do SEBRAE.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/25c22f00-6935-45bb-8ed7-c9b9626f9bc0/id-preview-68edef14--81758dd2-0424-43d3-a1d1-1364bd0a8e8b.lovable.app-1782847431550.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/25c22f00-6935-45bb-8ed7-c9b9626f9bc0/id-preview-68edef14--81758dd2-0424-43d3-a1d1-1364bd0a8e8b.lovable.app-1782847431550.png",
+      },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -128,6 +149,8 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* Aviso global de indisponibilidade do banco (Zscaler/queda de rede). */}
+      <ConnectionBanner />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>

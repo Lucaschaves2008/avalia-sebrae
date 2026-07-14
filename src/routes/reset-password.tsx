@@ -33,7 +33,9 @@ function getCriteria(password: string) {
 
 function CriteriaItem({ met, label }: { met: boolean; label: string }) {
   return (
-    <div className={`flex items-center gap-2 text-xs ${met ? "text-emerald-600" : "text-muted-foreground"}`}>
+    <div
+      className={`flex items-center gap-2 text-xs ${met ? "text-emerald-600" : "text-muted-foreground"}`}
+    >
       {met ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5 opacity-50" />}
       <span>{label}</span>
     </div>
@@ -64,6 +66,28 @@ function ResetPasswordPage() {
         setReady(true);
       }
     });
+
+    // Fluxo por token_hash (?token_hash=...&type=recovery): o link do e-mail
+    // aponta direto para o site e o token é validado pelo proxy same-origin —
+    // funciona mesmo em redes que bloqueiam *.supabase.co (Zscaler/SEBRAE).
+    // Requer o template de e-mail de recuperação apontando para
+    // {{ .SiteURL }}/reset-password?token_hash={{ .TokenHash }}&type=recovery
+    // (ver docs/ZSCALER.md). O fluxo antigo por hash continua como fallback.
+    const searchParams = new URLSearchParams(window.location.search);
+    const tokenHash = searchParams.get("token_hash");
+    if (tokenHash && searchParams.get("type") === "recovery") {
+      supabase.auth
+        .verifyOtp({ type: "recovery", token_hash: tokenHash })
+        .then(({ error: otpError }) => {
+          if (cancelled) return;
+          if (otpError) setInvalidLink(true);
+          else setReady(true);
+        });
+      return () => {
+        cancelled = true;
+        sub.subscription.unsubscribe();
+      };
+    }
 
     supabase.auth.getSession().then(({ data }) => {
       if (cancelled) return;
@@ -129,8 +153,8 @@ function ResetPasswordPage() {
             Redefinição segura de <span className="text-secondary">senha</span>
           </h1>
           <p className="max-w-md text-base text-white/80">
-            Defina uma nova senha que atenda aos critérios de segurança SEBRAE
-            para retornar ao Portfólio de Cursos.
+            Defina uma nova senha que atenda aos critérios de segurança SEBRAE para retornar ao
+            Portfólio de Cursos.
           </p>
         </div>
         <div className="relative text-xs text-white/60">
