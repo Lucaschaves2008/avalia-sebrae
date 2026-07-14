@@ -164,10 +164,6 @@ function LoginPage() {
         <div className="absolute inset-0 opacity-10 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:24px_24px]" />
         <SebraeLogo className="relative" />
         <div className="relative space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-medium text-white backdrop-blur">
-            <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
-            Educação Empreendedora
-          </div>
           <h1 className="text-4xl font-bold leading-tight text-white">
             Sistema de avaliação do Portfólio de Cursos da&nbsp;
             <span className="text-secondary">Educação Empreendedora</span>
@@ -279,10 +275,6 @@ function LoginPage() {
               )}
             </Button>
 
-            <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-              <ShieldCheck className="h-4 w-4 text-primary" />
-              Ambiente protegido.
-            </div>
           </form>
 
           <div className="mt-8 rounded-lg border border-dashed border-border bg-muted/30 p-4 text-xs text-muted-foreground">
