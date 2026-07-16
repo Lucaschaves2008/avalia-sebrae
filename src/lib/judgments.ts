@@ -1,6 +1,11 @@
 import { useSyncExternalStore } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import type { Region } from "./auth";
+import {
+  deleteJudgmentServer,
+  listJudgmentsServer,
+  upsertJudgmentServer,
+} from "./judgments.functions";
+import { reportBackendFailure, reportBackendSuccess } from "./connectivity";
 
 export type JudgmentDecision = "MANTIDO" | "ATUALIZADO" | "INATIVACAO";
 export type JudgmentPriority = "Alta" | "Média" | "Baixa";
@@ -54,6 +59,8 @@ const DB_TO_DECISION: Record<string, JudgmentDecision> = {
 
 let cache: Judgment[] = [];
 let fetched = false;
+let loading = false;
+let errorMessage: string | null = null;
 const listeners = new Set<() => void>();
 function notify() {
   for (const l of listeners) l();
@@ -94,19 +101,28 @@ function mapRow(row: DbJudgment, profilesById: Map<string, DbProfile>): Judgment
 }
 
 async function fetchAll(): Promise<Judgment[]> {
-  const [judgRes, profRes] = await Promise.all([
-    supabase.from("judgments").select("*"),
-    supabase.from("profiles").select("id, name, email"),
-  ]);
-  const profilesById = new Map<string, DbProfile>();
-  for (const p of (profRes.data ?? []) as DbProfile[]) profilesById.set(p.id, p);
-  return ((judgRes.data ?? []) as DbJudgment[]).map((r) => mapRow(r, profilesById));
+  return listJudgmentsServer();
 }
 
 export async function refreshJudgments() {
-  cache = await fetchAll();
-  fetched = true;
+  loading = true;
+  errorMessage = null;
   notify();
+  try {
+    cache = await fetchAll();
+    fetched = true;
+    loading = false;
+    errorMessage = null;
+    reportBackendSuccess();
+    notify();
+  } catch (error) {
+    console.error("[judgments] fetch error:", error);
+    fetched = true;
+    loading = false;
+    errorMessage = error instanceof Error ? error.message : "Falha ao carregar avaliações.";
+    reportBackendFailure();
+    notify();
+  }
 }
 
 export function listJudgments(): Judgment[] {
@@ -127,6 +143,20 @@ export function useJudgmentsList(): Judgment[] {
   );
 }
 
+export function useJudgmentsStatus(): { loading: boolean; error: string | null; fetched: boolean } {
+  return useSyncExternalStore(
+    (cb) => {
+      listeners.add(cb);
+      if (!fetched && !loading) void refreshJudgments();
+      return () => {
+        listeners.delete(cb);
+      };
+    },
+    () => ({ loading, error: errorMessage, fetched }),
+    () => ({ loading: false, error: null, fetched: false }),
+  );
+}
+
 // ---------- Mutations ----------
 
 export async function upsertJudgment(
@@ -137,38 +167,7 @@ export async function upsertJudgment(
       "Por favor, descreva quais as atualizações necessárias para este curso.",
     );
   }
-  const row = {
-    process_id: input.processId,
-    course_id: input.courseId,
-    user_id: input.userId,
-    region: input.region,
-    decision: DECISION_TO_DB[input.decision],
-    updates_required: input.updatesNeeded ?? null,
-    priority: input.priority,
-    notes: input.reason,
-  };
-  const { data, error } = await supabase
-    .from("judgments")
-    .upsert(row, { onConflict: "process_id,course_id,user_id" })
-    .select("*")
-    .single();
-  if (error) throw error;
-
-  const saved: Judgment = {
-    id: (data as DbJudgment).id,
-    processId: input.processId,
-    courseId: input.courseId,
-    userId: input.userId,
-    userName: input.userName,
-    userEmail: input.userEmail,
-    region: input.region,
-    decision: input.decision,
-    updatesNeeded: input.updatesNeeded,
-    priority: input.priority,
-    reason: input.reason,
-    createdAt: (data as DbJudgment).updated_at,
-    updatedAt: (data as DbJudgment).updated_at,
-  };
+  const saved = await upsertJudgmentServer({ data: input });
 
   // Optimistic local update — replace if exists for (processId, courseId, userId), else append
   const idx = cache.findIndex(
@@ -190,12 +189,7 @@ export async function deleteJudgment(
   courseId: string,
   userId: string,
 ): Promise<void> {
-  const { error } = await supabase
-    .from("judgments")
-    .delete()
-    .eq("course_id", courseId)
-    .eq("user_id", userId);
-  if (error) throw error;
+  await deleteJudgmentServer({ data: { courseId, userId } });
   cache = cache.filter((j) => !(j.courseId === courseId && j.userId === userId));
   notify();
   void refreshJudgments();
