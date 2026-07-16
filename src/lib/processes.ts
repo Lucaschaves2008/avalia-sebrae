@@ -1,5 +1,10 @@
 import { useSyncExternalStore } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  deleteProcessServer,
+  listProcessesServer,
+  upsertProcessServer,
+} from "./processes.functions";
+import { reportBackendFailure, reportBackendSuccess } from "./connectivity";
 
 export type ProcessScope = "NACIONAL" | "REGIONAL" | "AMBOS";
 export type ProcessStatus = "ATIVO" | "INATIVO" | "FINALIZADO";
@@ -56,8 +61,18 @@ export function isWithinPeriod(p: { startDate: string; endDate: string }): boole
 // ---------- Reactive cache ----------
 let cache: EvaluationProcess[] = [];
 let fetched = false;
+let loading = false;
+let errorMessage: string | null = null;
+let statusSnapshot: { loading: boolean; error: string | null; fetched: boolean } = {
+  loading,
+  error: errorMessage,
+  fetched,
+};
 const listeners = new Set<() => void>();
-const notify = () => listeners.forEach((l) => l());
+const notify = () => {
+  statusSnapshot = { loading, error: errorMessage, fetched };
+  listeners.forEach((l) => l());
+};
 
 type DbProcess = {
   id: string;
@@ -72,41 +87,28 @@ type DbProcess = {
 };
 
 async function fetchAll(): Promise<EvaluationProcess[]> {
-  const [pRes, pcRes] = await Promise.all([
-    supabase
-      .from("evaluation_processes")
-      .select("*")
-      .order("created_at", { ascending: false }),
-    supabase.from("evaluation_process_courses").select("process_id, course_id"),
-  ]);
-  if (pRes.error) {
-    console.error("[processes] fetch error:", pRes.error);
-    return [];
-  }
-  const courseMap = new Map<string, string[]>();
-  for (const r of (pcRes.data ?? []) as { process_id: string; course_id: string }[]) {
-    const arr = courseMap.get(r.process_id) ?? [];
-    arr.push(r.course_id);
-    courseMap.set(r.process_id, arr);
-  }
-  return ((pRes.data ?? []) as DbProcess[]).map((r) => ({
-    id: r.id,
-    name: r.name,
-    description: r.description ?? "",
-    startDate: r.start_date,
-    endDate: r.end_date,
-    scope: r.scope as ProcessScope,
-    status: r.status as ProcessStatus,
-    courseIds: courseMap.get(r.id) ?? [],
-    createdAt: r.created_at,
-    updatedAt: r.updated_at,
-  }));
+  return listProcessesServer();
 }
 
 export async function refreshProcesses() {
-  cache = await fetchAll();
-  fetched = true;
+  loading = true;
+  errorMessage = null;
   notify();
+  try {
+    cache = await fetchAll();
+    fetched = true;
+    loading = false;
+    errorMessage = null;
+    reportBackendSuccess();
+    notify();
+  } catch (error) {
+    console.error("[processes] fetch error:", error);
+    fetched = true;
+    loading = false;
+    errorMessage = error instanceof Error ? error.message : "Falha ao carregar processos.";
+    reportBackendFailure();
+    notify();
+  }
 }
 
 export function listProcesses(): EvaluationProcess[] {
@@ -127,6 +129,20 @@ export function useProcessesList(): EvaluationProcess[] {
   );
 }
 
+export function useProcessesStatus(): { loading: boolean; error: string | null; fetched: boolean } {
+  return useSyncExternalStore(
+    (cb) => {
+      listeners.add(cb);
+      if (!fetched && !loading) void refreshProcesses();
+      return () => {
+        listeners.delete(cb);
+      };
+    },
+    () => statusSnapshot,
+    () => ({ loading: false, error: null, fetched: false }),
+  );
+}
+
 // ---------- Mutations ----------
 
 export interface ProcessInput {
@@ -141,84 +157,12 @@ export interface ProcessInput {
 }
 
 export async function upsertProcess(input: ProcessInput): Promise<EvaluationProcess> {
-  if (!input.name.trim()) throw new Error("Informe o nome do processo.");
-  if (!input.startDate || !input.endDate) throw new Error("Informe o período de avaliação.");
-  if (input.endDate < input.startDate)
-    throw new Error("A data final deve ser maior ou igual à inicial.");
-
-  const row = {
-    name: input.name.trim(),
-    description: input.description?.trim() || null,
-    start_date: input.startDate,
-    end_date: input.endDate,
-    scope: input.scope,
-    status: input.status,
-  };
-
-  let processId = input.id;
-  if (processId) {
-    const { error } = await supabase
-      .from("evaluation_processes")
-      .update(row)
-      .eq("id", processId);
-    if (error) throw new Error(error.message);
-  } else {
-    const { data, error } = await supabase
-      .from("evaluation_processes")
-      .insert(row)
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-    processId = (data as { id: string }).id;
-  }
-
-  // Sync course links (diff against current)
-  const { data: existing } = await supabase
-    .from("evaluation_process_courses")
-    .select("course_id")
-    .eq("process_id", processId);
-  const have = new Set(
-    ((existing ?? []) as { course_id: string }[]).map((r) => r.course_id),
-  );
-  const want = new Set(input.courseIds);
-  const toAdd = [...want].filter((c) => !have.has(c));
-  const toRemove = [...have].filter((c) => !want.has(c));
-  if (toAdd.length) {
-    const { error } = await supabase
-      .from("evaluation_process_courses")
-      .insert(toAdd.map((course_id) => ({ process_id: processId!, course_id })));
-    if (error) throw new Error(error.message);
-  }
-  if (toRemove.length) {
-    const { error } = await supabase
-      .from("evaluation_process_courses")
-      .delete()
-      .eq("process_id", processId!)
-      .in("course_id", toRemove);
-    if (error) throw new Error(error.message);
-  }
-
+  const { processId } = await upsertProcessServer({ data: input });
   await refreshProcesses();
   return cache.find((p) => p.id === processId)!;
 }
 
 export async function deleteProcess(id: string): Promise<void> {
-  const { count, error: cErr } = await supabase
-    .from("judgments")
-    .select("id", { count: "exact", head: true })
-    .eq("process_id", id);
-  if (cErr) throw new Error(cErr.message);
-  if ((count ?? 0) > 0) {
-    throw new Error(
-      "Este processo possui avaliações registradas e não pode ser excluído.",
-    );
-  }
-  const { error: linkErr } = await supabase
-    .from("evaluation_process_courses")
-    .delete()
-    .eq("process_id", id);
-  if (linkErr) throw new Error(linkErr.message);
-  const { error } = await supabase.from("evaluation_processes").delete().eq("id", id);
-  if (error) throw new Error(error.message);
+  await deleteProcessServer({ data: { id } });
   await refreshProcesses();
 }

@@ -12,8 +12,10 @@ import {
   Gavel,
   LayoutGrid,
   List,
+  Loader2,
   Pencil,
   Plus,
+  RefreshCw,
   Search,
   Trash2,
   Upload,
@@ -85,8 +87,10 @@ import {
   FGV_OPTIONS,
   MATERIAL_LABELS,
   parseCoursesCsv,
+  refreshCourses,
   upsertCourse,
   useCoursesList,
+  useCoursesStatus,
   type BCG,
   type Course,
   type CourseFgv,
@@ -102,8 +106,10 @@ import {
   PRIORITY_STYLES,
   findUserJudgment,
   judgmentsForCourse,
+  refreshJudgments,
   upsertJudgment,
   useJudgmentsList,
+  useJudgmentsStatus,
   type Judgment,
   type JudgmentDecision,
   type JudgmentPriority,
@@ -114,7 +120,9 @@ import {
   SCOPE_LABELS,
   STATUS_LABELS,
   STATUS_STYLES,
+  refreshProcesses,
   useProcessesList,
+  useProcessesStatus,
   type EvaluationProcess,
 } from "@/lib/processes";
 
@@ -160,6 +168,9 @@ function CoursesPage() {
   const courses = useCoursesList();
   const judgments = useJudgmentsList();
   const processes = useProcessesList();
+  const coursesStatus = useCoursesStatus();
+  const judgmentsStatus = useJudgmentsStatus();
+  const processesStatus = useProcessesStatus();
   const isAdmin = user?.role === "admin";
   const isGestor = user?.role === "gestor";
 
@@ -295,6 +306,20 @@ function CoursesPage() {
     modalidadeFilter !== "all" ||
     esforcoFilter !== "all";
 
+  const dataLoading =
+    (coursesStatus.loading && !coursesStatus.fetched) ||
+    (processesStatus.loading && !processesStatus.fetched) ||
+    (judgmentsStatus.loading && !judgmentsStatus.fetched);
+  const dataErrors = [
+    coursesStatus.error ? `Cursos: ${coursesStatus.error}` : null,
+    processesStatus.error ? `Processos: ${processesStatus.error}` : null,
+    judgmentsStatus.error ? `Avaliações: ${judgmentsStatus.error}` : null,
+  ].filter(Boolean) as string[];
+
+  async function retryDataLoad() {
+    await Promise.all([refreshCourses(), refreshProcesses(), refreshJudgments()]);
+  }
+
   if (loading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
@@ -417,7 +442,11 @@ function CoursesPage() {
           </div>
         )}
 
-        {isGestor && !selectedProcessId ? (
+        {dataErrors.length > 0 ? (
+          <DataLoadError errors={dataErrors} onRetry={retryDataLoad} />
+        ) : dataLoading ? (
+          <DataLoadingState />
+        ) : isGestor && !selectedProcessId ? (
           <GestorProcessPicker
             processes={activeProcessesForUser}
             onSelect={(p) => setSelectedProcessId(p.id)}
@@ -700,11 +729,15 @@ function CoursesPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
+              onClick={async () => {
                 if (confirmDelete) {
-                  deleteCourse(confirmDelete.id);
-                  toast.success("Curso excluído.");
-                  setConfirmDelete(null);
+                  try {
+                    await deleteCourse(confirmDelete.id);
+                    toast.success("Curso excluído.");
+                    setConfirmDelete(null);
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : "Erro ao excluir curso.");
+                  }
                 }
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -714,6 +747,60 @@ function CoursesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+function DataLoadingState() {
+  return (
+    <div className="rounded-xl border border-border bg-card p-16 text-center shadow-[var(--shadow-card)]">
+      <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
+      <p className="mt-3 text-sm font-medium text-foreground">Carregando cursos...</p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Buscando dados pelo servidor do aplicativo.
+      </p>
+    </div>
+  );
+}
+
+function DataLoadError({ errors, onRetry }: { errors: string[]; onRetry: () => Promise<void> }) {
+  const [retrying, setRetrying] = useState(false);
+
+  async function handleRetry() {
+    setRetrying(true);
+    try {
+      await onRetry();
+    } finally {
+      setRetrying(false);
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-amber-950 shadow-[var(--shadow-card)]">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="font-semibold">Não foi possível carregar os dados de cursos.</div>
+          <p className="mt-1 text-sm text-amber-900">
+            Os cursos cadastrados não foram apagados. A consulta falhou durante o carregamento;
+            tente novamente ou use o diagnóstico para enviar o relatório à TI.
+          </p>
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-amber-900/90">
+            {errors.map((error) => (
+              <li key={error}>{error}</li>
+            ))}
+          </ul>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleRetry}
+          disabled={retrying}
+          className="border-amber-300 bg-white/70 text-amber-950 hover:bg-white"
+        >
+          {retrying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+          Tentar novamente
+        </Button>
+      </div>
     </div>
   );
 }

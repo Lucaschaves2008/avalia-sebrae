@@ -1,6 +1,13 @@
 import { useSyncExternalStore } from "react";
 import Papa from "papaparse";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  appendCoursesServer,
+  deleteCourseServer,
+  listCoursesServer,
+  replaceCoursesServer,
+  upsertCourseServer,
+} from "./courses.functions";
+import { reportBackendFailure, reportBackendSuccess } from "./connectivity";
 
 // ---------- Types ----------
 
@@ -274,27 +281,42 @@ function courseToRow(c: Course) {
 
 let cache: Course[] = [];
 let fetched = false;
+let loading = false;
+let errorMessage: string | null = null;
+let statusSnapshot: { loading: boolean; error: string | null; fetched: boolean } = {
+  loading,
+  error: errorMessage,
+  fetched,
+};
 const listeners = new Set<() => void>();
 function notify() {
+  statusSnapshot = { loading, error: errorMessage, fetched };
   for (const l of listeners) l();
 }
 
 async function fetchAll(): Promise<Course[]> {
-  const { data, error } = await supabase
-    .from("courses")
-    .select("*")
-    .order("solution_name", { ascending: true });
-  if (error) {
-    console.error("[courses] fetchAll error:", error);
-    return [];
-  }
-  return ((data ?? []) as DbCourse[]).map(rowToCourse);
+  return listCoursesServer();
 }
 
 export async function refreshCourses() {
-  cache = await fetchAll();
-  fetched = true;
+  loading = true;
+  errorMessage = null;
   notify();
+  try {
+    cache = await fetchAll();
+    fetched = true;
+    loading = false;
+    errorMessage = null;
+    reportBackendSuccess();
+    notify();
+  } catch (error) {
+    console.error("[courses] fetchAll error:", error);
+    fetched = true;
+    loading = false;
+    errorMessage = error instanceof Error ? error.message : "Falha ao carregar cursos.";
+    reportBackendFailure();
+    notify();
+  }
 }
 
 export function listCourses(): Course[] {
@@ -315,74 +337,39 @@ export function useCoursesList(): Course[] {
   );
 }
 
+export function useCoursesStatus(): { loading: boolean; error: string | null; fetched: boolean } {
+  return useSyncExternalStore(
+    (cb) => {
+      listeners.add(cb);
+      if (!fetched && !loading) void refreshCourses();
+      return () => {
+        listeners.delete(cb);
+      };
+    },
+    () => statusSnapshot,
+    () => ({ loading: false, error: null, fetched: false }),
+  );
+}
+
 export async function upsertCourse(course: Course, opts?: { isNew?: boolean }): Promise<void> {
-  const row = courseToRow(course);
-  if (!row.id) throw new Error("Código do produto é obrigatório.");
-  if (opts?.isNew) {
-    const { data: existing, error: checkErr } = await supabase
-      .from("courses")
-      .select("id")
-      .eq("id", row.id)
-      .maybeSingle();
-    if (checkErr) throw checkErr;
-    if (existing) {
-      throw new Error(`Já existe um curso cadastrado com o código "${row.id}".`);
-    }
-  }
-  const { error } = await supabase.from("courses").upsert(row);
-  if (error) throw error;
+  await upsertCourseServer({ data: { course, isNew: opts?.isNew } });
   await refreshCourses();
 }
 
 export async function deleteCourse(id: string): Promise<void> {
-  const { error } = await supabase.from("courses").delete().eq("id", id);
-  if (error) throw error;
+  await deleteCourseServer({ data: { id } });
   await refreshCourses();
 }
 
 export async function replaceCourses(next: Course[]): Promise<void> {
-  // Remove courses absent from `next`, then upsert remaining
-  const existing = await fetchAll();
-  const keepIds = new Set(next.map((c) => (c.codigo || c.id).trim()));
-  const toRemove = existing.filter((c) => !keepIds.has(c.id)).map((c) => c.id);
-  if (toRemove.length) {
-    const { error } = await supabase.from("courses").delete().in("id", toRemove);
-    if (error) throw error;
-  }
-  if (next.length) {
-    const { error } = await supabase.from("courses").upsert(next.map(courseToRow));
-    if (error) throw error;
-  }
+  await replaceCoursesServer({ data: { courses: next } });
   await refreshCourses();
 }
 
 export async function appendCourses(next: Course[]): Promise<{ inserted: number; errors: string[] }> {
-  const errors: string[] = [];
-  let inserted = 0;
-  if (!next.length) return { inserted, errors };
-  const BATCH_SIZE = 500;
-  // Dedupe within the same import by id (last one wins)
-  const byId = new Map<string, ReturnType<typeof courseToRow>>();
-  for (const c of next) {
-    const row = courseToRow(c);
-    if (!row.id) continue;
-    byId.set(row.id, row);
-  }
-  const rows = Array.from(byId.values());
-  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-    const batch = rows.slice(i, i + BATCH_SIZE);
-    const { error, data } = await supabase
-      .from("courses")
-      .upsert(batch, { onConflict: "id" })
-      .select("id");
-    if (error) {
-      errors.push(`Lote ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`);
-    } else {
-      inserted += data?.length ?? batch.length;
-    }
-  }
+  const result = await appendCoursesServer({ data: { courses: next } });
   await refreshCourses();
-  return { inserted, errors };
+  return result;
 }
 
 // ---------- CSV import ----------

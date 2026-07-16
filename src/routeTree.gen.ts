@@ -20,6 +20,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SupaApiSplatRouteImport } from './routes/supa-api.$'
+import { Route as ApiPublicDiagnosticoCursosRouteImport } from './routes/api/public/diagnostico-cursos'
 
 const UsersRoute = UsersRouteImport.update({
   id: '/users',
@@ -76,6 +77,12 @@ const SupaApiSplatRoute = SupaApiSplatRouteImport.update({
   path: '/supa-api/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicDiagnosticoCursosRoute =
+  ApiPublicDiagnosticoCursosRouteImport.update({
+    id: '/api/public/diagnostico-cursos',
+    path: '/api/public/diagnostico-cursos',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
   '/supa-api/$': typeof SupaApiSplatRoute
+  '/api/public/diagnostico-cursos': typeof ApiPublicDiagnosticoCursosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,6 +110,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
   '/supa-api/$': typeof SupaApiSplatRoute
+  '/api/public/diagnostico-cursos': typeof ApiPublicDiagnosticoCursosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,6 +125,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
   '/supa-api/$': typeof SupaApiSplatRoute
+  '/api/public/diagnostico-cursos': typeof ApiPublicDiagnosticoCursosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/users'
     | '/supa-api/$'
+    | '/api/public/diagnostico-cursos'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/users'
     | '/supa-api/$'
+    | '/api/public/diagnostico-cursos'
   id:
     | '__root__'
     | '/'
@@ -157,6 +169,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/users'
     | '/supa-api/$'
+    | '/api/public/diagnostico-cursos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,6 +184,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   UsersRoute: typeof UsersRoute
   SupaApiSplatRoute: typeof SupaApiSplatRoute
+  ApiPublicDiagnosticoCursosRoute: typeof ApiPublicDiagnosticoCursosRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -252,6 +266,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SupaApiSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/diagnostico-cursos': {
+      id: '/api/public/diagnostico-cursos'
+      path: '/api/public/diagnostico-cursos'
+      fullPath: '/api/public/diagnostico-cursos'
+      preLoaderRoute: typeof ApiPublicDiagnosticoCursosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -267,17 +288,8 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   UsersRoute: UsersRoute,
   SupaApiSplatRoute: SupaApiSplatRoute,
+  ApiPublicDiagnosticoCursosRoute: ApiPublicDiagnosticoCursosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
