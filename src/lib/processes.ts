@@ -63,7 +63,11 @@ let cache: EvaluationProcess[] = [];
 let fetched = false;
 let loading = false;
 let errorMessage: string | null = null;
-let statusSnapshot = { loading, error: errorMessage, fetched };
+let statusSnapshot: { loading: boolean; error: string | null; fetched: boolean } = {
+  loading,
+  error: errorMessage,
+  fetched,
+};
 const listeners = new Set<() => void>();
 const notify = () => {
   statusSnapshot = { loading, error: errorMessage, fetched };
