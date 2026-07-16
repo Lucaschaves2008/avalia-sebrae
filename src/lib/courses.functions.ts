@@ -17,7 +17,7 @@ export const upsertCourseServer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { course: Course; isNew?: boolean }) => input)
   .handler(async ({ data, context }) => {
-    await upsertCourseForAdmin(context, data.course, data.isNew);
+    await upsertCourseForAdmin(context, data.course, !!data.isNew);
     return { ok: true as const };
   });
 
