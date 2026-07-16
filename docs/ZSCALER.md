@@ -20,16 +20,12 @@ navegador e a internet. Ele:
 
 ### Por que "o banco de dados some"
 
-O sistema é hospedado na Lovable Cloud e usa **Supabase** como banco de
-dados. Até esta correção, o **navegador do usuário falava diretamente**
-com o Supabase em:
-
-```
-https://cmkshrksrrxacfxojxch.supabase.co
-```
+O sistema é hospedado na Lovable Cloud e usa banco de dados gerenciado.
+Antes das correções, o **navegador do usuário falava diretamente** com o
+endpoint externo do banco.
 
 Ou seja, o funcionamento dependia de **dois domínios** liberados na rede:
-o domínio do site **e** o `*.supabase.co`. O Zscaler costuma bloquear o
+o domínio do site **e** o domínio externo do banco. O Zscaler costuma bloquear o
 segundo (domínio de nuvem, fora da lista de permitidos do SEBRAE). O
 resultado é exatamente o sintoma relatado:
 
@@ -39,15 +35,30 @@ resultado é exatamente o sintoma relatado:
 
 ## 2. O que foi alterado no código
 
-### a) Proxy same-origin (`/supa-api`) — correção principal
+### a) Funções server-side para Cursos — correção principal atual
+
+A área crítica de **Cursos** agora carrega, cria, edita, importa e exclui
+dados por funções server-side autenticadas. O navegador fala apenas com o
+próprio aplicativo; o servidor do aplicativo consulta o banco por fora da
+rede do usuário.
+
+```
+NAVEGADOR ───── Zscaler ──── domínio do site ──── banco gerenciado
+              (um domínio só)                 (servidor do app)
+```
+
+Isso contorna os cenários em que Browser Isolation/SSL inspection altera a
+origem aparente da página ou bloqueia chamadas JavaScript mais específicas.
+
+### b) Proxy same-origin (`/supa-api`) — caminho de compatibilidade
 
 Toda a comunicação do navegador com o banco agora passa pelo **próprio
 domínio do site** (`https://<dominio-do-site>/supa-api/...`). O servidor
-do aplicativo repassa as chamadas ao Supabase por fora da rede do SEBRAE.
+do aplicativo repassa as chamadas ao banco por fora da rede do SEBRAE.
 
 ```
-ANTES  navegador ──X── Zscaler ──── *.supabase.co   (bloqueado)
-AGORA  navegador ───── Zscaler ──── dominio-do-site ──── *.supabase.co
+ANTES  navegador ──X── Zscaler ──── domínio externo do banco   (bloqueado)
+AGORA  navegador ───── Zscaler ──── domínio-do-site ──── banco gerenciado
                        (tráfego same-origin, liberado)   (feito pelo servidor)
 ```
 
@@ -56,34 +67,35 @@ Nenhuma credencial é adicionada no proxy: o token do usuário continua
 vindo do navegador e todas as regras de segurança (RLS) do banco
 continuam valendo.
 
-Arquivos: `src/routes/supa-api.$.tsx`, `src/integrations/supabase/client.ts`.
+Arquivos: `src/lib/courses.functions.ts`, `src/lib/processes.functions.ts`,
+`src/lib/judgments.functions.ts`, `src/routes/supa-api.$.tsx`.
 
-### b) Tolerância a instabilidade
+### c) Tolerância a instabilidade
 
 Conexões atravessando proxy corporativo caem ou "penduram" com mais
 frequência. Agora toda chamada ao banco tem **timeout de 20 s** e até
 **2 novas tentativas automáticas** com espera progressiva
 (`src/lib/resilient-fetch.ts`).
 
-### c) Aviso visível em vez de tela vazia
+### d) Aviso visível em vez de tela vazia
 
 Se mesmo assim o banco ficar inacessível, um **banner amarelo** aparece no
 topo de todas as telas com botão "Tentar novamente" e link para o
 diagnóstico (`src/components/ConnectionBanner.tsx`). O erro de login por
 falha de rede também passou a ter mensagem clara em português.
 
-### d) Página de diagnóstico — `/diagnostico`
+### e) Página de diagnóstico — `/diagnostico`
 
 Acessível sem login. Testa, na máquina do usuário:
 
 1. conexão de rede local;
 2. acesso ao servidor do aplicativo;
-3. acesso ao banco **através do aplicativo** (caminho novo);
-4. acesso **direto** ao Supabase (informativo — é o caminho antigo).
+3. leitura de **Cursos pelo servidor do aplicativo** (caminho preferencial);
+4. acesso ao banco pelo proxy do aplicativo (compatibilidade);
+5. acesso direto ao domínio externo do banco (informativo).
 
-Gera um **relatório copiável** para enviar à TI. Se o teste 4 falhar e o
-3 passar, está comprovado que a rede bloqueia o Supabase — e que o sistema
-segue funcionando mesmo assim.
+Gera um **relatório copiável** para enviar à TI. Se o teste 3 passar, a tela
+de Cursos deve funcionar mesmo que os testes 4 ou 5 falhem.
 
 ## 3. Recomendações para a TI do SEBRAE (defesa em profundidade)
 
