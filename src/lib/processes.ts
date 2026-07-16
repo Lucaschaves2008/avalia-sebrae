@@ -63,8 +63,12 @@ let cache: EvaluationProcess[] = [];
 let fetched = false;
 let loading = false;
 let errorMessage: string | null = null;
+let statusSnapshot = { loading, error: errorMessage, fetched };
 const listeners = new Set<() => void>();
-const notify = () => listeners.forEach((l) => l());
+const notify = () => {
+  statusSnapshot = { loading, error: errorMessage, fetched };
+  listeners.forEach((l) => l());
+};
 
 type DbProcess = {
   id: string;
@@ -130,7 +134,7 @@ export function useProcessesStatus(): { loading: boolean; error: string | null; 
         listeners.delete(cb);
       };
     },
-    () => ({ loading, error: errorMessage, fetched }),
+    () => statusSnapshot,
     () => ({ loading: false, error: null, fetched: false }),
   );
 }

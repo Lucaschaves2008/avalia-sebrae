@@ -61,8 +61,10 @@ let cache: Judgment[] = [];
 let fetched = false;
 let loading = false;
 let errorMessage: string | null = null;
+let statusSnapshot = { loading, error: errorMessage, fetched };
 const listeners = new Set<() => void>();
 function notify() {
+  statusSnapshot = { loading, error: errorMessage, fetched };
   for (const l of listeners) l();
 }
 
@@ -152,7 +154,7 @@ export function useJudgmentsStatus(): { loading: boolean; error: string | null; 
         listeners.delete(cb);
       };
     },
-    () => ({ loading, error: errorMessage, fetched }),
+    () => statusSnapshot,
     () => ({ loading: false, error: null, fetched: false }),
   );
 }

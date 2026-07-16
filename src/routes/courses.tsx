@@ -106,8 +106,10 @@ import {
   PRIORITY_STYLES,
   findUserJudgment,
   judgmentsForCourse,
+  refreshJudgments,
   upsertJudgment,
   useJudgmentsList,
+  useJudgmentsStatus,
   type Judgment,
   type JudgmentDecision,
   type JudgmentPriority,
@@ -123,7 +125,6 @@ import {
   useProcessesStatus,
   type EvaluationProcess,
 } from "@/lib/processes";
-import { refreshJudgments, useJudgmentsStatus } from "@/lib/judgments";
 
 export const Route = createFileRoute("/courses")({
   head: () => ({
