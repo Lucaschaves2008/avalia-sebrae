@@ -137,7 +137,7 @@ Referências oficiais consultadas:
 O e-mail padrão de "esqueci minha senha" pode conter um link para o domínio
 externo do provedor de autenticação — que o Zscaler também bloqueia. O código já suporta o
 fluxo alternativo em que o link aponta **direto para o site**; para
-ativá-lo, altere o template no painel do Supabase (via Lovable Cloud:
+ativá-lo, altere o template no painel de backend (via Lovable Cloud:
 *Authentication → Emails → Reset password*), trocando o link
 `{{ .ConfirmationURL }}` por:
 

@@ -6,7 +6,6 @@ import {
   deleteCourseForAdmin,
   listCoursesForUser,
   replaceCoursesForAdmin,
-  sanitizeCourse,
   upsertCourseForAdmin,
 } from "./courses.server";
 
@@ -16,10 +15,7 @@ export const listCoursesServer = createServerFn({ method: "GET" })
 
 export const upsertCourseServer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { course: Course; isNew?: boolean }) => ({
-    course: sanitizeCourse(input.course),
-    isNew: !!input.isNew,
-  }))
+  .inputValidator((input: { course: Course; isNew?: boolean }) => input)
   .handler(async ({ data, context }) => {
     await upsertCourseForAdmin(context, data.course, data.isNew);
     return { ok: true as const };
@@ -35,9 +31,7 @@ export const deleteCourseServer = createServerFn({ method: "POST" })
 
 export const replaceCoursesServer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { courses: Course[] }) => ({
-    courses: input.courses.map(sanitizeCourse),
-  }))
+  .inputValidator((input: { courses: Course[] }) => input)
   .handler(async ({ data, context }) => {
     await replaceCoursesForAdmin(context, data.courses);
     return { ok: true as const };
@@ -45,9 +39,7 @@ export const replaceCoursesServer = createServerFn({ method: "POST" })
 
 export const appendCoursesServer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { courses: Course[] }) => ({
-    courses: input.courses.map(sanitizeCourse),
-  }))
+  .inputValidator((input: { courses: Course[] }) => input)
   .handler(async ({ data, context }) => {
     return appendCoursesForAdmin(context, data.courses);
   });

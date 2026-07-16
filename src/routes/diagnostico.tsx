@@ -154,7 +154,7 @@ function interpret(results: Record<TestKey, TestResult>): {
     return {
       tone: "ok",
       message:
-        "Tudo funcionando. Observação: esta rede bloqueia o acesso direto ao Supabase (comportamento típico do Zscaler), mas o sistema não depende mais desse caminho — todos os dados trafegam pelo próprio domínio do site.",
+        "Tudo funcionando. Observação: esta rede bloqueia o acesso direto ao banco externo (comportamento típico do Zscaler), mas o sistema não depende mais desse caminho — os cursos trafegam pelo próprio domínio do site.",
     };
   }
   return { tone: "ok", message: "Tudo funcionando. Nenhum bloqueio detectado nesta rede." };
