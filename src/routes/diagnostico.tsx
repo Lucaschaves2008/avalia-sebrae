@@ -41,7 +41,12 @@ type TestResult = {
   detail?: string;
 };
 
-type TestKey = "internet" | "appServer" | "dbViaApp" | "dbDirect";
+type TestKey =
+  | "internet"
+  | "appServer"
+  | "coursesViaServer"
+  | "dbViaApp"
+  | "dbDirect";
 
 const TEST_LABELS: Record<TestKey, { title: string; description: string }> = {
   internet: {
@@ -52,21 +57,27 @@ const TEST_LABELS: Record<TestKey, { title: string; description: string }> = {
     title: "2. Servidor do aplicativo",
     description: "Verifica se o site AVALIA SEBRAE responde neste computador.",
   },
-  dbViaApp: {
-    title: "3. Banco de dados através do aplicativo",
+  coursesViaServer: {
+    title: "3. Cursos pelo servidor do aplicativo",
     description:
-      "Caminho usado pelo sistema: o banco é acessado pelo próprio domínio do site, imune a bloqueios de domínios externos.",
+      "Caminho preferencial da tela de cursos: o navegador fala só com o aplicativo, e o aplicativo consulta o banco pelo servidor.",
+  },
+  dbViaApp: {
+    title: "4. Banco pelo proxy do aplicativo",
+    description:
+      "Caminho antigo de compatibilidade via /supa-api. Mantido como comparação para identificar bloqueios de rede.",
   },
   dbDirect: {
-    title: "4. Acesso direto ao Supabase (informativo)",
+    title: "5. Acesso direto ao banco externo (informativo)",
     description:
-      "Testa o acesso direto ao banco (*.supabase.co). Se falhar e o teste 3 passar, a rede está bloqueando o Supabase — mas o sistema continua funcionando pelo caminho do teste 3.",
+      "Testa o acesso direto ao domínio externo do banco. Se falhar e o teste 3 passar, a rede bloqueia o caminho externo, mas Cursos segue funcionando pelo servidor do app.",
   },
 };
 
 const INITIAL_RESULTS: Record<TestKey, TestResult> = {
   internet: { status: "pending" },
   appServer: { status: "pending" },
+  coursesViaServer: { status: "pending" },
   dbViaApp: { status: "pending" },
   dbDirect: { status: "pending" },
 };
@@ -105,8 +116,8 @@ function interpret(results: Record<TestKey, TestResult>): {
   tone: "ok" | "warn" | "fail";
   message: string;
 } {
-  const { internet, appServer, dbViaApp, dbDirect } = results;
-  const done = [internet, appServer, dbViaApp, dbDirect].every(
+  const { internet, appServer, coursesViaServer, dbViaApp, dbDirect } = results;
+  const done = [internet, appServer, coursesViaServer, dbViaApp, dbDirect].every(
     (r) => r.status === "ok" || r.status === "fail",
   );
   if (!done) return { tone: "warn", message: "Executando testes..." };
@@ -125,11 +136,18 @@ function interpret(results: Record<TestKey, TestResult>): {
         "O domínio do site está bloqueado ou inacessível nesta rede. Solicite à TI a liberação do endereço do sistema (copie o relatório abaixo e envie junto).",
     };
   }
-  if (dbViaApp.status === "fail") {
+  if (coursesViaServer.status === "fail") {
     return {
       tone: "fail",
       message:
-        "O site responde, mas o servidor do aplicativo não conseguiu falar com o banco de dados. Isso não é um bloqueio da sua rede — informe o suporte do sistema com o relatório abaixo.",
+        "O site responde, mas a consulta de Cursos pelo servidor do aplicativo falhou. Informe o suporte do sistema com o relatório abaixo.",
+    };
+  }
+  if (dbViaApp.status === "fail") {
+    return {
+      tone: "ok",
+      message:
+        "Cursos está funcionando pelo caminho novo. Observação: o caminho antigo via proxy do banco falhou nesta rede, comportamento compatível com inspeção/bloqueio corporativo.",
     };
   }
   if (dbDirect.status === "fail") {
@@ -184,6 +202,7 @@ function DiagnosticoPage() {
     setResults({
       internet: { status: "running" },
       appServer: { status: "running" },
+      coursesViaServer: { status: "running" },
       dbViaApp: { status: "running" },
       dbDirect: { status: "running" },
     });
@@ -197,8 +216,9 @@ function DiagnosticoPage() {
       detail: navigator.onLine ? "Rede detectada" : "Sem rede detectada pelo navegador",
     });
 
-    const [appServer, dbViaApp, dbDirect] = await Promise.all([
+    const [appServer, coursesViaServer, dbViaApp, dbDirect] = await Promise.all([
       timedFetch(`${origin}/supa-api/ping`),
+      timedFetch(`${origin}/api/public/diagnostico-cursos`),
       timedFetch(`${origin}/supa-api/auth/v1/health`, {
         headers: supabaseKey ? { apikey: supabaseKey } : undefined,
       }),
@@ -214,6 +234,7 @@ function DiagnosticoPage() {
     ]);
 
     setResult("appServer", appServer);
+    setResult("coursesViaServer", coursesViaServer);
     setResult("dbViaApp", dbViaApp);
     setResult("dbDirect", dbDirect);
     setRunning(false);
