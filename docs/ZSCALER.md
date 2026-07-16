@@ -101,24 +101,41 @@ de Cursos deve funcionar mesmo que os testes 4 ou 5 falhem.
 
 Mesmo com o sistema funcionando via proxy, recomenda-se:
 
-1. **Liberar (allowlist) o domínio do site** no Zscaler — é o único
-   domínio do qual o sistema depende agora. Se o site estiver em domínio
-   `*.lovable.app`, liberar esse host específico.
-2. **Opcional:** liberar também `cmkshrksrrxacfxojxch.supabase.co`
-   (ou `*.supabase.co`) — dá um caminho alternativo, mas deixou de ser
-   obrigatório.
-3. **Isentar o domínio do site da SSL inspection** (SSL bypass), se a
-   política permitir — reduz latência e quedas de conexão.
+1. **Liberar (allowlist) o domínio do site** no Zscaler — é o domínio do
+   qual o sistema depende para o uso normal.
+2. **Isentar o domínio do site da SSL inspection** (SSL bypass / Do Not
+   Inspect), se a política permitir — reduz latência, reescritas e quedas.
+3. **Opcional:** liberar também o domínio externo do banco gerenciado — dá
+   um caminho alternativo, mas Cursos deixou de depender desse acesso direto.
 4. **Fortemente recomendado: domínio próprio.** Publicar o sistema em um
    subdomínio institucional (ex.: `avalia.sebrae.com.br` ou um domínio da
    Providence) — domínios estabelecidos raramente caem em bloqueio por
    categoria/reputação, e a liberação na TI fica trivial. A Lovable
    suporta domínio personalizado em *Settings → Domains*.
 
+### Como configurar no Zscaler segundo a documentação oficial
+
+A documentação oficial do Zscaler orienta que URLs isentas de SSL Inspection
+sejam agrupadas em uma **Custom URL Category** e usadas em uma regra da
+política de **SSL/TLS Inspection** com a ação **Do Not Inspect**:
+
+1. Criar uma categoria customizada para o sistema AVALIA SEBRAE.
+2. Adicionar o domínio publicado do sistema nessa categoria.
+3. Em **SSL/TLS Inspection Policy**, criar/editar uma regra que selecione
+   essa categoria em **URL Categories**.
+4. Definir a ação como **Do Not Inspect**.
+5. Salvar e ativar a mudança.
+
+Referências oficiais consultadas:
+
+- Zscaler Help — *About SSL/TLS Inspection Policy*.
+- Zscaler Help — *Configuring SSL Inspection for Zscaler Client Connector*.
+- Zscaler Help — *Best Practices for Testing and Rolling Out SSL/TLS Inspection*.
+
 ## 4. Recuperação de senha por e-mail (ação pendente no painel)
 
-O e-mail padrão de "esqueci minha senha" do Supabase contém um link para
-`*.supabase.co` — que o Zscaler também bloqueia. O código já suporta o
+O e-mail padrão de "esqueci minha senha" pode conter um link para o domínio
+externo do provedor de autenticação — que o Zscaler também bloqueia. O código já suporta o
 fluxo alternativo em que o link aponta **direto para o site**; para
 ativá-lo, altere o template no painel do Supabase (via Lovable Cloud:
 *Authentication → Emails → Reset password*), trocando o link
@@ -129,7 +146,7 @@ ativá-lo, altere o template no painel do Supabase (via Lovable Cloud:
 ```
 
 Com isso, o link do e-mail abre o próprio site e o token é validado pelo
-proxy same-origin, sem depender do `*.supabase.co`. O link antigo continua
+proxy same-origin, sem depender do domínio externo do banco. O link antigo continua
 funcionando fora da rede do SEBRAE (fallback mantido no código).
 
 ## 5. Como investigar um novo incidente
@@ -138,18 +155,19 @@ funcionando fora da rede do SEBRAE (fallback mantido no código).
 2. Clique em **"Copiar relatório para a TI"** e envie o texto.
 3. Interpretação rápida:
 
-| Teste 2 (site) | Teste 3 (banco via app) | Teste 4 (Supabase direto) | Conclusão |
+| Teste 2 (site) | Teste 3 (Cursos server-side) | Teste 4/5 (caminhos antigos/diretos) | Conclusão |
 | --- | --- | --- | --- |
-| ✅ | ✅ | ❌ | Rede bloqueia Supabase; sistema OK pelo proxy. Nada a fazer (ou liberar Supabase). |
+| ✅ | ✅ | ❌ | Cursos deve funcionar; rede bloqueia caminhos antigos/diretos. Solicitar Do Not Inspect para estabilidade. |
 | ✅ | ✅ | ✅ | Tudo liberado. Incidente foi pontual. |
 | ❌ | — | — | Rede bloqueia o próprio site → TI precisa liberar o domínio do site. |
-| ✅ | ❌ | — | Problema no servidor do app ↔ Supabase (não é a rede do SEBRAE) → acionar suporte/Lovable. |
+| ✅ | ❌ | — | Problema no servidor do app ↔ banco → acionar suporte/Lovable. |
 
 ## 6. Observações técnicas
 
-- O proxy (`/supa-api`) só encaminha os caminhos `auth/v1`, `rest/v1`,
-  `storage/v1` e `functions/v1`, sempre para a URL fixa do projeto
-  Supabase, e não injeta chaves — não amplia a superfície de ataque.
+- As funções server-side de Cursos usam autenticação do usuário e respeitam
+  as permissões do perfil; operações de gestão continuam restritas à GN.
+- O proxy (`/supa-api`) só encaminha caminhos permitidos para a URL fixa do
+  banco gerenciado, e não injeta chaves — não amplia a superfície de ataque.
 - `VITE_SUPABASE_DIRECT="true"` (variável de build) desativa o proxy e
   volta ao acesso direto, se algum dia for necessário.
 - As sessões já existentes foram preservadas (mesma chave de
