@@ -54,7 +54,7 @@ import {
   deleteUser,
   updateUser,
   useAuth,
-  useUsersList,
+  useUsersListWhen,
   type AuthUser,
   type Region,
   type UserInput,
@@ -126,9 +126,9 @@ const EMPTY_FORM: FormState = {
 };
 
 function UsersPage() {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
-  const users = useUsersList();
+  const users = useUsersListWhen(!loading && !!user);
 
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<AuthUser | null>(null);
@@ -166,12 +166,12 @@ function UsersPage() {
 
   // Admin guard
   useEffect(() => {
-    if (user === null) return;
+    if (loading || user === null) return;
     if (user.role !== "admin") {
       toast.error("Acesso restrito ao Administrador.");
       navigate({ to: "/dashboard" });
     }
-  }, [user, navigate]);
+  }, [loading, user, navigate]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -267,7 +267,7 @@ function UsersPage() {
     setConfirmDelete(null);
   }
 
-  if (!user || user.role !== "admin") {
+  if (loading || !user || user.role !== "admin") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
         Verificando permissões...
@@ -287,7 +287,7 @@ function UsersPage() {
         style={{ background: "var(--gradient-primary)" }}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <SebraeLogo />
+          <SebraeLogo variant="onDark" height={36} />
           <div className="flex items-center gap-2">
             <Button
               variant="outline"

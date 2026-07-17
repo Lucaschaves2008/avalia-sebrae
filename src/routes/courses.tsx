@@ -89,8 +89,8 @@ import {
   parseCoursesCsv,
   refreshCourses,
   upsertCourse,
-  useCoursesList,
-  useCoursesStatus,
+  useCoursesListWhen,
+  useCoursesStatusWhen,
   type BCG,
   type Course,
   type CourseFgv,
@@ -108,8 +108,8 @@ import {
   judgmentsForCourse,
   refreshJudgments,
   upsertJudgment,
-  useJudgmentsList,
-  useJudgmentsStatus,
+  useJudgmentsListWhen,
+  useJudgmentsStatusWhen,
   type Judgment,
   type JudgmentDecision,
   type JudgmentPriority,
@@ -121,8 +121,8 @@ import {
   STATUS_LABELS,
   STATUS_STYLES,
   refreshProcesses,
-  useProcessesList,
-  useProcessesStatus,
+  useProcessesListWhen,
+  useProcessesStatusWhen,
   type EvaluationProcess,
 } from "@/lib/processes";
 
@@ -165,12 +165,13 @@ const FGV_STYLES: Record<FgvRating, { badge: string; dot: string; bar: string }>
 function CoursesPage() {
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
-  const courses = useCoursesList();
-  const judgments = useJudgmentsList();
-  const processes = useProcessesList();
-  const coursesStatus = useCoursesStatus();
-  const judgmentsStatus = useJudgmentsStatus();
-  const processesStatus = useProcessesStatus();
+  const canFetchData = !loading && !!user;
+  const courses = useCoursesListWhen(canFetchData);
+  const judgments = useJudgmentsListWhen(canFetchData);
+  const processes = useProcessesListWhen(canFetchData);
+  const coursesStatus = useCoursesStatusWhen(canFetchData);
+  const judgmentsStatus = useJudgmentsStatusWhen(canFetchData);
+  const processesStatus = useProcessesStatusWhen(canFetchData);
   const isAdmin = user?.role === "admin";
   const isGestor = user?.role === "gestor";
 
@@ -335,7 +336,7 @@ function CoursesPage() {
         style={{ background: "var(--gradient-primary)" }}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <SebraeLogo />
+          <SebraeLogo variant="onDark" height={36} />
           <div className="flex items-center gap-2">
             <Button
               variant="outline"

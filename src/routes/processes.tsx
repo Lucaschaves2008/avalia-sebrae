@@ -47,7 +47,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { SebraeLogo } from "@/components/SebraeLogo";
-import { useCoursesList, type Course } from "@/lib/courses";
+import { useCoursesListWhen, type Course } from "@/lib/courses";
 import {
   SCOPE_LABELS,
   STATUS_LABELS,
@@ -55,7 +55,7 @@ import {
   deleteProcess,
   effectiveStatus,
   upsertProcess,
-  useProcessesList,
+  useProcessesListWhen,
   type EvaluationProcess,
   type ProcessScope,
   type ProcessStatus,
@@ -110,8 +110,9 @@ const emptyForm: FormState = {
 function ProcessesPage() {
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
-  const processes = useProcessesList();
-  const courses = useCoursesList();
+  const canFetchData = !loading && !!user;
+  const processes = useProcessesListWhen(canFetchData);
+  const courses = useCoursesListWhen(canFetchData);
   const canManage = user?.role === "admin";
 
   const [query, setQuery] = useState("");

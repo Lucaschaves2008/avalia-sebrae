@@ -42,13 +42,13 @@ import { Toaster } from "@/components/ui/sonner";
 
 import { AuthProvider, SUPER_ADMIN_EMAIL, useAuth } from "@/lib/auth";
 import { SebraeLogo } from "@/components/SebraeLogo";
-import { useCoursesList, type Course } from "@/lib/courses";
+import { useCoursesListWhen, type Course } from "@/lib/courses";
 import {
   effectiveStatus,
-  useProcessesList,
+  useProcessesListWhen,
   type EvaluationProcess,
 } from "@/lib/processes";
-import { useJudgmentsList, type Judgment } from "@/lib/judgments";
+import { useJudgmentsListWhen, type Judgment } from "@/lib/judgments";
 import {
   DECISION_BTN_STYLES,
   DECISION_LABELS,
@@ -57,7 +57,7 @@ import {
   STATUS_STYLES,
   overrideOpinionStatus,
   saveOpinionItem,
-  useFinalOpinionsList,
+  useFinalOpinionsListWhen,
   type FinalDecision,
   type FinalOpinion,
   type FinalOpinionItem,
@@ -91,10 +91,11 @@ const REGIONAL_STYLE: Record<(typeof REGIONAL_DECISIONS)[number], string> = {
 function FinalOpinionsPage() {
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
-  const opinions = useFinalOpinionsList();
-  const processes = useProcessesList();
-  const courses = useCoursesList();
-  const judgments = useJudgmentsList();
+  const canFetchData = !loading && !!user;
+  const opinions = useFinalOpinionsListWhen(canFetchData);
+  const processes = useProcessesListWhen(canFetchData);
+  const courses = useCoursesListWhen(canFetchData);
+  const judgments = useJudgmentsListWhen(canFetchData);
 
   const canManage = user?.role === "admin";
   const isSuperAdmin = user?.email === SUPER_ADMIN_EMAIL;

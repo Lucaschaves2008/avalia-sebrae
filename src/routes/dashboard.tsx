@@ -32,10 +32,10 @@ import { AuthProvider, REGIONS, useAuth, type Region } from "@/lib/auth";
 import { SebraeLogo } from "@/components/SebraeLogo";
 import { PrvdFooter } from "@/components/PrvdFooter";
 import { supabase } from "@/integrations/supabase/client";
-import { useCoursesList, computeMaterialReadiness, type Course } from "@/lib/courses";
+import { computeMaterialReadiness, useCoursesListWhen, type Course } from "@/lib/courses";
 import {
   effectiveStatus,
-  useProcessesList,
+  useProcessesListWhen,
   type EvaluationProcess,
 } from "@/lib/processes";
 
@@ -74,13 +74,14 @@ interface JudgmentRow {
 function Dashboard() {
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
-  const courses = useCoursesList();
+  const canFetchData = !loading && !!user;
+  const courses = useCoursesListWhen(canFetchData);
 
   const [regionFilter, setRegionFilter] = useState<Region | "all">("all");
   const [judgments, setJudgments] = useState<JudgmentRow[]>([]);
   const [loadingJudgments, setLoadingJudgments] = useState(true);
   const [activeRegions, setActiveRegions] = useState<number>(0);
-  const processes = useProcessesList();
+  const processes = useProcessesListWhen(canFetchData);
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
 
   // Auto-select the most recent active process on first load
