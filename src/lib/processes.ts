@@ -116,10 +116,14 @@ export function listProcesses(): EvaluationProcess[] {
 }
 
 export function useProcessesList(): EvaluationProcess[] {
+  return useProcessesListWhen(true);
+}
+
+export function useProcessesListWhen(enabled: boolean): EvaluationProcess[] {
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
-      if (!fetched) void refreshProcesses();
+      if (enabled && !fetched) void refreshProcesses();
       return () => {
         listeners.delete(cb);
       };
@@ -130,10 +134,14 @@ export function useProcessesList(): EvaluationProcess[] {
 }
 
 export function useProcessesStatus(): { loading: boolean; error: string | null; fetched: boolean } {
+  return useProcessesStatusWhen(true);
+}
+
+export function useProcessesStatusWhen(enabled: boolean): { loading: boolean; error: string | null; fetched: boolean } {
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
-      if (!fetched && !loading) void refreshProcesses();
+      if (enabled && !fetched && !loading) void refreshProcesses();
       return () => {
         listeners.delete(cb);
       };

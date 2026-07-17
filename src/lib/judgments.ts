@@ -136,10 +136,14 @@ export function listJudgments(): Judgment[] {
 }
 
 export function useJudgmentsList(): Judgment[] {
+  return useJudgmentsListWhen(true);
+}
+
+export function useJudgmentsListWhen(enabled: boolean): Judgment[] {
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
-      if (!fetched) void refreshJudgments();
+      if (enabled && !fetched) void refreshJudgments();
       return () => {
         listeners.delete(cb);
       };
@@ -150,10 +154,14 @@ export function useJudgmentsList(): Judgment[] {
 }
 
 export function useJudgmentsStatus(): { loading: boolean; error: string | null; fetched: boolean } {
+  return useJudgmentsStatusWhen(true);
+}
+
+export function useJudgmentsStatusWhen(enabled: boolean): { loading: boolean; error: string | null; fetched: boolean } {
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
-      if (!fetched && !loading) void refreshJudgments();
+      if (enabled && !fetched && !loading) void refreshJudgments();
       return () => {
         listeners.delete(cb);
       };

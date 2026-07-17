@@ -324,10 +324,14 @@ export function listCourses(): Course[] {
 }
 
 export function useCoursesList(): Course[] {
+  return useCoursesListWhen(true);
+}
+
+export function useCoursesListWhen(enabled: boolean): Course[] {
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
-      if (!fetched) void refreshCourses();
+      if (enabled && !fetched) void refreshCourses();
       return () => {
         listeners.delete(cb);
       };
@@ -338,10 +342,14 @@ export function useCoursesList(): Course[] {
 }
 
 export function useCoursesStatus(): { loading: boolean; error: string | null; fetched: boolean } {
+  return useCoursesStatusWhen(true);
+}
+
+export function useCoursesStatusWhen(enabled: boolean): { loading: boolean; error: string | null; fetched: boolean } {
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
-      if (!fetched && !loading) void refreshCourses();
+      if (enabled && !fetched && !loading) void refreshCourses();
       return () => {
         listeners.delete(cb);
       };

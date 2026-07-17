@@ -154,10 +154,14 @@ export function listFinalOpinions(): FinalOpinion[] {
 }
 
 export function useFinalOpinionsList(): FinalOpinion[] {
+  return useFinalOpinionsListWhen(true);
+}
+
+export function useFinalOpinionsListWhen(enabled: boolean): FinalOpinion[] {
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
-      if (!fetched) void refreshFinalOpinions();
+      if (enabled && !fetched) void refreshFinalOpinions();
       return () => {
         listeners.delete(cb);
       };
