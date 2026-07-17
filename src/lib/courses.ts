@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import Papa from "papaparse";
 import {
   appendCoursesServer,
@@ -288,6 +288,8 @@ let statusSnapshot: { loading: boolean; error: string | null; fetched: boolean }
   error: errorMessage,
   fetched,
 };
+const emptyStatusSnapshot = { loading: false, error: null, fetched: false };
+let refreshScheduled = false;
 const listeners = new Set<() => void>();
 function notify() {
   statusSnapshot = { loading, error: errorMessage, fetched };
@@ -296,6 +298,19 @@ function notify() {
 
 async function fetchAll(): Promise<Course[]> {
   return listCoursesServer();
+}
+
+function isMissingAuthHeader(error: unknown): boolean {
+  return error instanceof Error && /No authorization header provided/i.test(error.message);
+}
+
+function requestCoursesRefresh() {
+  if (fetched || loading || refreshScheduled) return;
+  refreshScheduled = true;
+  window.setTimeout(() => {
+    refreshScheduled = false;
+    if (!fetched && !loading) void refreshCourses();
+  }, 0);
 }
 
 export async function refreshCourses() {
@@ -311,7 +326,7 @@ export async function refreshCourses() {
     notify();
   } catch (error) {
     console.error("[courses] fetchAll error:", error);
-    fetched = true;
+    fetched = !isMissingAuthHeader(error);
     loading = false;
     errorMessage = error instanceof Error ? error.message : "Falha ao carregar cursos.";
     reportBackendFailure();
@@ -324,31 +339,41 @@ export function listCourses(): Course[] {
 }
 
 export function useCoursesList(): Course[] {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      if (!fetched) void refreshCourses();
-      return () => {
-        listeners.delete(cb);
-      };
-    },
-    () => cache,
-    () => cache,
-  );
+  return useCoursesListWhen(true);
+}
+
+export function useCoursesListWhen(enabled: boolean): Course[] {
+  const [snapshot, setSnapshot] = useState(cache);
+
+  useEffect(() => {
+    const update = () => setSnapshot(cache);
+    listeners.add(update);
+    if (enabled) requestCoursesRefresh();
+    return () => {
+      listeners.delete(update);
+    };
+  }, [enabled]);
+
+  return snapshot;
 }
 
 export function useCoursesStatus(): { loading: boolean; error: string | null; fetched: boolean } {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      if (!fetched && !loading) void refreshCourses();
-      return () => {
-        listeners.delete(cb);
-      };
-    },
-    () => statusSnapshot,
-    () => ({ loading: false, error: null, fetched: false }),
-  );
+  return useCoursesStatusWhen(true);
+}
+
+export function useCoursesStatusWhen(enabled: boolean): { loading: boolean; error: string | null; fetched: boolean } {
+  const [snapshot, setSnapshot] = useState(statusSnapshot);
+
+  useEffect(() => {
+    const update = () => setSnapshot(statusSnapshot);
+    listeners.add(update);
+    if (enabled) requestCoursesRefresh();
+    return () => {
+      listeners.delete(update);
+    };
+  }, [enabled]);
+
+  return enabled ? snapshot : emptyStatusSnapshot;
 }
 
 export async function upsertCourse(course: Course, opts?: { isNew?: boolean }): Promise<void> {

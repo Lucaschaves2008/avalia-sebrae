@@ -4,7 +4,6 @@ import {
   useContext,
   useEffect,
   useState,
-  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
@@ -71,6 +70,7 @@ export interface UserInput {
 
 let usersCache: AuthUser[] = [];
 let usersFetched = false;
+let usersRefreshScheduled = false;
 const usersListeners = new Set<() => void>();
 
 function notifyUsers() {
@@ -111,22 +111,36 @@ export async function refreshUsers() {
   notifyUsers();
 }
 
+function requestUsersRefresh() {
+  if (usersFetched || usersRefreshScheduled) return;
+  usersRefreshScheduled = true;
+  window.setTimeout(() => {
+    usersRefreshScheduled = false;
+    if (!usersFetched) void refreshUsers();
+  }, 0);
+}
+
 export function listUsers(): AuthUser[] {
   return usersCache;
 }
 
 export function useUsersList(): AuthUser[] {
-  return useSyncExternalStore(
-    (cb) => {
-      usersListeners.add(cb);
-      if (!usersFetched) void refreshUsers();
-      return () => {
-        usersListeners.delete(cb);
-      };
-    },
-    () => usersCache,
-    () => usersCache,
-  );
+  return useUsersListWhen(true);
+}
+
+export function useUsersListWhen(enabled: boolean): AuthUser[] {
+  const [snapshot, setSnapshot] = useState(usersCache);
+
+  useEffect(() => {
+    const update = () => setSnapshot(usersCache);
+    usersListeners.add(update);
+    if (enabled) requestUsersRefresh();
+    return () => {
+      usersListeners.delete(update);
+    };
+  }, [enabled]);
+
+  return snapshot;
 }
 
 // ---------- Mutations ----------
@@ -218,6 +232,7 @@ export async function deleteUser(
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
+  isHydrated: boolean;
   login: (
     email: string,
     password: string,
@@ -257,14 +272,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
+    async function hydrateSessionUser(userId: string | null | undefined) {
+      if (!mounted) return;
+      if (!userId) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const u = await hydrateUser(userId);
+        if (!mounted) return;
+        setUser(u);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         const uid = session.user.id;
         // Defer to avoid Supabase deadlock when calling APIs inside the callback
         setTimeout(async () => {
-          const u = await hydrateUser(uid);
-          setUser(u);
-          setLoading(false);
+          await hydrateSessionUser(uid);
         }, 0);
       } else {
         setUser(null);
@@ -272,9 +304,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
     supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) setLoading(false);
+      void hydrateSessionUser(data.session?.user.id);
     });
-    return () => sub.subscription.unsubscribe();
+
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const login: AuthContextValue["login"] = useCallback(async (email, password) => {
@@ -289,6 +325,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const u = await hydrateUser(data.user.id);
     if (!u) return { ok: false, error: "Perfil não encontrado." };
     setUser(u);
+    setLoading(false);
     return { ok: true, user: u };
   }, []);
 
@@ -313,6 +350,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     await supabase.auth.signOut();
     setUser(null);
+    setLoading(false);
   }, []);
 
   const changePassword: AuthContextValue["changePassword"] = useCallback(
@@ -329,7 +367,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signUp, logout, changePassword }}>
+    <AuthContext.Provider
+      value={{ user, loading, isHydrated: !loading, login, signUp, logout, changePassword }}
+    >
       {children}
     </AuthContext.Provider>
   );

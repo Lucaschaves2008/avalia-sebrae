@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import {
   deleteProcessServer,
   listProcessesServer,
@@ -68,6 +68,8 @@ let statusSnapshot: { loading: boolean; error: string | null; fetched: boolean }
   error: errorMessage,
   fetched,
 };
+const emptyStatusSnapshot = { loading: false, error: null, fetched: false };
+let refreshScheduled = false;
 const listeners = new Set<() => void>();
 const notify = () => {
   statusSnapshot = { loading, error: errorMessage, fetched };
@@ -90,6 +92,19 @@ async function fetchAll(): Promise<EvaluationProcess[]> {
   return listProcessesServer();
 }
 
+function isMissingAuthHeader(error: unknown): boolean {
+  return error instanceof Error && /No authorization header provided/i.test(error.message);
+}
+
+function requestProcessesRefresh() {
+  if (fetched || loading || refreshScheduled) return;
+  refreshScheduled = true;
+  window.setTimeout(() => {
+    refreshScheduled = false;
+    if (!fetched && !loading) void refreshProcesses();
+  }, 0);
+}
+
 export async function refreshProcesses() {
   loading = true;
   errorMessage = null;
@@ -103,7 +118,7 @@ export async function refreshProcesses() {
     notify();
   } catch (error) {
     console.error("[processes] fetch error:", error);
-    fetched = true;
+    fetched = !isMissingAuthHeader(error);
     loading = false;
     errorMessage = error instanceof Error ? error.message : "Falha ao carregar processos.";
     reportBackendFailure();
@@ -116,31 +131,41 @@ export function listProcesses(): EvaluationProcess[] {
 }
 
 export function useProcessesList(): EvaluationProcess[] {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      if (!fetched) void refreshProcesses();
-      return () => {
-        listeners.delete(cb);
-      };
-    },
-    () => cache,
-    () => cache,
-  );
+  return useProcessesListWhen(true);
+}
+
+export function useProcessesListWhen(enabled: boolean): EvaluationProcess[] {
+  const [snapshot, setSnapshot] = useState(cache);
+
+  useEffect(() => {
+    const update = () => setSnapshot(cache);
+    listeners.add(update);
+    if (enabled) requestProcessesRefresh();
+    return () => {
+      listeners.delete(update);
+    };
+  }, [enabled]);
+
+  return snapshot;
 }
 
 export function useProcessesStatus(): { loading: boolean; error: string | null; fetched: boolean } {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      if (!fetched && !loading) void refreshProcesses();
-      return () => {
-        listeners.delete(cb);
-      };
-    },
-    () => statusSnapshot,
-    () => ({ loading: false, error: null, fetched: false }),
-  );
+  return useProcessesStatusWhen(true);
+}
+
+export function useProcessesStatusWhen(enabled: boolean): { loading: boolean; error: string | null; fetched: boolean } {
+  const [snapshot, setSnapshot] = useState(statusSnapshot);
+
+  useEffect(() => {
+    const update = () => setSnapshot(statusSnapshot);
+    listeners.add(update);
+    if (enabled) requestProcessesRefresh();
+    return () => {
+      listeners.delete(update);
+    };
+  }, [enabled]);
+
+  return enabled ? snapshot : emptyStatusSnapshot;
 }
 
 // ---------- Mutations ----------

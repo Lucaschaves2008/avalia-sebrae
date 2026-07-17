@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import type { Region } from "./auth";
 import {
   deleteJudgmentServer,
@@ -66,6 +66,8 @@ let statusSnapshot: { loading: boolean; error: string | null; fetched: boolean }
   error: errorMessage,
   fetched,
 };
+const emptyStatusSnapshot = { loading: false, error: null, fetched: false };
+let refreshScheduled = false;
 const listeners = new Set<() => void>();
 function notify() {
   statusSnapshot = { loading, error: errorMessage, fetched };
@@ -110,6 +112,19 @@ async function fetchAll(): Promise<Judgment[]> {
   return listJudgmentsServer();
 }
 
+function isMissingAuthHeader(error: unknown): boolean {
+  return error instanceof Error && /No authorization header provided/i.test(error.message);
+}
+
+function requestJudgmentsRefresh() {
+  if (fetched || loading || refreshScheduled) return;
+  refreshScheduled = true;
+  window.setTimeout(() => {
+    refreshScheduled = false;
+    if (!fetched && !loading) void refreshJudgments();
+  }, 0);
+}
+
 export async function refreshJudgments() {
   loading = true;
   errorMessage = null;
@@ -123,7 +138,7 @@ export async function refreshJudgments() {
     notify();
   } catch (error) {
     console.error("[judgments] fetch error:", error);
-    fetched = true;
+    fetched = !isMissingAuthHeader(error);
     loading = false;
     errorMessage = error instanceof Error ? error.message : "Falha ao carregar avaliações.";
     reportBackendFailure();
@@ -136,31 +151,41 @@ export function listJudgments(): Judgment[] {
 }
 
 export function useJudgmentsList(): Judgment[] {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      if (!fetched) void refreshJudgments();
-      return () => {
-        listeners.delete(cb);
-      };
-    },
-    () => cache,
-    () => cache,
-  );
+  return useJudgmentsListWhen(true);
+}
+
+export function useJudgmentsListWhen(enabled: boolean): Judgment[] {
+  const [snapshot, setSnapshot] = useState(cache);
+
+  useEffect(() => {
+    const update = () => setSnapshot(cache);
+    listeners.add(update);
+    if (enabled) requestJudgmentsRefresh();
+    return () => {
+      listeners.delete(update);
+    };
+  }, [enabled]);
+
+  return snapshot;
 }
 
 export function useJudgmentsStatus(): { loading: boolean; error: string | null; fetched: boolean } {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      if (!fetched && !loading) void refreshJudgments();
-      return () => {
-        listeners.delete(cb);
-      };
-    },
-    () => statusSnapshot,
-    () => ({ loading: false, error: null, fetched: false }),
-  );
+  return useJudgmentsStatusWhen(true);
+}
+
+export function useJudgmentsStatusWhen(enabled: boolean): { loading: boolean; error: string | null; fetched: boolean } {
+  const [snapshot, setSnapshot] = useState(statusSnapshot);
+
+  useEffect(() => {
+    const update = () => setSnapshot(statusSnapshot);
+    listeners.add(update);
+    if (enabled) requestJudgmentsRefresh();
+    return () => {
+      listeners.delete(update);
+    };
+  }, [enabled]);
+
+  return enabled ? snapshot : emptyStatusSnapshot;
 }
 
 // ---------- Mutations ----------

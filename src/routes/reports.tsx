@@ -25,20 +25,20 @@ import {
 } from "@/components/ui/select";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { SebraeLogo } from "@/components/SebraeLogo";
-import { useCoursesList, type Course } from "@/lib/courses";
+import { useCoursesListWhen, type Course } from "@/lib/courses";
 import {
-  useJudgmentsList,
+  useJudgmentsListWhen,
   DECISION_LABELS as REGIONAL_DECISION_LABELS,
   PRIORITY_STYLES,
   type Judgment,
 } from "@/lib/judgments";
 import {
-  useProcessesList,
+  useProcessesListWhen,
   effectiveStatus,
   type EvaluationProcess,
 } from "@/lib/processes";
 import {
-  useFinalOpinionsList,
+  useFinalOpinionsListWhen,
   findOpinionByProcess,
   DECISION_LABELS as GN_DECISION_LABELS,
   PRIORITY_LABELS as GN_PRIORITY_LABELS,
@@ -63,7 +63,8 @@ export const Route = createFileRoute("/reports")({
 function ReportsPage() {
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
-  const processes = useProcessesList();
+  const canFetchData = !loading && !!user;
+  const processes = useProcessesListWhen(canFetchData);
   const [processId, setProcessId] = useState<string>("");
 
   useEffect(() => {
@@ -93,7 +94,7 @@ function ReportsPage() {
         style={{ background: "var(--gradient-primary)" }}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <SebraeLogo />
+          <SebraeLogo variant="onDark" height={36} />
           <div className="flex items-center gap-3">
             <Button
               variant="outline"
@@ -390,9 +391,9 @@ interface ConsolidatedItem {
 }
 
 function GlobalEvaluationReport({ process }: { process: EvaluationProcess }) {
-  const allCourses = useCoursesList();
-  const allJudgments = useJudgmentsList();
-  const allOpinions = useFinalOpinionsList();
+  const allCourses = useCoursesListWhen(true);
+  const allJudgments = useJudgmentsListWhen(true);
+  const allOpinions = useFinalOpinionsListWhen(true);
 
   const { items, kpis, opinionStatus } = useMemo(() => {
     const courseIds = new Set(process.courseIds);

@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export type FinalDecision = "MANTER" | "ATUALIZAR" | "INATIVAR";
@@ -80,6 +80,7 @@ export const STATUS_STYLES: Record<OpinionStatus, string> = {
 // ---------- Reactive cache ----------
 let cache: FinalOpinion[] = [];
 let fetched = false;
+let refreshScheduled = false;
 const listeners = new Set<() => void>();
 const notify = () => listeners.forEach((l) => l());
 
@@ -149,22 +150,36 @@ export async function refreshFinalOpinions() {
   notify();
 }
 
+function requestFinalOpinionsRefresh() {
+  if (fetched || refreshScheduled) return;
+  refreshScheduled = true;
+  window.setTimeout(() => {
+    refreshScheduled = false;
+    if (!fetched) void refreshFinalOpinions();
+  }, 0);
+}
+
 export function listFinalOpinions(): FinalOpinion[] {
   return cache;
 }
 
 export function useFinalOpinionsList(): FinalOpinion[] {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      if (!fetched) void refreshFinalOpinions();
-      return () => {
-        listeners.delete(cb);
-      };
-    },
-    () => cache,
-    () => cache,
-  );
+  return useFinalOpinionsListWhen(true);
+}
+
+export function useFinalOpinionsListWhen(enabled: boolean): FinalOpinion[] {
+  const [snapshot, setSnapshot] = useState(cache);
+
+  useEffect(() => {
+    const update = () => setSnapshot(cache);
+    listeners.add(update);
+    if (enabled) requestFinalOpinionsRefresh();
+    return () => {
+      listeners.delete(update);
+    };
+  }, [enabled]);
+
+  return snapshot;
 }
 
 // ---------- Mutations ----------
