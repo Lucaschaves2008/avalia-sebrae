@@ -298,6 +298,10 @@ async function fetchAll(): Promise<Course[]> {
   return listCoursesServer();
 }
 
+function isMissingAuthHeader(error: unknown): boolean {
+  return error instanceof Error && /No authorization header provided/i.test(error.message);
+}
+
 export async function refreshCourses() {
   loading = true;
   errorMessage = null;
@@ -311,7 +315,7 @@ export async function refreshCourses() {
     notify();
   } catch (error) {
     console.error("[courses] fetchAll error:", error);
-    fetched = true;
+    fetched = !isMissingAuthHeader(error);
     loading = false;
     errorMessage = error instanceof Error ? error.message : "Falha ao carregar cursos.";
     reportBackendFailure();

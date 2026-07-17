@@ -110,6 +110,10 @@ async function fetchAll(): Promise<Judgment[]> {
   return listJudgmentsServer();
 }
 
+function isMissingAuthHeader(error: unknown): boolean {
+  return error instanceof Error && /No authorization header provided/i.test(error.message);
+}
+
 export async function refreshJudgments() {
   loading = true;
   errorMessage = null;
@@ -123,7 +127,7 @@ export async function refreshJudgments() {
     notify();
   } catch (error) {
     console.error("[judgments] fetch error:", error);
-    fetched = true;
+    fetched = !isMissingAuthHeader(error);
     loading = false;
     errorMessage = error instanceof Error ? error.message : "Falha ao carregar avaliações.";
     reportBackendFailure();

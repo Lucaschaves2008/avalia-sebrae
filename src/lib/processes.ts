@@ -90,6 +90,10 @@ async function fetchAll(): Promise<EvaluationProcess[]> {
   return listProcessesServer();
 }
 
+function isMissingAuthHeader(error: unknown): boolean {
+  return error instanceof Error && /No authorization header provided/i.test(error.message);
+}
+
 export async function refreshProcesses() {
   loading = true;
   errorMessage = null;
@@ -103,7 +107,7 @@ export async function refreshProcesses() {
     notify();
   } catch (error) {
     console.error("[processes] fetch error:", error);
-    fetched = true;
+    fetched = !isMissingAuthHeader(error);
     loading = false;
     errorMessage = error instanceof Error ? error.message : "Falha ao carregar processos.";
     reportBackendFailure();
