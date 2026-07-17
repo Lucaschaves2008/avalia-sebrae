@@ -4,7 +4,6 @@ import {
   useContext,
   useEffect,
   useState,
-  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";

@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import Papa from "papaparse";
 import {
   appendCoursesServer,
