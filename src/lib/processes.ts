@@ -68,6 +68,7 @@ let statusSnapshot: { loading: boolean; error: string | null; fetched: boolean }
   error: errorMessage,
   fetched,
 };
+const emptyStatusSnapshot = { loading: false, error: null, fetched: false };
 const listeners = new Set<() => void>();
 const notify = () => {
   statusSnapshot = { loading, error: errorMessage, fetched };
@@ -151,7 +152,7 @@ export function useProcessesStatusWhen(enabled: boolean): { loading: boolean; er
       };
     },
     () => statusSnapshot,
-    () => ({ loading: false, error: null, fetched: false }),
+    () => emptyStatusSnapshot,
   );
 }
 
