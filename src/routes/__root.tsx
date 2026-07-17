@@ -11,7 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { ConnectionBanner } from "../components/ConnectionBanner";
+
 
 function NotFoundComponent() {
   return (
@@ -149,10 +149,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Aviso global de indisponibilidade do banco (Zscaler/queda de rede). */}
-      <ConnectionBanner />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>
   );
+
 }
