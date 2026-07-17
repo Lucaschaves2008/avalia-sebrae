@@ -163,7 +163,6 @@ const FGV_STYLES: Record<FgvRating, { badge: string; dot: string; bar: string }>
 };
 
 function CoursesPage() {
-  console.count("CoursesPage render");
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
   const canFetchData = !loading && !!user;
