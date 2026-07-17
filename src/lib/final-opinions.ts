@@ -149,6 +149,13 @@ export async function refreshFinalOpinions() {
   notify();
 }
 
+function requestFinalOpinionsRefresh() {
+  if (fetched) return;
+  queueMicrotask(() => {
+    if (!fetched) void refreshFinalOpinions();
+  });
+}
+
 export function listFinalOpinions(): FinalOpinion[] {
   return cache;
 }
@@ -161,7 +168,7 @@ export function useFinalOpinionsListWhen(enabled: boolean): FinalOpinion[] {
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
-      if (enabled && !fetched) void refreshFinalOpinions();
+      if (enabled) requestFinalOpinionsRefresh();
       return () => {
         listeners.delete(cb);
       };

@@ -95,6 +95,13 @@ function isMissingAuthHeader(error: unknown): boolean {
   return error instanceof Error && /No authorization header provided/i.test(error.message);
 }
 
+function requestProcessesRefresh() {
+  if (fetched || loading) return;
+  queueMicrotask(() => {
+    if (!fetched && !loading) void refreshProcesses();
+  });
+}
+
 export async function refreshProcesses() {
   loading = true;
   errorMessage = null;
@@ -128,7 +135,7 @@ export function useProcessesListWhen(enabled: boolean): EvaluationProcess[] {
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
-      if (enabled && !fetched) void refreshProcesses();
+      if (enabled) requestProcessesRefresh();
       return () => {
         listeners.delete(cb);
       };
@@ -146,7 +153,7 @@ export function useProcessesStatusWhen(enabled: boolean): { loading: boolean; er
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
-      if (enabled && !fetched && !loading) void refreshProcesses();
+      if (enabled) requestProcessesRefresh();
       return () => {
         listeners.delete(cb);
       };

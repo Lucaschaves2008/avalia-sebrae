@@ -115,6 +115,13 @@ function isMissingAuthHeader(error: unknown): boolean {
   return error instanceof Error && /No authorization header provided/i.test(error.message);
 }
 
+function requestJudgmentsRefresh() {
+  if (fetched || loading) return;
+  queueMicrotask(() => {
+    if (!fetched && !loading) void refreshJudgments();
+  });
+}
+
 export async function refreshJudgments() {
   loading = true;
   errorMessage = null;
@@ -148,7 +155,7 @@ export function useJudgmentsListWhen(enabled: boolean): Judgment[] {
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
-      if (enabled && !fetched) void refreshJudgments();
+      if (enabled) requestJudgmentsRefresh();
       return () => {
         listeners.delete(cb);
       };
@@ -166,7 +173,7 @@ export function useJudgmentsStatusWhen(enabled: boolean): { loading: boolean; er
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
-      if (enabled && !fetched && !loading) void refreshJudgments();
+      if (enabled) requestJudgmentsRefresh();
       return () => {
         listeners.delete(cb);
       };

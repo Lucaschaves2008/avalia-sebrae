@@ -303,6 +303,13 @@ function isMissingAuthHeader(error: unknown): boolean {
   return error instanceof Error && /No authorization header provided/i.test(error.message);
 }
 
+function requestCoursesRefresh() {
+  if (fetched || loading) return;
+  queueMicrotask(() => {
+    if (!fetched && !loading) void refreshCourses();
+  });
+}
+
 export async function refreshCourses() {
   loading = true;
   errorMessage = null;
@@ -336,7 +343,7 @@ export function useCoursesListWhen(enabled: boolean): Course[] {
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
-      if (enabled && !fetched) void refreshCourses();
+      if (enabled) requestCoursesRefresh();
       return () => {
         listeners.delete(cb);
       };
@@ -354,7 +361,7 @@ export function useCoursesStatusWhen(enabled: boolean): { loading: boolean; erro
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
-      if (enabled && !fetched && !loading) void refreshCourses();
+      if (enabled) requestCoursesRefresh();
       return () => {
         listeners.delete(cb);
       };

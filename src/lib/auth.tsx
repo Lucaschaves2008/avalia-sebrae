@@ -111,6 +111,13 @@ export async function refreshUsers() {
   notifyUsers();
 }
 
+function requestUsersRefresh() {
+  if (usersFetched) return;
+  queueMicrotask(() => {
+    if (!usersFetched) void refreshUsers();
+  });
+}
+
 export function listUsers(): AuthUser[] {
   return usersCache;
 }
@@ -123,7 +130,7 @@ export function useUsersListWhen(enabled: boolean): AuthUser[] {
   return useSyncExternalStore(
     (cb) => {
       usersListeners.add(cb);
-      if (enabled && !usersFetched) void refreshUsers();
+      if (enabled) requestUsersRefresh();
       return () => {
         usersListeners.delete(cb);
       };
