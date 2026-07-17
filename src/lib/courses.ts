@@ -289,6 +289,7 @@ let statusSnapshot: { loading: boolean; error: string | null; fetched: boolean }
   fetched,
 };
 const emptyStatusSnapshot = { loading: false, error: null, fetched: false };
+let refreshScheduled = false;
 const listeners = new Set<() => void>();
 function notify() {
   statusSnapshot = { loading, error: errorMessage, fetched };
@@ -304,10 +305,12 @@ function isMissingAuthHeader(error: unknown): boolean {
 }
 
 function requestCoursesRefresh() {
-  if (fetched || loading) return;
-  queueMicrotask(() => {
+  if (fetched || loading || refreshScheduled) return;
+  refreshScheduled = true;
+  window.setTimeout(() => {
+    refreshScheduled = false;
     if (!fetched && !loading) void refreshCourses();
-  });
+  }, 0);
 }
 
 export async function refreshCourses() {

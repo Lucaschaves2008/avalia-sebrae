@@ -69,6 +69,7 @@ let statusSnapshot: { loading: boolean; error: string | null; fetched: boolean }
   fetched,
 };
 const emptyStatusSnapshot = { loading: false, error: null, fetched: false };
+let refreshScheduled = false;
 const listeners = new Set<() => void>();
 const notify = () => {
   statusSnapshot = { loading, error: errorMessage, fetched };
@@ -96,10 +97,12 @@ function isMissingAuthHeader(error: unknown): boolean {
 }
 
 function requestProcessesRefresh() {
-  if (fetched || loading) return;
-  queueMicrotask(() => {
+  if (fetched || loading || refreshScheduled) return;
+  refreshScheduled = true;
+  window.setTimeout(() => {
+    refreshScheduled = false;
     if (!fetched && !loading) void refreshProcesses();
-  });
+  }, 0);
 }
 
 export async function refreshProcesses() {

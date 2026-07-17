@@ -71,6 +71,7 @@ export interface UserInput {
 
 let usersCache: AuthUser[] = [];
 let usersFetched = false;
+let usersRefreshScheduled = false;
 const usersListeners = new Set<() => void>();
 
 function notifyUsers() {
@@ -112,10 +113,12 @@ export async function refreshUsers() {
 }
 
 function requestUsersRefresh() {
-  if (usersFetched) return;
-  queueMicrotask(() => {
+  if (usersFetched || usersRefreshScheduled) return;
+  usersRefreshScheduled = true;
+  window.setTimeout(() => {
+    usersRefreshScheduled = false;
     if (!usersFetched) void refreshUsers();
-  });
+  }, 0);
 }
 
 export function listUsers(): AuthUser[] {

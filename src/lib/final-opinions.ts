@@ -80,6 +80,7 @@ export const STATUS_STYLES: Record<OpinionStatus, string> = {
 // ---------- Reactive cache ----------
 let cache: FinalOpinion[] = [];
 let fetched = false;
+let refreshScheduled = false;
 const listeners = new Set<() => void>();
 const notify = () => listeners.forEach((l) => l());
 
@@ -150,10 +151,12 @@ export async function refreshFinalOpinions() {
 }
 
 function requestFinalOpinionsRefresh() {
-  if (fetched) return;
-  queueMicrotask(() => {
+  if (fetched || refreshScheduled) return;
+  refreshScheduled = true;
+  window.setTimeout(() => {
+    refreshScheduled = false;
     if (!fetched) void refreshFinalOpinions();
-  });
+  }, 0);
 }
 
 export function listFinalOpinions(): FinalOpinion[] {
