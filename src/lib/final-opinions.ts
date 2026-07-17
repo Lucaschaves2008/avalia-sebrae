@@ -168,17 +168,18 @@ export function useFinalOpinionsList(): FinalOpinion[] {
 }
 
 export function useFinalOpinionsListWhen(enabled: boolean): FinalOpinion[] {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      if (enabled) requestFinalOpinionsRefresh();
-      return () => {
-        listeners.delete(cb);
-      };
-    },
-    () => cache,
-    () => cache,
-  );
+  const [snapshot, setSnapshot] = useState(cache);
+
+  useEffect(() => {
+    const update = () => setSnapshot(cache);
+    listeners.add(update);
+    if (enabled) requestFinalOpinionsRefresh();
+    return () => {
+      listeners.delete(update);
+    };
+  }, [enabled]);
+
+  return snapshot;
 }
 
 // ---------- Mutations ----------

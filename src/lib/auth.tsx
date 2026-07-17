@@ -129,17 +129,18 @@ export function useUsersList(): AuthUser[] {
 }
 
 export function useUsersListWhen(enabled: boolean): AuthUser[] {
-  return useSyncExternalStore(
-    (cb) => {
-      usersListeners.add(cb);
-      if (enabled) requestUsersRefresh();
-      return () => {
-        usersListeners.delete(cb);
-      };
-    },
-    () => usersCache,
-    () => usersCache,
-  );
+  const [snapshot, setSnapshot] = useState(usersCache);
+
+  useEffect(() => {
+    const update = () => setSnapshot(usersCache);
+    usersListeners.add(update);
+    if (enabled) requestUsersRefresh();
+    return () => {
+      usersListeners.delete(update);
+    };
+  }, [enabled]);
+
+  return snapshot;
 }
 
 // ---------- Mutations ----------

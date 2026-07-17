@@ -135,17 +135,18 @@ export function useProcessesList(): EvaluationProcess[] {
 }
 
 export function useProcessesListWhen(enabled: boolean): EvaluationProcess[] {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      if (enabled) requestProcessesRefresh();
-      return () => {
-        listeners.delete(cb);
-      };
-    },
-    () => cache,
-    () => cache,
-  );
+  const [snapshot, setSnapshot] = useState(cache);
+
+  useEffect(() => {
+    const update = () => setSnapshot(cache);
+    listeners.add(update);
+    if (enabled) requestProcessesRefresh();
+    return () => {
+      listeners.delete(update);
+    };
+  }, [enabled]);
+
+  return snapshot;
 }
 
 export function useProcessesStatus(): { loading: boolean; error: string | null; fetched: boolean } {
@@ -153,17 +154,18 @@ export function useProcessesStatus(): { loading: boolean; error: string | null; 
 }
 
 export function useProcessesStatusWhen(enabled: boolean): { loading: boolean; error: string | null; fetched: boolean } {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      if (enabled) requestProcessesRefresh();
-      return () => {
-        listeners.delete(cb);
-      };
-    },
-    () => statusSnapshot,
-    () => emptyStatusSnapshot,
-  );
+  const [snapshot, setSnapshot] = useState(statusSnapshot);
+
+  useEffect(() => {
+    const update = () => setSnapshot(statusSnapshot);
+    listeners.add(update);
+    if (enabled) requestProcessesRefresh();
+    return () => {
+      listeners.delete(update);
+    };
+  }, [enabled]);
+
+  return enabled ? snapshot : emptyStatusSnapshot;
 }
 
 // ---------- Mutations ----------

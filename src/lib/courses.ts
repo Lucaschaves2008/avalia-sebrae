@@ -343,17 +343,18 @@ export function useCoursesList(): Course[] {
 }
 
 export function useCoursesListWhen(enabled: boolean): Course[] {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      if (enabled) requestCoursesRefresh();
-      return () => {
-        listeners.delete(cb);
-      };
-    },
-    () => cache,
-    () => cache,
-  );
+  const [snapshot, setSnapshot] = useState(cache);
+
+  useEffect(() => {
+    const update = () => setSnapshot(cache);
+    listeners.add(update);
+    if (enabled) requestCoursesRefresh();
+    return () => {
+      listeners.delete(update);
+    };
+  }, [enabled]);
+
+  return snapshot;
 }
 
 export function useCoursesStatus(): { loading: boolean; error: string | null; fetched: boolean } {
@@ -361,17 +362,18 @@ export function useCoursesStatus(): { loading: boolean; error: string | null; fe
 }
 
 export function useCoursesStatusWhen(enabled: boolean): { loading: boolean; error: string | null; fetched: boolean } {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      if (enabled) requestCoursesRefresh();
-      return () => {
-        listeners.delete(cb);
-      };
-    },
-    () => statusSnapshot,
-    () => emptyStatusSnapshot,
-  );
+  const [snapshot, setSnapshot] = useState(statusSnapshot);
+
+  useEffect(() => {
+    const update = () => setSnapshot(statusSnapshot);
+    listeners.add(update);
+    if (enabled) requestCoursesRefresh();
+    return () => {
+      listeners.delete(update);
+    };
+  }, [enabled]);
+
+  return enabled ? snapshot : emptyStatusSnapshot;
 }
 
 export async function upsertCourse(course: Course, opts?: { isNew?: boolean }): Promise<void> {
