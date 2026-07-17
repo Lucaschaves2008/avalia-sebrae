@@ -446,11 +446,6 @@ function CoursesPage() {
           <DataLoadError errors={dataErrors} onRetry={retryDataLoad} />
         ) : dataLoading ? (
           <DataLoadingState />
-        ) : isGestor && !selectedProcessId ? (
-          <GestorProcessPicker
-            processes={activeProcessesForUser}
-            onSelect={(p) => setSelectedProcessId(p.id)}
-          />
         ) : (
           <>
         {(isGestor || isAdmin) && selectedProcess && (
@@ -458,6 +453,14 @@ function CoursesPage() {
             process={selectedProcess}
             onChange={() => setSelectedProcessId(null)}
           />
+        )}
+        {isGestor && !selectedProcess && activeProcessesForUser.length > 0 && (
+          <div className="mb-4">
+            <GestorProcessPicker
+              processes={activeProcessesForUser}
+              onSelect={(p) => setSelectedProcessId(p.id)}
+            />
+          </div>
         )}
 
         {/* Filters bar */}
