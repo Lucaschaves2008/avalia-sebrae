@@ -252,109 +252,276 @@ function LoginPage() {
             <SebraeLogo variant="onLight" height={36} />
           </div>
 
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">Acesso ao sistema</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Informe suas credenciais para continuar.
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
-              <div className="relative">
-                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="seu.nome@sebrae.com.br"
-                  className="h-11 pl-9"
-                />
+          {mode === "login" ? (
+            <>
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                  Acesso ao sistema
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Informe suas credenciais para continuar.
+                </p>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Senha</Label>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="email">E-mail</Label>
+                  <div className="relative">
+                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="seu.nome@sebrae.com.br"
+                      className="h-11 pl-9"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Senha</Label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForgotEmail(email);
+                        setForgotSent(false);
+                        setForgotError(null);
+                        setForgotOpen(true);
+                      }}
+                      className="text-xs font-medium text-primary hover:underline"
+                    >
+                      Esqueci minha senha
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="h-11 px-9"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                      aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                    {error}
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  aria-busy={loading}
+                  className="h-11 w-full bg-primary text-base font-semibold text-primary-foreground shadow-[var(--shadow-elegant)] transition-all hover:bg-[var(--primary-hover)]"
+                >
+                  {loading ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Entrando...
+                    </span>
+                  ) : (
+                    "Entrar"
+                  )}
+                </Button>
+              </form>
+
+              <p className="mt-6 text-center text-sm text-muted-foreground">
+                Não tem conta?{" "}
                 <button
                   type="button"
                   onClick={() => {
-                    setForgotEmail(email);
-                    setForgotSent(false);
-                    setForgotError(null);
-                    setForgotOpen(true);
+                    setMode("signup");
+                    setError(null);
                   }}
-                  className="text-xs font-medium text-primary hover:underline"
+                  className="font-semibold text-primary hover:underline"
                 >
-                  Esqueci minha senha
+                  Criar conta
                 </button>
+              </p>
+
+              <p className="mt-4 text-center text-xs text-muted-foreground">
+                Problemas para entrar nesta rede?{" "}
+                <Link to="/diagnostico" className="font-medium text-primary hover:underline">
+                  Executar diagnóstico de conexão
+                </Link>
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">Criar conta</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Cadastre-se como Gestor Regional para avaliar os cursos.
+                </p>
               </div>
-              <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="h-11 px-9"
-                />
+
+              <form onSubmit={handleSignUp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="suName">Nome completo</Label>
+                  <Input
+                    id="suName"
+                    value={suName}
+                    onChange={(e) => setSuName(e.target.value)}
+                    required
+                    className="h-11"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="suEmail">E-mail</Label>
+                  <Input
+                    id="suEmail"
+                    type="email"
+                    autoComplete="email"
+                    value={suEmail}
+                    onChange={(e) => setSuEmail(e.target.value)}
+                    required
+                    placeholder="seu.nome@sebrae.com.br"
+                    className="h-11"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="suPassword">Senha</Label>
+                    <Input
+                      id="suPassword"
+                      type="password"
+                      autoComplete="new-password"
+                      value={suPassword}
+                      onChange={(e) => setSuPassword(e.target.value)}
+                      required
+                      className="h-11"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="suConfirm">Confirmar senha</Label>
+                    <Input
+                      id="suConfirm"
+                      type="password"
+                      autoComplete="new-password"
+                      value={suConfirm}
+                      onChange={(e) => setSuConfirm(e.target.value)}
+                      required
+                      className="h-11"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="suRegion">Região</Label>
+                    <Select
+                      value={suRegion}
+                      onValueChange={(v) => {
+                        setSuRegion(v as Region);
+                        setSuState("");
+                      }}
+                    >
+                      <SelectTrigger id="suRegion" className="h-11">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {REGIONS.map((r) => (
+                          <SelectItem key={r} value={r}>
+                            {r}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="suState">UF</Label>
+                    <Select
+                      value={suState}
+                      onValueChange={setSuState}
+                      disabled={!suRegion}
+                    >
+                      <SelectTrigger id="suState" className="h-11">
+                        <SelectValue placeholder={suRegion ? "Selecione" : "Escolha a região"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(suRegion ? STATES_BY_REGION[suRegion] : []).map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="suUnit">Unidade</Label>
+                  <Input
+                    id="suUnit"
+                    value={suUnit}
+                    onChange={(e) => setSuUnit(e.target.value)}
+                    required
+                    placeholder="Ex.: SEBRAE SP"
+                    className="h-11"
+                  />
+                </div>
+
+                {suError && (
+                  <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                    {suError}
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  disabled={suLoading}
+                  aria-busy={suLoading}
+                  className="h-11 w-full bg-primary text-base font-semibold text-primary-foreground shadow-[var(--shadow-elegant)] transition-all hover:bg-[var(--primary-hover)]"
+                >
+                  {suLoading ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Criando conta...
+                    </span>
+                  ) : (
+                    "Criar conta"
+                  )}
+                </Button>
+              </form>
+
+              <p className="mt-6 text-center text-sm text-muted-foreground">
+                Já tem conta?{" "}
                 <button
                   type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
-                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  onClick={() => {
+                    setMode("login");
+                    setSuError(null);
+                  }}
+                  className="font-semibold text-primary hover:underline"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  Entrar
                 </button>
-              </div>
-            </div>
-
-            {error && (
-              <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {error}
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              disabled={loading}
-              aria-busy={loading}
-              className="h-11 w-full bg-primary text-base font-semibold text-primary-foreground shadow-[var(--shadow-elegant)] transition-all hover:bg-[var(--primary-hover)]"
-            >
-              {loading ? (
-                <span className="inline-flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Entrando...
-                </span>
-              ) : (
-                "Entrar"
-              )}
-            </Button>
-          </form>
-
-          <div className="mt-8 rounded-lg border border-dashed border-border bg-muted/30 p-4 text-xs text-muted-foreground">
-            <div className="mb-2 font-semibold text-foreground">Primeiro acesso</div>
-            <p>
-              Não possui acesso? Solicite ao administrador (juliana.chaves@sebrae.com.br) seu
-              cadastro para realização das avaliações.
-            </p>
-          </div>
-
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            Problemas para entrar nesta rede?{" "}
-            <Link to="/diagnostico" className="font-medium text-primary hover:underline">
-              Executar diagnóstico de conexão
-            </Link>
-          </p>
+              </p>
+            </>
+          )}
         </div>
       </div>
+
 
       {/* Forgot password dialog */}
       <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
