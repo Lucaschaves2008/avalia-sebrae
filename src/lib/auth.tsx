@@ -239,7 +239,7 @@ interface AuthContextValue {
   ) => Promise<{ ok: true; user: AuthUser } | { ok: false; error: string }>;
   signUp: (
     input: UserInput & { password: string },
-  ) => Promise<{ ok: true } | { ok: false; error: string }>;
+  ) => Promise<{ ok: true; user: AuthUser } | { ok: false; error: string }>;
   logout: () => Promise<void>;
   changePassword: (newPassword: string) => Promise<{ ok: true } | { ok: false; error: string }>;
 }
