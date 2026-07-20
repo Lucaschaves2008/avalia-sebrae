@@ -65,14 +65,27 @@ function CriteriaItem({ met, label }: { met: boolean; label: string }) {
 }
 
 function LoginPage() {
-  const { user, login, changePassword, logout } = useAuth();
+  const { user, login, signUp, changePassword, logout } = useAuth();
   const navigate = useNavigate();
+
+  const [mode, setMode] = useState<"login" | "signup">("login");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Signup state
+  const [suName, setSuName] = useState("");
+  const [suEmail, setSuEmail] = useState("");
+  const [suPassword, setSuPassword] = useState("");
+  const [suConfirm, setSuConfirm] = useState("");
+  const [suRegion, setSuRegion] = useState<Region | "">("");
+  const [suState, setSuState] = useState<string>("");
+  const [suUnit, setSuUnit] = useState("");
+  const [suError, setSuError] = useState<string | null>(null);
+  const [suLoading, setSuLoading] = useState(false);
 
   const [firstAccessOpen, setFirstAccessOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
@@ -85,6 +98,51 @@ function LoginPage() {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
   const [forgotError, setForgotError] = useState<string | null>(null);
+
+  async function handleSignUp(e: React.FormEvent) {
+    e.preventDefault();
+    if (suLoading) return;
+    setSuError(null);
+
+    if (!suName.trim() || !suEmail.trim() || !suUnit.trim() || !suRegion || !suState) {
+      setSuError("Preencha todos os campos para continuar.");
+      return;
+    }
+    if (suPassword.length < 8) {
+      setSuError("A senha deve ter ao menos 8 caracteres.");
+      return;
+    }
+    if (suPassword !== suConfirm) {
+      setSuError("As senhas não coincidem.");
+      return;
+    }
+
+    setSuLoading(true);
+    const result = await signUp({
+      name: suName.trim(),
+      email: suEmail.trim(),
+      phone: "",
+      unit: suUnit.trim(),
+      region: suRegion,
+      state: suState,
+      role: "gestor",
+      status: "Ativo",
+      password: suPassword,
+    });
+    setSuLoading(false);
+
+    if (!result.ok) {
+      const msg = /registered|exists|already/i.test(result.error)
+        ? "Este e-mail já está cadastrado. Faça login."
+        : result.error;
+      setSuError(msg);
+      toast.error(msg);
+      return;
+    }
+    toast.success(`Conta criada com sucesso! Bem-vindo(a), ${result.user.name.split(" ")[0]}.`);
+    navigate({ to: "/dashboard" });
+  }
+
 
   async function handleForgotPassword(e: React.FormEvent) {
     e.preventDefault();
