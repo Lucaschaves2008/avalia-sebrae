@@ -5,17 +5,15 @@ interface PrvdFooterProps {
 }
 
 /**
- * Small "Developed by PRVD." footer note, inspired by the atalaia.vc header
- * treatment. Kept intentionally compact so it can sit at the foot of the login
- * brand panel and the dashboard.
+ * "Developed by PRVD." footer note. The PRVD. brandmark is rendered
+ * following the official identity: Space Grotesk Bold uppercase, tight
+ * tracking, ink lettering with an orange terminating dot, on a paper
+ * background chip.
  */
 export function PrvdFooter({ variant = "onLight", className }: PrvdFooterProps) {
   const onDark = variant === "onDark";
   const labelClass = onDark ? "text-white/60" : "text-muted-foreground";
   const dividerClass = onDark ? "bg-white/30" : "bg-foreground/30";
-  const brandClass = onDark
-    ? "text-white hover:text-secondary"
-    : "text-foreground hover:text-primary";
 
   return (
     <div
@@ -28,10 +26,21 @@ export function PrvdFooter({ variant = "onLight", className }: PrvdFooterProps) 
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Providence Solutions — PRVD."
-        className={`group inline-flex items-baseline gap-0.5 font-black tracking-[0.18em] transition-colors ${brandClass}`}
+        className="group inline-flex items-center rounded-[4px] px-2 py-1 transition-transform hover:scale-[1.03]"
+        style={{ backgroundColor: "#F7F4EE" }}
       >
-        <span className="text-sm">PRVD</span>
-        <span className="text-sm text-secondary">.</span>
+        <span
+          className="inline-flex items-baseline leading-none"
+          style={{
+            fontFamily: '"Space Grotesk", ui-sans-serif, system-ui, sans-serif',
+            fontWeight: 700,
+            fontSize: "14px",
+            letterSpacing: "-0.02em",
+            color: "#0F0F0F",
+          }}
+        >
+          PRVD<span style={{ color: "#FF5A1F" }}>.</span>
+        </span>
       </a>
     </div>
   );
