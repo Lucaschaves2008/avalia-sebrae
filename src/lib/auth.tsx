@@ -330,7 +330,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp: AuthContextValue["signUp"] = useCallback(async (input) => {
-    const { error } = await supabase.auth.signUp({
+    const region = normalizeRegion(input);
+    const { data, error } = await supabase.auth.signUp({
       email: input.email.trim(),
       password: input.password,
       options: {
@@ -339,12 +340,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name: input.name,
           phone: input.phone,
           unity: input.unit,
-          region: input.region,
+          region,
         },
       },
     });
-    if (error) return { ok: false, error: error.message };
-    return { ok: true };
+    if (error) {
+      return { ok: false, error: isNetworkError(error) ? NETWORK_ERROR_MESSAGE : error.message };
+    }
+    // Ensure a session (auto-confirm on → signUp already returns a session; if not, sign in).
+    let userId = data.user?.id ?? null;
+    if (!data.session) {
+      const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+        email: input.email.trim(),
+        password: input.password,
+      });
+      if (signInErr || !signInData.user) {
+        return {
+          ok: false,
+          error:
+            "Conta criada, mas não foi possível autenticar automaticamente. Faça login manualmente.",
+        };
+      }
+      userId = signInData.user.id;
+    }
+    if (!userId) return { ok: false, error: "Falha ao criar conta." };
+
+    // Complete the profile with state + mark as not first access (user chose own password).
+    await supabase
+      .from("profiles")
+      .update({
+        state: input.state ?? null,
+        is_first_access: false,
+        status: "Ativo",
+      })
+      .eq("id", userId);
+
+    const u = await hydrateUser(userId);
+    if (!u) return { ok: false, error: "Perfil não encontrado após cadastro." };
+    setUser(u);
+    setLoading(false);
+    return { ok: true, user: u };
   }, []);
 
   const logout = useCallback(async () => {
