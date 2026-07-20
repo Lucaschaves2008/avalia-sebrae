@@ -31,15 +31,13 @@ export function PrvdFooter({ variant = "onLight", className }: PrvdFooterProps) 
       >
         <span
           className="inline-flex items-baseline leading-none"
-          style={
-            {
-              fontFamily: '"Space Grotesk", ui-sans-serif, system-ui, sans-serif',
-              fontWeight: 700,
-              fontSize: "14px",
-              letterSpacing: "-0.02em",
-              color: wordmarkClass,
-            } as React.CSSProperties
-          }
+          style={{
+            fontFamily: '"Space Grotesk", ui-sans-serif, system-ui, sans-serif',
+            fontWeight: 700,
+            fontSize: "14px",
+            letterSpacing: "-0.02em",
+            color: wordmarkClass,
+          }}
         >
           PRVD<span style={{ color: "#FF5A1F" }}>.</span>
         </span>
