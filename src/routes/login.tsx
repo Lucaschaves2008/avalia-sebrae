@@ -288,8 +288,6 @@ function LoginPage() {
               Executar diagnóstico de conexão
             </Link>
           </p>
-
-          <PrvdFooter variant="onLight" className="mt-8" />
         </div>
       </div>
 
