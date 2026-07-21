@@ -229,7 +229,7 @@ function FinalOpinionsPage() {
             </TableBody>
           </Table>
         </div>
-      </main>
+      
 
       <Dialog
         open={!!openProcessId}
@@ -265,7 +265,8 @@ function FinalOpinionsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AppShell>
+
   );
 }
 
