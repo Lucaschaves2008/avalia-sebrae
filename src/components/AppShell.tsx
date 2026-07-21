@@ -130,10 +130,9 @@ export function AppShell({
                         ? "bg-white text-primary shadow-sm"
                         : "text-white/85 hover:bg-white/10 hover:text-white"
                     }`}
-                    title={collapsed ? item.label : undefined}
                   >
                     <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? "text-primary" : ""}`} />
-                    {!collapsed && <span className="truncate">{item.label}</span>}
+                    <span className="truncate">{item.label}</span>
                   </button>
                 </li>
               );
