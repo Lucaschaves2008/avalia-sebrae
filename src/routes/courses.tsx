@@ -332,57 +332,24 @@ function CoursesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header
-        className="border-b border-white/10"
-        style={{ background: "var(--gradient-primary)" }}
-      >
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <SebraeLogo variant="onDark" height={36} />
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate({ to: "/dashboard" })}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Painel
-            </Button>
-            <HelpTourButton pageKey="courses" />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                logout();
-                navigate({ to: "/login" });
-              }}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              Sair
-            </Button>
-          </div>
-        </div>
-      </header>
-      <TourAutoStart pageKey="courses" userId={user?.id ?? null} />
+    <AppShell
+      pageKey="courses"
+      eyebrow={
+        <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
+          <FileSpreadsheet className="h-3.5 w-3.5" />
+          Portfólio
+        </span>
+      }
+      title="Avaliação de Cursos"
+      subtitle={
+        isAdmin
+          ? "Importe, edite e gerencie as soluções educacionais do portfólio."
+          : "Avaliação dos cursos o portfólio de soluções educacionais do SEBRAE"
+      }
+    >
+      <div data-tour="courses-title" />
+      <>
 
-
-      <main className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between" data-tour="courses-title">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
-              <FileSpreadsheet className="h-3.5 w-3.5" />
-              Portfólio
-            </span>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
-              Avaliação de Cursos
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {isAdmin
-                ? "Importe, edite e gerencie as soluções educacionais do portfólio."
-                : "Avaliação dos cursos o portfólio de soluções educacionais do SEBRAE"}
-            </p>
-          </div>
           {isAdmin && (
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={downloadCsvTemplate}>
