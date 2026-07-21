@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsersRouteImport } from './routes/users'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ProcessesRouteImport } from './routes/processes'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FinalOpinionsRouteImport } from './routes/final-opinions'
@@ -35,6 +36,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProcessesRoute = ProcessesRouteImport.update({
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/final-opinions': typeof FinalOpinionsRoute
   '/login': typeof LoginRoute
   '/processes': typeof ProcessesRoute
+  '/profile': typeof ProfileRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/final-opinions': typeof FinalOpinionsRoute
   '/login': typeof LoginRoute
   '/processes': typeof ProcessesRoute
+  '/profile': typeof ProfileRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/final-opinions': typeof FinalOpinionsRoute
   '/login': typeof LoginRoute
   '/processes': typeof ProcessesRoute
+  '/profile': typeof ProfileRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/final-opinions'
     | '/login'
     | '/processes'
+    | '/profile'
     | '/reports'
     | '/reset-password'
     | '/users'
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/final-opinions'
     | '/login'
     | '/processes'
+    | '/profile'
     | '/reports'
     | '/reset-password'
     | '/users'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/final-opinions'
     | '/login'
     | '/processes'
+    | '/profile'
     | '/reports'
     | '/reset-password'
     | '/users'
@@ -180,6 +192,7 @@ export interface RootRouteChildren {
   FinalOpinionsRoute: typeof FinalOpinionsRoute
   LoginRoute: typeof LoginRoute
   ProcessesRoute: typeof ProcessesRoute
+  ProfileRoute: typeof ProfileRoute
   ReportsRoute: typeof ReportsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   UsersRoute: typeof UsersRoute
@@ -208,6 +221,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/reports'
       preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/processes': {
@@ -284,6 +304,7 @@ const rootRouteChildren: RootRouteChildren = {
   FinalOpinionsRoute: FinalOpinionsRoute,
   LoginRoute: LoginRoute,
   ProcessesRoute: ProcessesRoute,
+  ProfileRoute: ProfileRoute,
   ReportsRoute: ReportsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   UsersRoute: UsersRoute,
