@@ -100,35 +100,18 @@ export function AppShell({
     <div className="flex min-h-screen bg-muted/30">
       {/* Sidebar */}
       <aside
-        className={`relative sticky top-0 flex h-screen flex-col text-white transition-[width] duration-200 ${collapsed ? "w-[76px]" : "w-64"}`}
+        className="sticky top-0 flex h-screen w-64 flex-col text-white"
         style={{ background: "var(--gradient-hero)" }}
       >
         {/* Logo */}
-        <div className={`relative flex h-16 items-center border-b border-white/10 ${collapsed ? "justify-center px-4" : "justify-start px-5"}`}>
-          <SebraeLogo variant="onDark" height={collapsed ? 26 : 30} />
+        <div className="relative flex h-16 items-center justify-start border-b border-white/10 px-5">
+          <SebraeLogo variant="onDark" height={30} />
         </div>
 
-        {/* Collapse toggle — aligned with Workspace label */}
-        <button
-          type="button"
-          onClick={() => setCollapsed((c) => !c)}
-          className="absolute top-[72px] -right-3 z-20 hidden h-7 w-7 items-center justify-center rounded-full bg-transparent text-white/60 transition-colors hover:text-white focus:outline-none lg:inline-flex"
-          aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
-        >
-          {collapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
-        </button>
-
-
         {/* Section label */}
-        {!collapsed && (
-          <div className="px-5 pt-5 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/50">
-            Workspace
-          </div>
-        )}
+        <div className="px-5 pt-5 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/50">
+          Workspace
+        </div>
 
 
         {/* Main nav */}
