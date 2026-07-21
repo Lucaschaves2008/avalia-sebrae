@@ -722,7 +722,8 @@ function CoursesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </AppShell>
+
   );
 }
 
