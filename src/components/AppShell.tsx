@@ -115,13 +115,13 @@ export function AppShell({
         <button
           type="button"
           onClick={() => setCollapsed((c) => !c)}
-          className="absolute top-[72px] -right-3.5 z-20 hidden h-7 w-7 items-center justify-center rounded-full bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50 lg:inline-flex"
+          className="absolute top-[72px] -right-3 z-20 hidden h-7 w-7 items-center justify-center rounded-full bg-transparent text-white/60 transition-colors hover:text-white focus:outline-none lg:inline-flex"
           aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
         >
           {collapsed ? (
-            <ChevronRight className="h-3.5 w-3.5" />
+            <ChevronRight className="h-4 w-4" />
           ) : (
-            <ChevronLeft className="h-3.5 w-3.5" />
+            <ChevronLeft className="h-4 w-4" />
           )}
         </button>
 
