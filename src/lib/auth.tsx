@@ -68,10 +68,21 @@ export interface UserInput {
 
 // ---------- Users list (reactive cache) ----------
 
+import { loadCache, saveCache, isFresh, clearAllCaches } from "./cache-persist";
+const USERS_CACHE_KEY = "users";
+
 let usersCache: AuthUser[] = [];
 let usersFetched = false;
+let usersSavedAt = 0;
 let usersRefreshScheduled = false;
 const usersListeners = new Set<() => void>();
+
+const _persistedUsers = loadCache<AuthUser[]>(USERS_CACHE_KEY);
+if (_persistedUsers) {
+  usersCache = _persistedUsers.data;
+  usersFetched = true;
+  usersSavedAt = _persistedUsers.savedAt;
+}
 
 function notifyUsers() {
   for (const l of usersListeners) l();
@@ -108,17 +119,21 @@ async function fetchUsers(): Promise<AuthUser[]> {
 export async function refreshUsers() {
   usersCache = await fetchUsers();
   usersFetched = true;
+  usersSavedAt = Date.now();
+  saveCache(USERS_CACHE_KEY, usersCache);
   notifyUsers();
 }
 
 function requestUsersRefresh() {
-  if (usersFetched || usersRefreshScheduled) return;
+  if (usersFetched && isFresh(usersSavedAt)) return;
+  if (usersRefreshScheduled) return;
   usersRefreshScheduled = true;
   window.setTimeout(() => {
     usersRefreshScheduled = false;
-    if (!usersFetched) void refreshUsers();
+    void refreshUsers();
   }, 0);
 }
+
 
 export function listUsers(): AuthUser[] {
   return usersCache;
@@ -385,10 +400,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    clearAllCaches();
     await supabase.auth.signOut();
     setUser(null);
     setLoading(false);
   }, []);
+
 
   const changePassword: AuthContextValue["changePassword"] = useCallback(
     async (newPassword) => {

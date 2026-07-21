@@ -279,10 +279,25 @@ function courseToRow(c: Course) {
 
 // ---------- Reactive cache ----------
 
+import { loadCache, saveCache, isFresh } from "./cache-persist";
+
+const CACHE_KEY = "courses";
+
 let cache: Course[] = [];
 let fetched = false;
 let loading = false;
 let errorMessage: string | null = null;
+let lastSavedAt = 0;
+
+// Hidrata sincronamente do localStorage para tornar o primeiro paint
+// instantâneo mesmo após F5. Marca como "fetched" para evitar spinners.
+const _persisted = loadCache<Course[]>(CACHE_KEY);
+if (_persisted) {
+  cache = _persisted.data;
+  fetched = true;
+  lastSavedAt = _persisted.savedAt;
+}
+
 let statusSnapshot: { loading: boolean; error: string | null; fetched: boolean } = {
   loading,
   error: errorMessage,
@@ -305,11 +320,13 @@ function isMissingAuthHeader(error: unknown): boolean {
 }
 
 function requestCoursesRefresh() {
-  if (fetched || loading || refreshScheduled) return;
+  // Se temos dados frescos em memória, não refaz o fetch em navegações.
+  if (fetched && isFresh(lastSavedAt)) return;
+  if (loading || refreshScheduled) return;
   refreshScheduled = true;
   window.setTimeout(() => {
     refreshScheduled = false;
-    if (!fetched && !loading) void refreshCourses();
+    if (!loading) void refreshCourses();
   }, 0);
 }
 
@@ -322,17 +339,20 @@ export async function refreshCourses() {
     fetched = true;
     loading = false;
     errorMessage = null;
+    lastSavedAt = Date.now();
+    saveCache(CACHE_KEY, cache);
     reportBackendSuccess();
     notify();
   } catch (error) {
     console.error("[courses] fetchAll error:", error);
-    fetched = !isMissingAuthHeader(error);
+    fetched = !isMissingAuthHeader(error) ? fetched || false : false;
     loading = false;
     errorMessage = error instanceof Error ? error.message : "Falha ao carregar cursos.";
     reportBackendFailure();
     notify();
   }
 }
+
 
 export function listCourses(): Course[] {
   return cache;
@@ -378,12 +398,25 @@ export function useCoursesStatusWhen(enabled: boolean): { loading: boolean; erro
 
 export async function upsertCourse(course: Course, opts?: { isNew?: boolean }): Promise<void> {
   await upsertCourseServer({ data: { course, isNew: opts?.isNew } });
-  await refreshCourses();
+  // Update otimista imediato — evita esperar o refresh completo.
+  const id = (course.codigo || course.id).trim();
+  const idx = cache.findIndex((c) => (c.codigo || c.id) === id);
+  const next = { ...course, id, codigo: id };
+  if (idx >= 0) cache = [...cache.slice(0, idx), next, ...cache.slice(idx + 1)];
+  else cache = [next, ...cache];
+  lastSavedAt = Date.now();
+  saveCache(CACHE_KEY, cache);
+  notify();
+  void refreshCourses();
 }
 
 export async function deleteCourse(id: string): Promise<void> {
   await deleteCourseServer({ data: { id } });
-  await refreshCourses();
+  cache = cache.filter((c) => (c.codigo || c.id) !== id);
+  lastSavedAt = Date.now();
+  saveCache(CACHE_KEY, cache);
+  notify();
+  void refreshCourses();
 }
 
 export async function replaceCourses(next: Course[]): Promise<void> {
@@ -396,6 +429,7 @@ export async function appendCourses(next: Course[]): Promise<{ inserted: number;
   await refreshCourses();
   return result;
 }
+
 
 // ---------- CSV import ----------
 

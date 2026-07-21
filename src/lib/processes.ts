@@ -59,10 +59,22 @@ export function isWithinPeriod(p: { startDate: string; endDate: string }): boole
 }
 
 // ---------- Reactive cache ----------
+import { loadCache, saveCache, isFresh } from "./cache-persist";
+const CACHE_KEY = "processes";
+
 let cache: EvaluationProcess[] = [];
 let fetched = false;
 let loading = false;
 let errorMessage: string | null = null;
+let lastSavedAt = 0;
+
+const _persisted = loadCache<EvaluationProcess[]>(CACHE_KEY);
+if (_persisted) {
+  cache = _persisted.data;
+  fetched = true;
+  lastSavedAt = _persisted.savedAt;
+}
+
 let statusSnapshot: { loading: boolean; error: string | null; fetched: boolean } = {
   loading,
   error: errorMessage,
@@ -97,11 +109,12 @@ function isMissingAuthHeader(error: unknown): boolean {
 }
 
 function requestProcessesRefresh() {
-  if (fetched || loading || refreshScheduled) return;
+  if (fetched && isFresh(lastSavedAt)) return;
+  if (loading || refreshScheduled) return;
   refreshScheduled = true;
   window.setTimeout(() => {
     refreshScheduled = false;
-    if (!fetched && !loading) void refreshProcesses();
+    if (!loading) void refreshProcesses();
   }, 0);
 }
 
@@ -114,17 +127,20 @@ export async function refreshProcesses() {
     fetched = true;
     loading = false;
     errorMessage = null;
+    lastSavedAt = Date.now();
+    saveCache(CACHE_KEY, cache);
     reportBackendSuccess();
     notify();
   } catch (error) {
     console.error("[processes] fetch error:", error);
-    fetched = !isMissingAuthHeader(error);
+    fetched = !isMissingAuthHeader(error) ? fetched || false : false;
     loading = false;
     errorMessage = error instanceof Error ? error.message : "Falha ao carregar processos.";
     reportBackendFailure();
     notify();
   }
 }
+
 
 export function listProcesses(): EvaluationProcess[] {
   return cache;
