@@ -135,7 +135,6 @@ function ReportsPage() {
               </div>
             )}
           </div>
-        </div>
 
         <div className="space-y-10 print:space-y-0">
           {selectedProcess ? (
@@ -146,10 +145,11 @@ function ReportsPage() {
             </div>
           )}
         </div>
-      </main>
+      </div>
 
       <PrintStyles />
-    </div>
+    </AppShell>
+
   );
 }
 
