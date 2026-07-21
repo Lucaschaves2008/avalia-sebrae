@@ -377,7 +377,10 @@ function Dashboard() {
             .slice()
             .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
           return (
-            <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between">
+            <div
+              className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between"
+              data-tour="dashboard-process"
+            >
               <div className="flex items-center gap-2">
                 <Gavel className="h-4 w-4 text-primary" />
                 <div>
