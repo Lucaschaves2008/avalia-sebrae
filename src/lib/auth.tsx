@@ -400,10 +400,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    clearAllCaches();
     await supabase.auth.signOut();
     setUser(null);
     setLoading(false);
   }, []);
+
 
   const changePassword: AuthContextValue["changePassword"] = useCallback(
     async (newPassword) => {
