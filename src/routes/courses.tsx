@@ -99,9 +99,8 @@ import {
   type ReadinessLevel,
   type ReadinessResult,
 } from "@/lib/courses";
-import { SebraeLogo } from "@/components/SebraeLogo";
-import { HelpTourButton } from "@/components/HelpTourButton";
-import { TourAutoStart } from "@/lib/tour/TourProvider";
+import { AppShell } from "@/components/AppShell";
+
 import {
   DECISION_LABELS,
   DECISION_STYLES,
