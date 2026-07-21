@@ -108,16 +108,12 @@ export function AppShell({
         style={{ background: "var(--gradient-hero)" }}
       >
         {/* Logo */}
-        <div className="flex h-16 items-center justify-between px-4 border-b border-white/10">
-          {!collapsed ? (
-            <SebraeLogo variant="onDark" height={30} />
-          ) : (
-            <SebraeLogo variant="onDark" height={26} />
-          )}
+        <div className="relative flex h-16 items-center justify-center px-4 border-b border-white/10">
+          <SebraeLogo variant="onDark" height={collapsed ? 26 : 30} />
           <button
             type="button"
             onClick={() => setCollapsed((c) => !c)}
-            className="hidden shrink-0 rounded-md p-1 text-white/70 hover:bg-white/10 hover:text-white lg:inline-flex"
+            className="absolute right-3 hidden shrink-0 rounded-md p-1 text-white/70 hover:bg-white/10 hover:text-white lg:inline-flex"
             aria-label="Recolher menu"
           >
             {collapsed ? (
@@ -127,6 +123,7 @@ export function AppShell({
             )}
           </button>
         </div>
+
 
         {/* Section label */}
         {!collapsed && (
