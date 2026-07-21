@@ -247,15 +247,6 @@ export async function deleteJudgment(
 }
 
 
-export async function deleteJudgment(
-  courseId: string,
-  userId: string,
-): Promise<void> {
-  await deleteJudgmentServer({ data: { courseId, userId } });
-  cache = cache.filter((j) => !(j.courseId === courseId && j.userId === userId));
-  notify();
-  void refreshJudgments();
-}
 
 export function findUserJudgment(
   judgments: Judgment[],
