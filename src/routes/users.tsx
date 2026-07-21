@@ -62,6 +62,8 @@ import {
   type UserStatus,
 } from "@/lib/auth";
 import { SebraeLogo } from "@/components/SebraeLogo";
+import { HelpTourButton } from "@/components/HelpTourButton";
+import { TourAutoStart } from "@/lib/tour/TourProvider";
 
 export const Route = createFileRoute("/users")({
   head: () => ({
@@ -298,6 +300,7 @@ function UsersPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Painel
             </Button>
+            <HelpTourButton pageKey="users" />
             <Button
               variant="outline"
               size="sm"
@@ -312,9 +315,10 @@ function UsersPage() {
           </div>
         </div>
       </header>
+      <TourAutoStart pageKey="users" userId={user?.id ?? null} />
 
       <main className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between" data-tour="users-title">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
               <UserCog className="h-3.5 w-3.5" />
@@ -329,12 +333,14 @@ function UsersPage() {
           </div>
           <Button
             onClick={openCreate}
+            data-tour="users-new"
             className="bg-primary text-primary-foreground shadow-[var(--shadow-elegant)] hover:bg-[var(--primary-hover)]"
           >
             <Plus className="mr-2 h-4 w-4" />
             Novo usuário
           </Button>
         </div>
+
 
         <div className="rounded-xl border border-border bg-card shadow-[var(--shadow-card)]">
           <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
