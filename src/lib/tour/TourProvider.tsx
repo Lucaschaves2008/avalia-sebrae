@@ -166,9 +166,13 @@ function useTargetRect(step: TourStep): { rect: Rect | null; missing: boolean } 
   const [missing, setMissing] = useState(false);
 
   useLayoutEffect(() => {
+    // Reset imediato ao trocar de passo para evitar "voo" do card
+    // partindo da posição anterior.
+    setRect(null);
+    setMissing(false);
+
     if (step.target === "__none__") {
       setMissing(true);
-      setRect(null);
       return;
     }
     let raf = 0;
@@ -197,19 +201,21 @@ function useTargetRect(step: TourStep): { rect: Rect | null; missing: boolean } 
       raf = window.requestAnimationFrame(tick);
     };
 
-    // Scroll o elemento até uma posição confortável antes de medir.
+    // Scroll instantâneo para evitar animação em cascata do card.
     const el = document.querySelector(step.target) as HTMLElement | null;
     if (el) {
       try {
-        el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+        el.scrollIntoView({ behavior: "auto", block: "center", inline: "center" });
       } catch {
         el.scrollIntoView();
       }
     }
 
+    // Mede imediatamente e depois acompanha por rAF para lidar com layouts assíncronos.
+    measure();
     const startTimer = window.setTimeout(() => {
       tick();
-    }, 250);
+    }, 50);
 
     const onResize = () => measure();
     window.addEventListener("resize", onResize);
