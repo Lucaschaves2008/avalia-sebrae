@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
-  ArrowLeft,
   FileText,
   Printer,
   AlertTriangle,
@@ -14,6 +13,7 @@ import {
   Gauge,
 } from "lucide-react";
 
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -23,9 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AppShell } from "@/components/AppShell";
 import { AuthProvider, useAuth } from "@/lib/auth";
-import { SebraeLogo } from "@/components/SebraeLogo";
-import { HelpTourButton } from "@/components/HelpTourButton";
+
 import { TourAutoStart } from "@/lib/tour/TourProvider";
 import { useCoursesListWhen, type Course } from "@/lib/courses";
 import {
