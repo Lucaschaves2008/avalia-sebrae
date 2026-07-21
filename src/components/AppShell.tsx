@@ -56,13 +56,6 @@ function initials(name: string) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-function greetingFor(date: Date) {
-  const h = date.getHours();
-  if (h < 12) return "Bom dia";
-  if (h < 18) return "Boa tarde";
-  return "Boa noite";
-}
-
 function formatDate(date: Date) {
   const weekday = date.toLocaleDateString("pt-BR", { weekday: "short" });
   const day = date.getDate();
