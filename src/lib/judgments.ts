@@ -57,10 +57,22 @@ const DB_TO_DECISION: Record<string, JudgmentDecision> = {
 
 // ---------- Reactive cache ----------
 
+import { loadCache, saveCache, isFresh } from "./cache-persist";
+const CACHE_KEY = "judgments";
+
 let cache: Judgment[] = [];
 let fetched = false;
 let loading = false;
 let errorMessage: string | null = null;
+let lastSavedAt = 0;
+
+const _persisted = loadCache<Judgment[]>(CACHE_KEY);
+if (_persisted) {
+  cache = _persisted.data;
+  fetched = true;
+  lastSavedAt = _persisted.savedAt;
+}
+
 let statusSnapshot: { loading: boolean; error: string | null; fetched: boolean } = {
   loading,
   error: errorMessage,
@@ -117,11 +129,12 @@ function isMissingAuthHeader(error: unknown): boolean {
 }
 
 function requestJudgmentsRefresh() {
-  if (fetched || loading || refreshScheduled) return;
+  if (fetched && isFresh(lastSavedAt)) return;
+  if (loading || refreshScheduled) return;
   refreshScheduled = true;
   window.setTimeout(() => {
     refreshScheduled = false;
-    if (!fetched && !loading) void refreshJudgments();
+    if (!loading) void refreshJudgments();
   }, 0);
 }
 
@@ -134,17 +147,20 @@ export async function refreshJudgments() {
     fetched = true;
     loading = false;
     errorMessage = null;
+    lastSavedAt = Date.now();
+    saveCache(CACHE_KEY, cache);
     reportBackendSuccess();
     notify();
   } catch (error) {
     console.error("[judgments] fetch error:", error);
-    fetched = !isMissingAuthHeader(error);
+    fetched = !isMissingAuthHeader(error) ? fetched || false : false;
     loading = false;
     errorMessage = error instanceof Error ? error.message : "Falha ao carregar avaliações.";
     reportBackendFailure();
     notify();
   }
 }
+
 
 export function listJudgments(): Judgment[] {
   return cache;
