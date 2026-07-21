@@ -225,12 +225,27 @@ export async function upsertJudgment(
   );
   if (idx >= 0) cache = [...cache.slice(0, idx), saved, ...cache.slice(idx + 1)];
   else cache = [...cache, saved];
+  lastSavedAt = Date.now();
+  saveCache(CACHE_KEY, cache);
   notify();
 
   // Re-sync in background to pick up server-side fields
   void refreshJudgments();
   return saved;
 }
+
+export async function deleteJudgment(
+  courseId: string,
+  userId: string,
+): Promise<void> {
+  await deleteJudgmentServer({ data: { courseId, userId } });
+  cache = cache.filter((j) => !(j.courseId === courseId && j.userId === userId));
+  lastSavedAt = Date.now();
+  saveCache(CACHE_KEY, cache);
+  notify();
+  void refreshJudgments();
+}
+
 
 export async function deleteJudgment(
   courseId: string,
