@@ -201,21 +201,20 @@ function useTargetRect(step: TourStep): { rect: Rect | null; missing: boolean } 
       raf = window.requestAnimationFrame(tick);
     };
 
-    // Scroll instantâneo para evitar animação em cascata do card.
+    // Scroll suave até o alvo antes de medir.
     const el = document.querySelector(step.target) as HTMLElement | null;
     if (el) {
       try {
-        el.scrollIntoView({ behavior: "auto", block: "center", inline: "center" });
+        el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
       } catch {
         el.scrollIntoView();
       }
     }
 
-    // Mede imediatamente e depois acompanha por rAF para lidar com layouts assíncronos.
-    measure();
+    // Espera o scroll suave assentar antes de começar a medir.
     const startTimer = window.setTimeout(() => {
       tick();
-    }, 50);
+    }, 250);
 
     const onResize = () => measure();
     window.addEventListener("resize", onResize);
