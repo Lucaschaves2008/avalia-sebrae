@@ -2,14 +2,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   BookOpen,
-  FileText,
-  GraduationCap,
-  LogOut,
-  MapPin,
-  UserCog,
   ClipboardCheck,
   Gavel,
-  ShieldCheck,
+  GraduationCap,
+  MapPin,
 } from "lucide-react";
 import {
   PieChart,
@@ -20,7 +16,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -29,10 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AuthProvider, REGIONS, useAuth, type Region } from "@/lib/auth";
-import { SebraeLogo } from "@/components/SebraeLogo";
-import { PrvdFooter } from "@/components/PrvdFooter";
-import { HelpTourButton } from "@/components/HelpTourButton";
-import { TourAutoStart } from "@/lib/tour/TourProvider";
+import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { computeMaterialReadiness, useCoursesListWhen, type Course } from "@/lib/courses";
 import {
@@ -40,6 +32,7 @@ import {
   useProcessesListWhen,
   type EvaluationProcess,
 } from "@/lib/processes";
+
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
