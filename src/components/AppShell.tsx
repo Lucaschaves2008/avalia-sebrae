@@ -234,7 +234,7 @@ export function AppShell({
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onSelect={() => navigate({ to: "/profile" })}
-                    className="group rounded-none border-l-2 border-transparent px-3 py-2 text-sm text-foreground focus:border-primary focus:bg-transparent focus:text-primary data-[highlighted]:border-primary data-[highlighted]:bg-transparent data-[highlighted]:text-primary"
+                    className="rounded-md px-3 py-2 text-sm text-foreground focus:bg-muted focus:text-foreground data-[highlighted]:bg-muted data-[highlighted]:text-foreground"
                   >
                     <UserIcon className="mr-2 h-4 w-4" />
                     Meu perfil
@@ -246,7 +246,7 @@ export function AppShell({
                       await logout();
                       navigate({ to: "/login" });
                     }}
-                    className="group rounded-none border-l-2 border-transparent px-3 py-2 text-sm text-destructive focus:border-destructive focus:bg-transparent focus:text-destructive data-[highlighted]:border-destructive data-[highlighted]:bg-transparent data-[highlighted]:text-destructive"
+                    className="rounded-md px-3 py-2 text-sm text-destructive focus:bg-muted focus:text-destructive data-[highlighted]:bg-muted data-[highlighted]:text-destructive"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Sair
