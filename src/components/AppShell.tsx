@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -8,8 +8,6 @@ import {
   FileText,
   UserCog,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
   User as UserIcon,
 } from "lucide-react";
 
@@ -83,7 +81,6 @@ export function AppShell({
   const navigate = useNavigate();
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
-  const [collapsed, setCollapsed] = useState(false);
 
   const isAdmin = user?.role === "admin";
   const isSuperAdmin = user?.email === SUPER_ADMIN_EMAIL;
@@ -103,35 +100,18 @@ export function AppShell({
     <div className="flex min-h-screen bg-muted/30">
       {/* Sidebar */}
       <aside
-        className={`relative sticky top-0 flex h-screen flex-col text-white transition-[width] duration-200 ${collapsed ? "w-[76px]" : "w-64"}`}
+        className="sticky top-0 flex h-screen w-64 flex-col text-white"
         style={{ background: "var(--gradient-hero)" }}
       >
         {/* Logo */}
-        <div className={`relative flex h-16 items-center border-b border-white/10 ${collapsed ? "justify-center px-4" : "justify-start px-5"}`}>
-          <SebraeLogo variant="onDark" height={collapsed ? 26 : 30} />
+        <div className="relative flex h-16 items-center justify-start border-b border-white/10 px-5">
+          <SebraeLogo variant="onDark" height={30} />
         </div>
 
-        {/* Collapse toggle — aligned with Workspace label */}
-        <button
-          type="button"
-          onClick={() => setCollapsed((c) => !c)}
-          className="absolute top-[72px] -right-3 z-20 hidden h-7 w-7 items-center justify-center rounded-full bg-transparent text-white/60 transition-colors hover:text-white focus:outline-none lg:inline-flex"
-          aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
-        >
-          {collapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
-        </button>
-
-
         {/* Section label */}
-        {!collapsed && (
-          <div className="px-5 pt-5 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/50">
-            Workspace
-          </div>
-        )}
+        <div className="px-5 pt-5 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/50">
+          Workspace
+        </div>
 
 
         {/* Main nav */}
@@ -150,10 +130,9 @@ export function AppShell({
                         ? "bg-white text-primary shadow-sm"
                         : "text-white/85 hover:bg-white/10 hover:text-white"
                     }`}
-                    title={collapsed ? item.label : undefined}
                   >
                     <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? "text-primary" : ""}`} />
-                    {!collapsed && <span className="truncate">{item.label}</span>}
+                    <span className="truncate">{item.label}</span>
                   </button>
                 </li>
               );
@@ -164,11 +143,9 @@ export function AppShell({
         {/* Admin section at bottom */}
         {adminItems.length > 0 && (
           <div className="border-t border-white/10 px-3 py-3">
-            {!collapsed && (
-              <div className="px-2 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/50">
-                Administração
-              </div>
-            )}
+            <div className="px-2 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/50">
+              Administração
+            </div>
             <ul className="space-y-1">
               {adminItems.map((item) => {
                 const Icon = item.icon;
@@ -183,10 +160,9 @@ export function AppShell({
                           ? "bg-white text-primary shadow-sm"
                           : "text-white/85 hover:bg-white/10 hover:text-white"
                       }`}
-                      title={collapsed ? item.label : undefined}
                     >
                       <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? "text-primary" : ""}`} />
-                      {!collapsed && <span className="truncate">{item.label}</span>}
+                      <span className="truncate">{item.label}</span>
                     </button>
                   </li>
                 );
