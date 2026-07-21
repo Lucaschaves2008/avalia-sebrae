@@ -69,7 +69,6 @@ export interface AppShellProps {
   subtitle?: string;
   eyebrow?: ReactNode;
   actions?: ReactNode;
-  hideWelcome?: boolean;
   children: ReactNode;
 }
 
@@ -79,7 +78,6 @@ export function AppShell({
   subtitle,
   eyebrow,
   actions,
-  hideWelcome,
   children,
 }: AppShellProps) {
   const { user, logout } = useAuth();
