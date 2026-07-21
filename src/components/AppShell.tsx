@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -8,8 +8,6 @@ import {
   FileText,
   UserCog,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
   User as UserIcon,
 } from "lucide-react";
 
