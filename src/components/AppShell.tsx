@@ -103,26 +103,27 @@ export function AppShell({
     <div className="flex min-h-screen bg-muted/30">
       {/* Sidebar */}
       <aside
-        className={`sticky top-0 flex h-screen flex-col text-white transition-[width] duration-200 ${collapsed ? "w-[76px]" : "w-64"}`}
+        className={`relative sticky top-0 flex h-screen flex-col text-white transition-[width] duration-200 ${collapsed ? "w-[76px]" : "w-64"}`}
         style={{ background: "var(--gradient-hero)" }}
       >
         {/* Logo */}
         <div className="relative flex h-16 items-center justify-center px-4 border-b border-white/10">
           <SebraeLogo variant="onDark" height={collapsed ? 26 : 30} />
-          <button
-            type="button"
-            onClick={() => setCollapsed((c) => !c)}
-            className="absolute right-3 hidden shrink-0 rounded-md p-1 text-white/70 hover:bg-white/10 hover:text-white lg:inline-flex"
-            aria-label="Recolher menu"
-          >
-            {collapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
-          </button>
         </div>
 
+        {/* Collapse toggle — aligned with Workspace label */}
+        <button
+          type="button"
+          onClick={() => setCollapsed((c) => !c)}
+          className="absolute top-[72px] -right-3 z-10 hidden h-6 w-6 items-center justify-center rounded-md bg-white/10 text-white/80 shadow-md ring-1 ring-white/15 backdrop-blur hover:bg-white/20 hover:text-white lg:inline-flex"
+          aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
+        >
+          {collapsed ? (
+            <ChevronRight className="h-3.5 w-3.5" />
+          ) : (
+            <ChevronLeft className="h-3.5 w-3.5" />
+          )}
+        </button>
 
         {/* Section label */}
         {!collapsed && (
@@ -130,6 +131,7 @@ export function AppShell({
             Workspace
           </div>
         )}
+
 
         {/* Main nav */}
         <nav className="flex-1 overflow-y-auto px-3 py-2">
