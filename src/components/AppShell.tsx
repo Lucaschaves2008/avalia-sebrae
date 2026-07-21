@@ -81,7 +81,6 @@ export function AppShell({
   const navigate = useNavigate();
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
-  const [collapsed, setCollapsed] = useState(false);
 
   const isAdmin = user?.role === "admin";
   const isSuperAdmin = user?.email === SUPER_ADMIN_EMAIL;
