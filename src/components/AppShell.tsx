@@ -193,12 +193,8 @@ export function AppShell({
           </div>
         )}
 
-        {/* Footer */}
-        {!collapsed && (
-          <div className="border-t border-white/10 px-4 py-4">
-            <PrvdFooter variant="onDark" />
-          </div>
-        )}
+
+
       </aside>
 
       {/* Main column */}
