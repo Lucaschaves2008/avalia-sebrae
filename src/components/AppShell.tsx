@@ -11,11 +11,10 @@ import {
   ChevronLeft,
   ChevronRight,
   User as UserIcon,
-  Settings,
 } from "lucide-react";
 
 import { SebraeLogo } from "@/components/SebraeLogo";
-import { PrvdFooter } from "@/components/PrvdFooter";
+
 import { HelpTourButton } from "@/components/HelpTourButton";
 import { TourAutoStart } from "@/lib/tour/TourProvider";
 import { useAuth, SUPER_ADMIN_EMAIL } from "@/lib/auth";
