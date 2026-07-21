@@ -21,7 +21,11 @@ export const Route = createFileRoute("/profile")({
       },
     ],
   }),
-  component: ProfilePage,
+  component: () => (
+    <AuthProvider>
+      <ProfilePage />
+    </AuthProvider>
+  ),
 });
 
 function initials(name: string) {
