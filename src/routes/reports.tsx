@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/select";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { SebraeLogo } from "@/components/SebraeLogo";
+import { HelpTourButton } from "@/components/HelpTourButton";
+import { TourAutoStart } from "@/lib/tour/TourProvider";
 import { useCoursesListWhen, type Course } from "@/lib/courses";
 import {
   useJudgmentsListWhen,
@@ -105,6 +107,7 @@ function ReportsPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Voltar
             </Button>
+            <HelpTourButton pageKey="reports" />
             <Button
               variant="outline"
               size="sm"
@@ -119,9 +122,10 @@ function ReportsPage() {
           </div>
         </div>
       </header>
+      <TourAutoStart pageKey="reports" userId={user?.id ?? null} />
 
       <main className="mx-auto max-w-7xl px-6 py-8 print:px-0 print:py-0">
-        <div className="mb-6 print:hidden">
+        <div className="mb-6 print:hidden" data-tour="reports-title">
           <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
             <FileText className="h-3 w-3" />
             Central de Relatórios
