@@ -350,7 +350,7 @@ function TourOverlay({
           o "recorte" ao redor do alvo, sem precisar de SVG. */}
       {spotlight ? (
         <div
-          className="pointer-events-auto fixed"
+          className="pointer-events-auto fixed transition-all duration-300 ease-out"
           style={{
             top: spotlight.top - window.scrollY,
             left: spotlight.left - window.scrollX,
@@ -365,7 +365,7 @@ function TourOverlay({
         />
       ) : (
         <div
-          className="pointer-events-auto fixed inset-0"
+          className="pointer-events-auto fixed inset-0 animate-fade-in"
           style={{ background: "rgba(15, 23, 42, 0.72)" }}
         />
       )}
@@ -377,11 +377,13 @@ function TourOverlay({
           role="dialog"
           aria-modal="true"
           aria-label={step.title}
-          className="pointer-events-auto fixed w-[340px] max-w-[calc(100vw-24px)] rounded-xl border border-border bg-background p-5 shadow-2xl animate-fade-in"
+          className="pointer-events-auto fixed w-[340px] max-w-[calc(100vw-24px)] rounded-xl border border-border bg-background p-5 shadow-2xl animate-scale-in"
           style={{
             top: centered ? "50%" : cardTop - window.scrollY,
             left: centered ? "50%" : cardLeft - window.scrollX,
             transform: centered ? "translate(-50%, -50%)" : undefined,
+            transition:
+              "top 200ms ease-out, left 200ms ease-out, transform 200ms ease-out",
           }}
         >
           {/* Header */}
