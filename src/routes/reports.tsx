@@ -26,7 +26,7 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { AuthProvider, useAuth } from "@/lib/auth";
 
-import { TourAutoStart } from "@/lib/tour/TourProvider";
+
 import { useCoursesListWhen, type Course } from "@/lib/courses";
 import {
   useJudgmentsListWhen,
@@ -63,7 +63,7 @@ export const Route = createFileRoute("/reports")({
 });
 
 function ReportsPage() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const canFetchData = !loading && !!user;
   const processes = useProcessesListWhen(canFetchData);
