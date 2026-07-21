@@ -257,108 +257,19 @@ function Dashboard() {
   const hasJudgments = judgments.length > 0;
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header
-        className="border-b border-white/10"
-        style={{ background: "var(--gradient-primary)" }}
-        data-tour="dashboard-header"
-      >
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <SebraeLogo variant="onDark" height={36} />
-          <div className="flex items-center gap-3" data-tour="dashboard-nav">
-            <div className="hidden text-right text-white sm:block">
-              <div className="text-sm font-semibold">{user.name}</div>
-              <div className="text-xs text-white/70">
-                {isAdmin
-                  ? user.email === "jusmar.chaves@providence.solutions"
-                    ? "Super Administrador"
-                    : "Gestor Nacional"
-                  : `Gestor Regional — ${user.region}`}
-              </div>
-            </div>
-            {isAdmin && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate({ to: "/users" })}
-                className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-              >
-                <UserCog className="mr-2 h-4 w-4" />
-                Usuários
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate({ to: "/courses" })}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              <BookOpen className="mr-2 h-4 w-4" />
-              {isAdmin ? "Cursos" : "Avaliações"}
-            </Button>
-            {isAdmin && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate({ to: "/processes" })}
-                className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-              >
-                <Gavel className="mr-2 h-4 w-4" />
-                Processos
-              </Button>
-            )}
-            {isAdmin && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate({ to: "/final-opinions" })}
-                className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-              >
-                <ShieldCheck className="mr-2 h-4 w-4" />
-                Parecer Final
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate({ to: "/reports" })}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Relatórios
-            </Button>
-            <HelpTourButton pageKey="dashboard" />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                logout();
-                navigate({ to: "/login" });
-              }}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sair
-            </Button>
+    <AppShell
+      pageKey="dashboard"
+      eyebrow={
+        <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+          {isAdmin ? "Acesso total" : `Região ${user.region}`}
+        </span>
+      }
+      title={`Bem-vindo(a), ${user.name.split(" ")[0]}`}
+      subtitle="Avaliação do portfólio de Cursos da Educação Empreendedora — visão em tempo real."
+    >
+      <>
 
-          </div>
-        </div>
-      </header>
-      <TourAutoStart pageKey="dashboard" userId={user.id} />
-
-      <main className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-8">
-          <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            {isAdmin ? "Acesso total" : `Região ${user.region}`}
-          </span>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
-            Bem-vindo(a), {user.name.split(" ")[0]}
-          </h1>
-          <p className="mt-1 text-muted-foreground">
-            Avaliação do portfólio de Cursos da Educação Empreendedora — visão em tempo real.
-          </p>
-        </div>
 
         {(() => {
           const availableProcesses = processes
