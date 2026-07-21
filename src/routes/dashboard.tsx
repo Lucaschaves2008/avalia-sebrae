@@ -334,6 +334,7 @@ function Dashboard() {
               <FileText className="mr-2 h-4 w-4" />
               Relatórios
             </Button>
+            <HelpTourButton pageKey="dashboard" />
             <Button
               variant="outline"
               size="sm"
@@ -350,6 +351,7 @@ function Dashboard() {
           </div>
         </div>
       </header>
+      <TourAutoStart pageKey="dashboard" userId={user.id} />
 
       <main className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-8">
