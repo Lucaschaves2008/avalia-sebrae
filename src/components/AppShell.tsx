@@ -56,13 +56,6 @@ function initials(name: string) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-function greetingFor(date: Date) {
-  const h = date.getHours();
-  if (h < 12) return "Bom dia";
-  if (h < 18) return "Boa tarde";
-  return "Boa noite";
-}
-
 function formatDate(date: Date) {
   const weekday = date.toLocaleDateString("pt-BR", { weekday: "short" });
   const day = date.getDate();
@@ -76,7 +69,6 @@ export interface AppShellProps {
   subtitle?: string;
   eyebrow?: ReactNode;
   actions?: ReactNode;
-  hideWelcome?: boolean;
   children: ReactNode;
 }
 
@@ -86,7 +78,6 @@ export function AppShell({
   subtitle,
   eyebrow,
   actions,
-  hideWelcome,
   children,
 }: AppShellProps) {
   const { user, logout } = useAuth();
@@ -99,7 +90,6 @@ export function AppShell({
   const isSuperAdmin = user?.email === SUPER_ADMIN_EMAIL;
 
   const now = useMemo(() => new Date(), []);
-  const firstName = user?.name.split(" ")[0] ?? "";
 
   const mainItems = MAIN_NAV.filter((i) => !i.adminOnly || isAdmin);
   const adminItems = ADMIN_NAV.filter((i) => !i.adminOnly || isAdmin);
@@ -223,15 +213,9 @@ export function AppShell({
             <span className="font-medium capitalize">{formatDate(now)}</span>
           </div>
 
-          {/* Right: help + welcome + avatar */}
+          {/* Right: help + avatar */}
           <div className="flex items-center gap-4">
             {pageKey && <HelpTourButton pageKey={pageKey} variant="default" />}
-            {!hideWelcome && user && (
-              <div className="hidden text-right sm:block">
-                <div className="text-xs text-muted-foreground">{greetingFor(now)},</div>
-                <div className="text-sm font-semibold text-foreground">{firstName}</div>
-              </div>
-            )}
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
