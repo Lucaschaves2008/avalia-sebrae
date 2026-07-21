@@ -78,9 +78,22 @@ export const STATUS_STYLES: Record<OpinionStatus, string> = {
 };
 
 // ---------- Reactive cache ----------
+import { loadCache, saveCache, isFresh } from "./cache-persist";
+const CACHE_KEY = "final-opinions";
+
 let cache: FinalOpinion[] = [];
 let fetched = false;
+let lastSavedAt = 0;
 let refreshScheduled = false;
+let loading = false;
+
+const _persisted = loadCache<FinalOpinion[]>(CACHE_KEY);
+if (_persisted) {
+  cache = _persisted.data;
+  fetched = true;
+  lastSavedAt = _persisted.savedAt;
+}
+
 const listeners = new Set<() => void>();
 const notify = () => listeners.forEach((l) => l());
 
@@ -114,7 +127,7 @@ async function fetchAll(): Promise<FinalOpinion[]> {
   ]);
   if (oRes.error) {
     console.error("[final-opinions] fetch error:", oRes.error);
-    return [];
+    return cache;
   }
   const itemsByOpinion = new Map<string, FinalOpinionItem[]>();
   for (const r of (iRes.data ?? []) as unknown as DbItem[]) {
@@ -145,19 +158,29 @@ async function fetchAll(): Promise<FinalOpinion[]> {
 }
 
 export async function refreshFinalOpinions() {
-  cache = await fetchAll();
-  fetched = true;
-  notify();
+  if (loading) return;
+  loading = true;
+  try {
+    cache = await fetchAll();
+    fetched = true;
+    lastSavedAt = Date.now();
+    saveCache(CACHE_KEY, cache);
+    notify();
+  } finally {
+    loading = false;
+  }
 }
 
 function requestFinalOpinionsRefresh() {
-  if (fetched || refreshScheduled) return;
+  if (fetched && isFresh(lastSavedAt)) return;
+  if (refreshScheduled || loading) return;
   refreshScheduled = true;
   window.setTimeout(() => {
     refreshScheduled = false;
-    if (!fetched) void refreshFinalOpinions();
+    if (!loading) void refreshFinalOpinions();
   }, 0);
 }
+
 
 export function listFinalOpinions(): FinalOpinion[] {
   return cache;
