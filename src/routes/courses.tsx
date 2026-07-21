@@ -100,6 +100,8 @@ import {
   type ReadinessResult,
 } from "@/lib/courses";
 import { SebraeLogo } from "@/components/SebraeLogo";
+import { HelpTourButton } from "@/components/HelpTourButton";
+import { TourAutoStart } from "@/lib/tour/TourProvider";
 import {
   DECISION_LABELS,
   DECISION_STYLES,
@@ -347,6 +349,7 @@ function CoursesPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Painel
             </Button>
+            <HelpTourButton pageKey="courses" />
             <Button
               variant="outline"
               size="sm"
@@ -361,6 +364,8 @@ function CoursesPage() {
           </div>
         </div>
       </header>
+      <TourAutoStart pageKey="courses" userId={user?.id ?? null} />
+
 
       <main className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
