@@ -140,55 +140,19 @@ function FinalOpinionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header
-        className="border-b border-white/10"
-        style={{ background: "var(--gradient-primary)" }}
-      >
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <SebraeLogo variant="onDark" height={36} />
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate({ to: "/dashboard" })}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Painel
-            </Button>
-            <HelpTourButton pageKey="final-opinions" />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                void logout();
-                navigate({ to: "/login" });
-              }}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sair
-            </Button>
-          </div>
-        </div>
-      </header>
-      <TourAutoStart pageKey="final-opinions" userId={user?.id ?? null} />
+    <AppShell
+      pageKey="final-opinions"
+      eyebrow={
+        <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
+          <ShieldCheck className="h-3.5 w-3.5" />
+          Gerência Nacional
+        </span>
+      }
+      title="Parecer Final"
+      subtitle="Selecione um processo avaliativo para emitir o parecer final por curso. Cada parecer é criado automaticamente junto ao processo."
+    >
+      <div data-tour="final-opinions-title" />
 
-      <main className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-6" data-tour="final-opinions-title">
-          <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            Gerência Nacional
-          </span>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
-            Parecer Final
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Selecione um processo avaliativo para emitir o parecer final por curso.
-            Cada parecer é criado automaticamente junto ao processo.
-          </p>
-        </div>
 
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full sm:max-w-sm">
