@@ -323,7 +323,8 @@ function TourOverlay({
   if (!mounted || typeof document === "undefined") return null;
 
   const showSpotlight = !!rect && !missing;
-  const centeredFallback = missing && !!step.centeredIfMissing;
+  // Sempre mostra o card. Se o alvo não existir, o card aparece centralizado.
+  const centeredFallback = !showSpotlight;
   const { top: cardTop, left: cardLeft, centered } = computeCardPosition(
     showSpotlight ? rect : null,
     step.placement,
