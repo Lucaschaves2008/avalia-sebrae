@@ -368,7 +368,7 @@ function CoursesPage() {
 
 
       <main className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between" data-tour="courses-title">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
               <FileSpreadsheet className="h-3.5 w-3.5" />
