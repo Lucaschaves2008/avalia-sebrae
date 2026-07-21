@@ -90,7 +90,6 @@ export function AppShell({
   const isSuperAdmin = user?.email === SUPER_ADMIN_EMAIL;
 
   const now = useMemo(() => new Date(), []);
-  const firstName = user?.name.split(" ")[0] ?? "";
 
   const mainItems = MAIN_NAV.filter((i) => !i.adminOnly || isAdmin);
   const adminItems = ADMIN_NAV.filter((i) => !i.adminOnly || isAdmin);
