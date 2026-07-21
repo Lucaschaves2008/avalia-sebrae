@@ -474,14 +474,9 @@ function Dashboard() {
             </div>
           </div>
         )}
-      </main>
+      </>
+    </AppShell>
 
-      <footer className="border-t border-border bg-card/50">
-        <div className="mx-auto max-w-7xl px-6 py-6">
-          <PrvdFooter variant="onLight" />
-        </div>
-      </footer>
-    </div>
   );
 }
 
