@@ -411,7 +411,7 @@ function UsersPage() {
             </Table>
           </div>
         </div>
-      </main>
+      
 
       {/* Create / Edit modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
