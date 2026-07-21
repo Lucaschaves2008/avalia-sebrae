@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
-import { Eye, EyeOff, KeyRound, Pencil, Plus, Search, Trash2, UserCog, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, KeyRound, Pencil, Plus, Search, Trash2, UserCog } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { adminSetUserPassword } from "@/lib/admin-users.functions";
 
@@ -61,9 +61,8 @@ import {
   type UserRole,
   type UserStatus,
 } from "@/lib/auth";
-import { SebraeLogo } from "@/components/SebraeLogo";
-import { HelpTourButton } from "@/components/HelpTourButton";
-import { TourAutoStart } from "@/lib/tour/TourProvider";
+import { AppShell } from "@/components/AppShell";
+
 
 export const Route = createFileRoute("/users")({
   head: () => ({
@@ -283,63 +282,29 @@ function UsersPage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header
-        className="border-b border-white/10"
-        style={{ background: "var(--gradient-primary)" }}
-      >
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <SebraeLogo variant="onDark" height={36} />
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate({ to: "/dashboard" })}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Painel
-            </Button>
-            <HelpTourButton pageKey="users" />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                logout();
-                navigate({ to: "/login" });
-              }}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              Sair
-            </Button>
-          </div>
-        </div>
-      </header>
-      <TourAutoStart pageKey="users" userId={user?.id ?? null} />
+    <AppShell
+      pageKey="users"
+      eyebrow={
+        <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
+          <UserCog className="h-3.5 w-3.5" />
+          Administração
+        </span>
+      }
+      title="Gestão de Usuários"
+      subtitle="Cadastre, edite e gerencie o acesso dos gestores ao Portfólio de Cursos."
+      actions={
+        <Button
+          onClick={openCreate}
+          data-tour="users-new"
+          className="bg-primary text-primary-foreground shadow-[var(--shadow-elegant)] hover:bg-[var(--primary-hover)]"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Novo usuário
+        </Button>
+      }
+    >
+      <div data-tour="users-title" />
 
-      <main className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between" data-tour="users-title">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
-              <UserCog className="h-3.5 w-3.5" />
-              Administração
-            </span>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
-              Gestão de Usuários
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Cadastre, edite e gerencie o acesso dos gestores ao Portfólio de Cursos.
-            </p>
-          </div>
-          <Button
-            onClick={openCreate}
-            data-tour="users-new"
-            className="bg-primary text-primary-foreground shadow-[var(--shadow-elegant)] hover:bg-[var(--primary-hover)]"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Novo usuário
-          </Button>
-        </div>
 
 
         <div className="rounded-xl border border-border bg-card shadow-[var(--shadow-card)]">
@@ -446,7 +411,7 @@ function UsersPage() {
             </Table>
           </div>
         </div>
-      </main>
+      
 
       {/* Create / Edit modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -723,6 +688,7 @@ function UsersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </AppShell>
+
   );
 }

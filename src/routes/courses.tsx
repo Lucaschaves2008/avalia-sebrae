@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowLeft,
+  
   ArrowUpRight,
   CheckCircle2,
   ClipboardCheck,
@@ -99,9 +99,8 @@ import {
   type ReadinessLevel,
   type ReadinessResult,
 } from "@/lib/courses";
-import { SebraeLogo } from "@/components/SebraeLogo";
-import { HelpTourButton } from "@/components/HelpTourButton";
-import { TourAutoStart } from "@/lib/tour/TourProvider";
+import { AppShell } from "@/components/AppShell";
+
 import {
   DECISION_LABELS,
   DECISION_STYLES,
@@ -332,88 +331,54 @@ function CoursesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header
-        className="border-b border-white/10"
-        style={{ background: "var(--gradient-primary)" }}
-      >
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <SebraeLogo variant="onDark" height={36} />
-          <div className="flex items-center gap-2">
+    <AppShell
+      pageKey="courses"
+      eyebrow={
+        <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
+          <FileSpreadsheet className="h-3.5 w-3.5" />
+          Portfólio
+        </span>
+      }
+      title="Avaliação de Cursos"
+      subtitle={
+        isAdmin
+          ? "Importe, edite e gerencie as soluções educacionais do portfólio."
+          : "Avaliação dos cursos o portfólio de soluções educacionais do SEBRAE"
+      }
+    >
+      <div data-tour="courses-title" />
+      <>
+        {isAdmin && (
+          <div className="mb-6 flex flex-wrap justify-end gap-2">
+            <Button variant="outline" onClick={downloadCsvTemplate}>
+              <Download className="mr-2 h-4 w-4" />
+              Modelo CSV
+            </Button>
             <Button
               variant="outline"
-              size="sm"
-              onClick={() => navigate({ to: "/dashboard" })}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+              onClick={() => fileRef.current?.click()}
+              disabled={importing}
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Painel
+              <Upload className="mr-2 h-4 w-4" />
+              {importing ? "Importando..." : "Importar CSV"}
             </Button>
-            <HelpTourButton pageKey="courses" />
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,text/csv"
+              hidden
+              onChange={handleFile}
+            />
             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                logout();
-                navigate({ to: "/login" });
-              }}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+              onClick={() => setEditing(emptyCourse())}
+              className="bg-primary text-primary-foreground shadow-[var(--shadow-elegant)] hover:bg-[var(--primary-hover)]"
             >
-              Sair
+              <Plus className="mr-2 h-4 w-4" />
+              Novo curso
             </Button>
           </div>
-        </div>
-      </header>
-      <TourAutoStart pageKey="courses" userId={user?.id ?? null} />
+        )}
 
-
-      <main className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between" data-tour="courses-title">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
-              <FileSpreadsheet className="h-3.5 w-3.5" />
-              Portfólio
-            </span>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
-              Avaliação de Cursos
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {isAdmin
-                ? "Importe, edite e gerencie as soluções educacionais do portfólio."
-                : "Avaliação dos cursos o portfólio de soluções educacionais do SEBRAE"}
-            </p>
-          </div>
-          {isAdmin && (
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={downloadCsvTemplate}>
-                <Download className="mr-2 h-4 w-4" />
-                Modelo CSV
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => fileRef.current?.click()}
-                disabled={importing}
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                {importing ? "Importando..." : "Importar CSV"}
-              </Button>
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".csv,text/csv"
-                hidden
-                onChange={handleFile}
-              />
-              <Button
-                onClick={() => setEditing(emptyCourse())}
-                className="bg-primary text-primary-foreground shadow-[var(--shadow-elegant)] hover:bg-[var(--primary-hover)]"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Novo curso
-              </Button>
-            </div>
-          )}
-        </div>
 
         {importSummary && (
           <div className="mb-6 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900 shadow-[var(--shadow-card)]">
@@ -687,7 +652,7 @@ function CoursesPage() {
         )}
           </>
         )}
-      </main>
+      </>
 
       {/* Detail Sheet */}
       <CourseDetailSheet
@@ -756,7 +721,8 @@ function CoursesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </AppShell>
+
   );
 }
 

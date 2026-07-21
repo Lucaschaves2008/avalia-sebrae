@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
-  ArrowLeft,
   FileText,
   Printer,
   AlertTriangle,
@@ -14,6 +13,7 @@ import {
   Gauge,
 } from "lucide-react";
 
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -23,10 +23,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AppShell } from "@/components/AppShell";
 import { AuthProvider, useAuth } from "@/lib/auth";
-import { SebraeLogo } from "@/components/SebraeLogo";
-import { HelpTourButton } from "@/components/HelpTourButton";
-import { TourAutoStart } from "@/lib/tour/TourProvider";
+
+
 import { useCoursesListWhen, type Course } from "@/lib/courses";
 import {
   useJudgmentsListWhen,
@@ -63,7 +63,7 @@ export const Route = createFileRoute("/reports")({
 });
 
 function ReportsPage() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const canFetchData = !loading && !!user;
   const processes = useProcessesListWhen(canFetchData);
@@ -90,53 +90,21 @@ function ReportsPage() {
   const selectedProcess = processes.find((p) => p.id === processId);
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header
-        className="border-b border-white/10 print:hidden"
-        style={{ background: "var(--gradient-primary)" }}
-      >
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <SebraeLogo variant="onDark" height={36} />
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate({ to: "/dashboard" })}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar
-            </Button>
-            <HelpTourButton pageKey="reports" />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                logout();
-                navigate({ to: "/login" });
-              }}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              Sair
-            </Button>
-          </div>
-        </div>
-      </header>
-      <TourAutoStart pageKey="reports" userId={user?.id ?? null} />
+    <AppShell
+      pageKey="reports"
+      eyebrow={
+        <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
+          <FileText className="h-3 w-3" />
+          Central de Relatórios
+        </span>
+      }
+      title="Relatórios"
+      subtitle="Relatório otimizado para impressão ou exportação em PDF (via janela de impressão do navegador)."
+    >
+      <div data-tour="reports-title" />
+      <div className="print:px-0 print:py-0">
 
-      <main className="mx-auto max-w-7xl px-6 py-8 print:px-0 print:py-0">
-        <div className="mb-6 print:hidden" data-tour="reports-title">
-          <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
-            <FileText className="h-3 w-3" />
-            Central de Relatórios
-          </span>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
-            Relatórios
-          </h1>
-          <p className="mt-1 text-muted-foreground">
-            Relatório otimizado para impressão ou exportação em PDF (via janela
-            de impressão do navegador).
-          </p>
+
 
           <div className="mt-5 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
             <div className="flex-1 min-w-[260px]">
@@ -167,7 +135,6 @@ function ReportsPage() {
               </div>
             )}
           </div>
-        </div>
 
         <div className="space-y-10 print:space-y-0">
           {selectedProcess ? (
@@ -178,10 +145,11 @@ function ReportsPage() {
             </div>
           )}
         </div>
-      </main>
+      </div>
 
       <PrintStyles />
-    </div>
+    </AppShell>
+
   );
 }
 
