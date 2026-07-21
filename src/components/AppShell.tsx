@@ -107,7 +107,7 @@ export function AppShell({
         style={{ background: "var(--gradient-hero)" }}
       >
         {/* Logo */}
-        <div className="relative flex h-16 items-center justify-center px-4 border-b border-white/10">
+        <div className={`relative flex h-16 items-center border-b border-white/10 ${collapsed ? "justify-center px-4" : "justify-start px-5"}`}>
           <SebraeLogo variant="onDark" height={collapsed ? 26 : 30} />
         </div>
 
@@ -115,7 +115,7 @@ export function AppShell({
         <button
           type="button"
           onClick={() => setCollapsed((c) => !c)}
-          className="absolute top-[72px] -right-3 z-10 hidden h-6 w-6 items-center justify-center rounded-md bg-white/10 text-white/80 shadow-md ring-1 ring-white/15 backdrop-blur hover:bg-white/20 hover:text-white lg:inline-flex"
+          className="absolute top-[72px] -right-3.5 z-20 hidden h-7 w-7 items-center justify-center rounded-full bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition-colors hover:bg-slate-50 lg:inline-flex"
           aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
         >
           {collapsed ? (
@@ -124,6 +124,7 @@ export function AppShell({
             <ChevronLeft className="h-3.5 w-3.5" />
           )}
         </button>
+
 
         {/* Section label */}
         {!collapsed && (
