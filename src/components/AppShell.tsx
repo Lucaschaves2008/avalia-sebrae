@@ -232,7 +232,10 @@ export function AppShell({
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => navigate({ to: "/reset-password" })}>
+                  <DropdownMenuItem
+                    onSelect={() => navigate({ to: "/profile" })}
+                    className="group rounded-none border-l-2 border-transparent px-3 py-2 text-sm text-foreground focus:border-primary focus:bg-transparent focus:text-primary data-[highlighted]:border-primary data-[highlighted]:bg-transparent data-[highlighted]:text-primary"
+                  >
                     <UserIcon className="mr-2 h-4 w-4" />
                     Meu perfil
                   </DropdownMenuItem>
@@ -243,11 +246,12 @@ export function AppShell({
                       await logout();
                       navigate({ to: "/login" });
                     }}
-                    className="text-destructive focus:text-destructive"
+                    className="group rounded-none border-l-2 border-transparent px-3 py-2 text-sm text-destructive focus:border-destructive focus:bg-transparent focus:text-destructive data-[highlighted]:border-destructive data-[highlighted]:bg-transparent data-[highlighted]:text-destructive"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Sair
                   </DropdownMenuItem>
+
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
