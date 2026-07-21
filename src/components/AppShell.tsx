@@ -143,11 +143,9 @@ export function AppShell({
         {/* Admin section at bottom */}
         {adminItems.length > 0 && (
           <div className="border-t border-white/10 px-3 py-3">
-            {!collapsed && (
-              <div className="px-2 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/50">
-                Administração
-              </div>
-            )}
+            <div className="px-2 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/50">
+              Administração
+            </div>
             <ul className="space-y-1">
               {adminItems.map((item) => {
                 const Icon = item.icon;
@@ -162,10 +160,9 @@ export function AppShell({
                           ? "bg-white text-primary shadow-sm"
                           : "text-white/85 hover:bg-white/10 hover:text-white"
                       }`}
-                      title={collapsed ? item.label : undefined}
                     >
                       <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? "text-primary" : ""}`} />
-                      {!collapsed && <span className="truncate">{item.label}</span>}
+                      <span className="truncate">{item.label}</span>
                     </button>
                   </li>
                 );
