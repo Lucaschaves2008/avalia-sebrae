@@ -31,6 +31,8 @@ import {
 import { AuthProvider, REGIONS, useAuth, type Region } from "@/lib/auth";
 import { SebraeLogo } from "@/components/SebraeLogo";
 import { PrvdFooter } from "@/components/PrvdFooter";
+import { HelpTourButton } from "@/components/HelpTourButton";
+import { TourAutoStart } from "@/lib/tour/TourProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { computeMaterialReadiness, useCoursesListWhen, type Course } from "@/lib/courses";
 import {
@@ -266,10 +268,11 @@ function Dashboard() {
       <header
         className="border-b border-white/10"
         style={{ background: "var(--gradient-primary)" }}
+        data-tour="dashboard-header"
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <SebraeLogo variant="onDark" height={36} />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3" data-tour="dashboard-nav">
             <div className="hidden text-right text-white sm:block">
               <div className="text-sm font-semibold">{user.name}</div>
               <div className="text-xs text-white/70">
@@ -331,6 +334,7 @@ function Dashboard() {
               <FileText className="mr-2 h-4 w-4" />
               Relatórios
             </Button>
+            <HelpTourButton pageKey="dashboard" />
             <Button
               variant="outline"
               size="sm"
@@ -347,6 +351,7 @@ function Dashboard() {
           </div>
         </div>
       </header>
+      <TourAutoStart pageKey="dashboard" userId={user.id} />
 
       <main className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-8">
@@ -372,7 +377,10 @@ function Dashboard() {
             .slice()
             .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
           return (
-            <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between">
+            <div
+              className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between"
+              data-tour="dashboard-process"
+            >
               <div className="flex items-center gap-2">
                 <Gavel className="h-4 w-4 text-primary" />
                 <div>
@@ -406,7 +414,7 @@ function Dashboard() {
           );
         })()}
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" data-tour="dashboard-kpis">
           {stats.map(({ label, value, icon: Icon }) => (
             <div
               key={label}

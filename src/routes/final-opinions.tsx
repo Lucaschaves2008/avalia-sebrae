@@ -42,6 +42,8 @@ import { Toaster } from "@/components/ui/sonner";
 
 import { AuthProvider, SUPER_ADMIN_EMAIL, useAuth } from "@/lib/auth";
 import { SebraeLogo } from "@/components/SebraeLogo";
+import { HelpTourButton } from "@/components/HelpTourButton";
+import { TourAutoStart } from "@/lib/tour/TourProvider";
 import { useCoursesListWhen, type Course } from "@/lib/courses";
 import {
   effectiveStatus,
@@ -155,6 +157,7 @@ function FinalOpinionsPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Painel
             </Button>
+            <HelpTourButton pageKey="final-opinions" />
             <Button
               variant="outline"
               size="sm"
@@ -170,9 +173,10 @@ function FinalOpinionsPage() {
           </div>
         </div>
       </header>
+      <TourAutoStart pageKey="final-opinions" userId={user?.id ?? null} />
 
       <main className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-6">
+        <div className="mb-6" data-tour="final-opinions-title">
           <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
             <ShieldCheck className="h-3.5 w-3.5" />
             Gerência Nacional

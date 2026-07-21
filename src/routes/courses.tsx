@@ -100,6 +100,8 @@ import {
   type ReadinessResult,
 } from "@/lib/courses";
 import { SebraeLogo } from "@/components/SebraeLogo";
+import { HelpTourButton } from "@/components/HelpTourButton";
+import { TourAutoStart } from "@/lib/tour/TourProvider";
 import {
   DECISION_LABELS,
   DECISION_STYLES,
@@ -347,6 +349,7 @@ function CoursesPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Painel
             </Button>
+            <HelpTourButton pageKey="courses" />
             <Button
               variant="outline"
               size="sm"
@@ -361,9 +364,11 @@ function CoursesPage() {
           </div>
         </div>
       </header>
+      <TourAutoStart pageKey="courses" userId={user?.id ?? null} />
+
 
       <main className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between" data-tour="courses-title">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
               <FileSpreadsheet className="h-3.5 w-3.5" />
@@ -465,7 +470,7 @@ function CoursesPage() {
         )}
 
         {/* Filters bar */}
-        <div className="mb-5 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
+        <div className="mb-5 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)]" data-tour="courses-filters">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -554,7 +559,7 @@ function CoursesPage() {
 
         {/* Cards view */}
         {filtered.length > 0 && view === "cards" && (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3" data-tour="courses-list">
             {filtered.map((c) => (
               <CourseCard
                 key={c.id}
