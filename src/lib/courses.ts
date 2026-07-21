@@ -398,12 +398,25 @@ export function useCoursesStatusWhen(enabled: boolean): { loading: boolean; erro
 
 export async function upsertCourse(course: Course, opts?: { isNew?: boolean }): Promise<void> {
   await upsertCourseServer({ data: { course, isNew: opts?.isNew } });
-  await refreshCourses();
+  // Update otimista imediato — evita esperar o refresh completo.
+  const id = (course.codigo || course.id).trim();
+  const idx = cache.findIndex((c) => (c.codigo || c.id) === id);
+  const next = { ...course, id, codigo: id };
+  if (idx >= 0) cache = [...cache.slice(0, idx), next, ...cache.slice(idx + 1)];
+  else cache = [next, ...cache];
+  lastSavedAt = Date.now();
+  saveCache(CACHE_KEY, cache);
+  notify();
+  void refreshCourses();
 }
 
 export async function deleteCourse(id: string): Promise<void> {
   await deleteCourseServer({ data: { id } });
-  await refreshCourses();
+  cache = cache.filter((c) => (c.codigo || c.id) !== id);
+  lastSavedAt = Date.now();
+  saveCache(CACHE_KEY, cache);
+  notify();
+  void refreshCourses();
 }
 
 export async function replaceCourses(next: Course[]): Promise<void> {
@@ -416,6 +429,7 @@ export async function appendCourses(next: Course[]): Promise<{ inserted: number;
   await refreshCourses();
   return result;
 }
+
 
 // ---------- CSV import ----------
 
