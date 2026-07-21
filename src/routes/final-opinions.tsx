@@ -89,7 +89,7 @@ const REGIONAL_STYLE: Record<(typeof REGIONAL_DECISIONS)[number], string> = {
 };
 
 function FinalOpinionsPage() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const canFetchData = !loading && !!user;
   const opinions = useFinalOpinionsListWhen(canFetchData);
