@@ -237,10 +237,7 @@ export function AppShell({
                     <UserIcon className="mr-2 h-4 w-4" />
                     Meu perfil
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => navigate({ to: "/reset-password" })}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Alterar senha
-                  </DropdownMenuItem>
+
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onSelect={async () => {
