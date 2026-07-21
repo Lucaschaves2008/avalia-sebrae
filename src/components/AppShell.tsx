@@ -223,15 +223,9 @@ export function AppShell({
             <span className="font-medium capitalize">{formatDate(now)}</span>
           </div>
 
-          {/* Right: help + welcome + avatar */}
+          {/* Right: help + avatar */}
           <div className="flex items-center gap-4">
             {pageKey && <HelpTourButton pageKey={pageKey} variant="default" />}
-            {!hideWelcome && user && (
-              <div className="hidden text-right sm:block">
-                <div className="text-xs text-muted-foreground">{greetingFor(now)},</div>
-                <div className="text-sm font-semibold text-foreground">{firstName}</div>
-              </div>
-            )}
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
