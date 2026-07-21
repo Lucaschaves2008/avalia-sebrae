@@ -349,38 +349,37 @@ function CoursesPage() {
     >
       <div data-tour="courses-title" />
       <>
+        {isAdmin && (
+          <div className="mb-6 flex flex-wrap justify-end gap-2">
+            <Button variant="outline" onClick={downloadCsvTemplate}>
+              <Download className="mr-2 h-4 w-4" />
+              Modelo CSV
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => fileRef.current?.click()}
+              disabled={importing}
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              {importing ? "Importando..." : "Importar CSV"}
+            </Button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,text/csv"
+              hidden
+              onChange={handleFile}
+            />
+            <Button
+              onClick={() => setEditing(emptyCourse())}
+              className="bg-primary text-primary-foreground shadow-[var(--shadow-elegant)] hover:bg-[var(--primary-hover)]"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Novo curso
+            </Button>
+          </div>
+        )}
 
-          {isAdmin && (
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={downloadCsvTemplate}>
-                <Download className="mr-2 h-4 w-4" />
-                Modelo CSV
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => fileRef.current?.click()}
-                disabled={importing}
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                {importing ? "Importando..." : "Importar CSV"}
-              </Button>
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".csv,text/csv"
-                hidden
-                onChange={handleFile}
-              />
-              <Button
-                onClick={() => setEditing(emptyCourse())}
-                className="bg-primary text-primary-foreground shadow-[var(--shadow-elegant)] hover:bg-[var(--primary-hover)]"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Novo curso
-              </Button>
-            </div>
-          )}
-        </div>
 
         {importSummary && (
           <div className="mb-6 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900 shadow-[var(--shadow-card)]">
