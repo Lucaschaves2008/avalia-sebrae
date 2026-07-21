@@ -201,21 +201,20 @@ function useTargetRect(step: TourStep): { rect: Rect | null; missing: boolean } 
       raf = window.requestAnimationFrame(tick);
     };
 
-    // Scroll instantâneo para evitar animação em cascata do card.
+    // Scroll suave até o alvo antes de medir.
     const el = document.querySelector(step.target) as HTMLElement | null;
     if (el) {
       try {
-        el.scrollIntoView({ behavior: "auto", block: "center", inline: "center" });
+        el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
       } catch {
         el.scrollIntoView();
       }
     }
 
-    // Mede imediatamente e depois acompanha por rAF para lidar com layouts assíncronos.
-    measure();
+    // Espera o scroll suave assentar antes de começar a medir.
     const startTimer = window.setTimeout(() => {
       tick();
-    }, 50);
+    }, 250);
 
     const onResize = () => measure();
     window.addEventListener("resize", onResize);
@@ -351,7 +350,7 @@ function TourOverlay({
           o "recorte" ao redor do alvo, sem precisar de SVG. */}
       {spotlight ? (
         <div
-          className="pointer-events-auto fixed"
+          className="pointer-events-auto fixed transition-all duration-300 ease-out"
           style={{
             top: spotlight.top - window.scrollY,
             left: spotlight.left - window.scrollX,
@@ -366,7 +365,7 @@ function TourOverlay({
         />
       ) : (
         <div
-          className="pointer-events-auto fixed inset-0"
+          className="pointer-events-auto fixed inset-0 animate-fade-in"
           style={{ background: "rgba(15, 23, 42, 0.72)" }}
         />
       )}
@@ -378,11 +377,13 @@ function TourOverlay({
           role="dialog"
           aria-modal="true"
           aria-label={step.title}
-          className="pointer-events-auto fixed w-[340px] max-w-[calc(100vw-24px)] rounded-xl border border-border bg-background p-5 shadow-2xl animate-fade-in"
+          className="pointer-events-auto fixed w-[340px] max-w-[calc(100vw-24px)] rounded-xl border border-border bg-background p-5 shadow-2xl animate-scale-in"
           style={{
             top: centered ? "50%" : cardTop - window.scrollY,
             left: centered ? "50%" : cardLeft - window.scrollX,
             transform: centered ? "translate(-50%, -50%)" : undefined,
+            transition:
+              "top 200ms ease-out, left 200ms ease-out, transform 200ms ease-out",
           }}
         >
           {/* Header */}
