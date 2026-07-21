@@ -341,6 +341,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           phone: input.phone,
           unity: input.unit,
           region,
+          state: input.state ?? null,
+          self_signup: true,
         },
       },
     });
