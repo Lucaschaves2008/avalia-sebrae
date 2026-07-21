@@ -1,13 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
-  ArrowLeft,
   CheckCircle2,
   ClipboardCheck,
-  LogOut,
   Search,
   ShieldCheck,
 } from "lucide-react";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,9 +40,8 @@ import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 
 import { AuthProvider, SUPER_ADMIN_EMAIL, useAuth } from "@/lib/auth";
-import { SebraeLogo } from "@/components/SebraeLogo";
-import { HelpTourButton } from "@/components/HelpTourButton";
-import { TourAutoStart } from "@/lib/tour/TourProvider";
+import { AppShell } from "@/components/AppShell";
+
 import { useCoursesListWhen, type Course } from "@/lib/courses";
 import {
   effectiveStatus,
