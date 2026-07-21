@@ -200,54 +200,19 @@ function ProcessesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header
-        className="border-b border-white/10"
-        style={{ background: "var(--gradient-primary)" }}
-      >
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <SebraeLogo variant="onDark" height={36} />
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate({ to: "/dashboard" })}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Painel
-            </Button>
-            <HelpTourButton pageKey="processes" />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                void logout();
-                navigate({ to: "/login" });
-              }}
-              className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sair
-            </Button>
-          </div>
-        </div>
-      </header>
-      <TourAutoStart pageKey="processes" userId={user?.id ?? null} />
+    <AppShell
+      pageKey="processes"
+      eyebrow={
+        <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
+          <Gavel className="h-3.5 w-3.5" />
+          Avaliação
+        </span>
+      }
+      title="Processos Avaliativos"
+      subtitle="Defina períodos, amplitude e cursos a serem avaliados."
+    >
+      <div data-tour="processes-title" />
 
-      <main className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-6" data-tour="processes-title">
-          <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
-            <Gavel className="h-3.5 w-3.5" />
-            Avaliação
-          </span>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
-            Processos Avaliativos
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Defina períodos, amplitude e cursos a serem avaliados.
-          </p>
-        </div>
 
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative w-full sm:max-w-sm">
