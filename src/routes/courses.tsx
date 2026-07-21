@@ -470,7 +470,7 @@ function CoursesPage() {
         )}
 
         {/* Filters bar */}
-        <div className="mb-5 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
+        <div className="mb-5 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)]" data-tour="courses-filters">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
