@@ -61,9 +61,8 @@ import {
   type UserRole,
   type UserStatus,
 } from "@/lib/auth";
-import { SebraeLogo } from "@/components/SebraeLogo";
-import { HelpTourButton } from "@/components/HelpTourButton";
-import { TourAutoStart } from "@/lib/tour/TourProvider";
+import { AppShell } from "@/components/AppShell";
+
 
 export const Route = createFileRoute("/users")({
   head: () => ({
