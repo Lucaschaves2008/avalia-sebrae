@@ -653,7 +653,7 @@ function CoursesPage() {
         )}
           </>
         )}
-      </main>
+      </>
 
       {/* Detail Sheet */}
       <CourseDetailSheet
