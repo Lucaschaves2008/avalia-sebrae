@@ -1,4 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ErrorState } from "@/components/ErrorState";
+import { AuthPending } from "@/components/AuthPending";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { Gavel, Pencil, Plus, Search, Trash2 } from "lucide-react";
@@ -45,7 +47,7 @@ import {
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 
-import { AuthProvider, useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 
 import { useCoursesListWhen, type Course } from "@/lib/courses";
@@ -65,10 +67,13 @@ import {
 export const Route = createFileRoute("/processes")({
   head: () => ({ meta: [{ title: "Processos Avaliativos — SEBRAE" }] }),
   component: () => (
-    <AuthProvider>
+    <>
       <Toaster richColors position="top-right" />
       <ProcessesPage />
-    </AuthProvider>
+    </>
+  ),
+  errorComponent: ({ error, reset }) => (
+    <ErrorState error={error} reset={reset} boundary="route:processes" />
   ),
 });
 
@@ -109,7 +114,7 @@ const emptyForm: FormState = {
 };
 
 function ProcessesPage() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout, authError } = useAuth();
   const navigate = useNavigate();
   const canFetchData = !loading && !!user;
   const processes = useProcessesListWhen(canFetchData);
@@ -121,8 +126,10 @@ function ProcessesPage() {
   const [confirmDelete, setConfirmDelete] = useState<EvaluationProcess | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login" });
-  }, [loading, user, navigate]);
+    // Falha de rede não é logout: sem authError na condição, uma
+    // instabilidade do proxy expulsaria o usuário para o login.
+    if (!loading && !user && !authError) navigate({ to: "/login" });
+  }, [loading, user, authError, navigate]);
 
   useEffect(() => {
     if (!loading && user && !canManage) navigate({ to: "/dashboard" });
@@ -191,11 +198,7 @@ function ProcessesPage() {
   }
 
   if (loading || !user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-muted-foreground">Carregando...</p>
-      </div>
-    );
+    return <AuthPending authError={authError} />;
   }
 
   return (

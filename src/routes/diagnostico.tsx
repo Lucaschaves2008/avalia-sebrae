@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ErrorState } from "@/components/ErrorState";
 import { useCallback, useEffect, useState } from "react";
 import {
   Activity,
@@ -33,6 +34,9 @@ export const Route = createFileRoute("/diagnostico")({
     ],
   }),
   component: DiagnosticoPage,
+  errorComponent: ({ error, reset }) => (
+    <ErrorState error={error} reset={reset} boundary="route:diagnostico" />
+  ),
 });
 
 type TestResult = {

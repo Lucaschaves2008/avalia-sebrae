@@ -2,7 +2,6 @@ import { createStart, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
 import { attachReadySupabaseAuth } from "@/lib/supabase-auth-attacher";
-import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -20,6 +19,12 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 });
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [attachSupabaseAuth, attachReadySupabaseAuth],
+  // Apenas UM anexador de token. Antes rodavam dois em sequência
+  // (attachSupabaseAuth + attachReadySupabaseAuth): ambos liam a sessão e o
+  // segundo sobrescrevia o header do primeiro, dobrando o trabalho em toda
+  // chamada de server function sem nenhum efeito adicional.
+  // attachReadySupabaseAuth é o mais completo — também aguarda a sessão
+  // quando a chamada acontece durante a inicialização do app.
+  functionMiddleware: [attachReadySupabaseAuth],
   requestMiddleware: [errorMiddleware],
 }));

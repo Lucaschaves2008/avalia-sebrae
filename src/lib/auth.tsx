@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useState,
   type ReactNode,
 } from "react";
@@ -68,8 +69,39 @@ export interface UserInput {
 
 // ---------- Users list (reactive cache) ----------
 
-import { loadCache, saveCache, isFresh, clearAllCaches } from "./cache-persist";
+import {
+  loadCache,
+  saveCache,
+  isFresh,
+  clearAllCaches,
+  clearCache,
+  parseCachedList,
+  asString,
+  asBoolean,
+} from "./cache-persist";
 const USERS_CACHE_KEY = "users";
+const SESSION_USER_CACHE_KEY = "session-user";
+
+// Normaliza um usuário vindo do localStorage para o formato atual — dados
+// gravados por versões anteriores não podem chegar crus ao render.
+function parseCachedUser(raw: Record<string, unknown>): AuthUser | null {
+  const id = asString(raw.id);
+  if (!id) return null;
+  const region = asString(raw.region);
+  const role = asString(raw.role);
+  return {
+    id,
+    email: asString(raw.email),
+    name: asString(raw.name),
+    phone: asString(raw.phone),
+    unit: asString(raw.unit),
+    region: (REGIONS as string[]).includes(region) ? (region as Region) : "Sudeste",
+    state: typeof raw.state === "string" ? raw.state : null,
+    role: role === "admin" ? "admin" : "gestor",
+    status: asString(raw.status) === "Inativo" ? "Inativo" : "Ativo",
+    isFirstAccess: asBoolean(raw.isFirstAccess),
+  };
+}
 
 let usersCache: AuthUser[] = [];
 let usersFetched = false;
@@ -77,7 +109,9 @@ let usersSavedAt = 0;
 let usersRefreshScheduled = false;
 const usersListeners = new Set<() => void>();
 
-const _persistedUsers = loadCache<AuthUser[]>(USERS_CACHE_KEY);
+const _persistedUsers = loadCache<AuthUser[]>(USERS_CACHE_KEY, (raw) =>
+  parseCachedList(raw, parseCachedUser),
+);
 if (_persistedUsers) {
   usersCache = _persistedUsers.data;
   usersFetched = true;
@@ -248,6 +282,15 @@ interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   isHydrated: boolean;
+  /**
+   * Preenchido quando a sessão existe mas o perfil não pôde ser carregado
+   * (falha de rede). Diferente de `user === null`, que significa "não há
+   * ninguém logado" — as telas usam isso para não redirecionar ao login
+   * durante uma instabilidade de conexão.
+   */
+  authError: string | null;
+  /** Recarrega o perfil do usuário logado a partir do banco. */
+  refresh: () => Promise<void>;
   login: (
     email: string,
     password: string,
@@ -261,11 +304,23 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/**
+ * Carrega perfil + papel do usuário.
+ *
+ * Devolve `null` só quando o perfil realmente não existe. Falha de consulta
+ * (rede fora, proxy bloqueando) LANÇA — antes as duas situações viravam
+ * `null` e o app deslogava o usuário no meio do trabalho por um soluço de
+ * rede, o que na rede do SEBRAE acontece com frequência.
+ */
 async function hydrateUser(authUserId: string): Promise<AuthUser | null> {
-  const [{ data: profile }, { data: roles }] = await Promise.all([
+  const [profileRes, rolesRes] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", authUserId).maybeSingle(),
     supabase.from("user_roles").select("role").eq("user_id", authUserId),
   ]);
+  if (profileRes.error) throw new Error(profileRes.error.message);
+  if (rolesRes.error) throw new Error(rolesRes.error.message);
+  const { data: profile } = profileRes;
+  const { data: roles } = rolesRes;
   if (!profile) return null;
   const role = ((roles?.[0]?.role as UserRole) ?? "gestor") as UserRole;
   return {
@@ -282,9 +337,69 @@ async function hydrateUser(authUserId: string): Promise<AuthUser | null> {
   };
 }
 
+// Perfil do usuário logado, em memória do módulo.
+//
+// O <AuthProvider> vive no root e não desmonta entre navegações, mas manter
+// o valor aqui (e não só no state) permite dois ganhos: o primeiro render
+// após um F5 já sai com o usuário do cache persistido — sem tela de
+// "Carregando..." — e hidratações concorrentes do mesmo id são deduplicadas.
+let sessionUser: AuthUser | null = null;
+let sessionUserHydratedFor: string | null = null;
+let inFlightHydration: { userId: string; promise: Promise<AuthUser | null> } | null = null;
+
+// O perfil persistido serve só para o primeiro paint; ele é sempre
+// revalidado contra o banco em seguida. Não é credencial nem autorização:
+// toda decisão de permissão vale no servidor (RLS + checagem de papel nas
+// server functions), então um perfil adulterado no navegador não concede
+// nenhum acesso real.
+const _persistedSessionUser = loadCache<AuthUser>(SESSION_USER_CACHE_KEY, (raw) =>
+  raw && typeof raw === "object" && !Array.isArray(raw)
+    ? parseCachedUser(raw as Record<string, unknown>)
+    : null,
+);
+if (_persistedSessionUser) {
+  sessionUser = _persistedSessionUser.data;
+  sessionUserHydratedFor = _persistedSessionUser.data.id;
+}
+
+function setSessionUser(next: AuthUser | null) {
+  sessionUser = next;
+  sessionUserHydratedFor = next?.id ?? null;
+  if (next) saveCache(SESSION_USER_CACHE_KEY, next);
+  else clearCache(SESSION_USER_CACHE_KEY);
+}
+
+/** Hidrata o perfil deduplicando chamadas concorrentes para o mesmo usuário. */
+function hydrateOnce(userId: string): Promise<AuthUser | null> {
+  if (inFlightHydration?.userId === userId) return inFlightHydration.promise;
+  const promise = hydrateUser(userId).finally(() => {
+    if (inFlightHydration?.userId === userId) inFlightHydration = null;
+  });
+  inFlightHydration = { userId, promise };
+  return promise;
+}
+
+// useLayoutEffect roda antes do paint no navegador (evita piscar) e não
+// existe no servidor — lá cai em useEffect, que nunca chega a executar.
+const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
 export function AuthProvider({ children }: { children: ReactNode }) {
+  // O primeiro render precisa ser IDÊNTICO ao HTML vindo do servidor, que
+  // não enxerga localStorage — por isso começa vazio, mesmo já tendo o
+  // perfil em mãos. Semear o estado aqui quebrava a hidratação do React
+  // (erro #418) e forçava um re-render completo da página.
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  // Aplica o perfil já conhecido logo após a hidratação e antes do paint:
+  // na prática o usuário não vê a tela de "Carregando...".
+  useIsomorphicLayoutEffect(() => {
+    if (sessionUser) {
+      setUser(sessionUser);
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -292,40 +407,71 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async function hydrateSessionUser(userId: string | null | undefined) {
       if (!mounted) return;
       if (!userId) {
+        setSessionUser(null);
         setUser(null);
+        setAuthError(null);
         setLoading(false);
         return;
       }
 
+      // Já temos este usuário hidratado (outra aba, navegação, evento
+      // repetido de auth): usa o que está em memória e revalida em segundo
+      // plano, sem piscar a tela.
+      const alreadyHydrated = sessionUserHydratedFor === userId && sessionUser !== null;
+      if (alreadyHydrated) {
+        setUser(sessionUser);
+        setLoading(false);
+      }
+
       try {
-        const u = await hydrateUser(userId);
+        const u = await hydrateOnce(userId);
         if (!mounted) return;
+        // `hydrateUser` devolve null quando o perfil não existe — aí o
+        // usuário é realmente deslogado.
+        setSessionUser(u);
         setUser(u);
+        setAuthError(null);
+      } catch (error) {
+        // Falha de rede (queda de conexão, bloqueio de proxy corporativo).
+        // Deslogar aqui jogaria o usuário para o login por um soluço de
+        // rede; preservamos o perfil já conhecido e seguimos.
+        console.error("[auth] falha ao hidratar perfil:", error);
+        if (!mounted) return;
+        if (!alreadyHydrated) setUser(sessionUser);
+        setAuthError(error instanceof Error ? error.message : "Falha ao carregar o perfil.");
       } finally {
         if (mounted) setLoading(false);
       }
     }
 
+    // O supabase-js emite INITIAL_SESSION ao registrar o listener, então ele
+    // sozinho já cobre a sessão existente — chamar getSession() em paralelo
+    // (como antes) dobrava as consultas de perfil a cada montagem.
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        const uid = session.user.id;
-        // Defer to avoid Supabase deadlock when calling APIs inside the callback
-        setTimeout(async () => {
-          await hydrateSessionUser(uid);
-        }, 0);
-      } else {
-        setUser(null);
-        setLoading(false);
-      }
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      void hydrateSessionUser(data.session?.user.id);
+      // TOKEN_REFRESHED não muda quem é o usuário; re-hidratar aí só gera
+      // tráfego extra a cada renovação de token.
+      if (event === "TOKEN_REFRESHED" && sessionUserHydratedFor === session?.user?.id) return;
+
+      const uid = session?.user?.id ?? null;
+      // Defer para evitar deadlock do Supabase ao chamar APIs dentro do callback.
+      setTimeout(() => {
+        void hydrateSessionUser(uid);
+      }, 0);
     });
 
     return () => {
       mounted = false;
       sub.subscription.unsubscribe();
     };
+  }, []);
+
+  const refresh = useCallback(async () => {
+    const { data } = await supabase.auth.getSession();
+    const uid = data.session?.user?.id;
+    if (!uid) return;
+    const u = await hydrateUser(uid);
+    setSessionUser(u);
+    setUser(u);
   }, []);
 
   const login: AuthContextValue["login"] = useCallback(async (email, password) => {
@@ -339,7 +485,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!data.user) return { ok: false, error: "Falha no login." };
     const u = await hydrateUser(data.user.id);
     if (!u) return { ok: false, error: "Perfil não encontrado." };
+    setSessionUser(u);
     setUser(u);
+    setAuthError(null);
     setLoading(false);
     return { ok: true, user: u };
   }, []);
@@ -394,6 +542,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const u = await hydrateUser(userId);
     if (!u) return { ok: false, error: "Perfil não encontrado após cadastro." };
+    setSessionUser(u);
     setUser(u);
     setLoading(false);
     return { ok: true, user: u };
@@ -401,8 +550,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     clearAllCaches();
+    setSessionUser(null);
     await supabase.auth.signOut();
     setUser(null);
+    setAuthError(null);
     setLoading(false);
   }, []);
 
@@ -413,7 +564,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) return { ok: false, error: error.message };
       if (user) {
         await supabase.from("profiles").update({ is_first_access: false }).eq("id", user.id);
-        setUser({ ...user, isFirstAccess: false });
+        const next = { ...user, isFirstAccess: false };
+        setSessionUser(next);
+        setUser(next);
       }
       return { ok: true };
     },
@@ -422,7 +575,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, isHydrated: !loading, login, signUp, logout, changePassword }}
+      value={{
+        user,
+        loading,
+        isHydrated: !loading,
+        authError,
+        refresh,
+        login,
+        signUp,
+        logout,
+        changePassword,
+      }}
     >
       {children}
     </AuthContext.Provider>

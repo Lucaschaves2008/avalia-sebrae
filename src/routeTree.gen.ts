@@ -9,63 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UsersRouteImport } from './routes/users'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as ReportsRouteImport } from './routes/reports'
-import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as ProcessesRouteImport } from './routes/processes'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as FinalOpinionsRouteImport } from './routes/final-opinions'
-import { Route as DiagnosticoRouteImport } from './routes/diagnostico'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CoursesRouteImport } from './routes/courses'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as DiagnosticoRouteImport } from './routes/diagnostico'
+import { Route as FinalOpinionsRouteImport } from './routes/final-opinions'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ProcessesRouteImport } from './routes/processes'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as UsersRouteImport } from './routes/users'
 import { Route as SupaApiSplatRouteImport } from './routes/supa-api.$'
 import { Route as ApiPublicDiagnosticoCursosRouteImport } from './routes/api/public/diagnostico-cursos'
 
-const UsersRoute = UsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReportsRoute = ReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProcessesRoute = ProcessesRouteImport.update({
-  id: '/processes',
-  path: '/processes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinalOpinionsRoute = FinalOpinionsRouteImport.update({
-  id: '/final-opinions',
-  path: '/final-opinions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DiagnosticoRoute = DiagnosticoRouteImport.update({
-  id: '/diagnostico',
-  path: '/diagnostico',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CoursesRoute = CoursesRouteImport.update({
@@ -73,9 +33,49 @@ const CoursesRoute = CoursesRouteImport.update({
   path: '/courses',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiagnosticoRoute = DiagnosticoRouteImport.update({
+  id: '/diagnostico',
+  path: '/diagnostico',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinalOpinionsRoute = FinalOpinionsRouteImport.update({
+  id: '/final-opinions',
+  path: '/final-opinions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProcessesRoute = ProcessesRouteImport.update({
+  id: '/processes',
+  path: '/processes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SupaApiSplatRoute = SupaApiSplatRouteImport.update({
@@ -202,67 +202,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/users': {
-      id: '/users'
-      path: '/users'
-      fullPath: '/users'
-      preLoaderRoute: typeof UsersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reports': {
-      id: '/reports'
-      path: '/reports'
-      fullPath: '/reports'
-      preLoaderRoute: typeof ReportsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/processes': {
-      id: '/processes'
-      path: '/processes'
-      fullPath: '/processes'
-      preLoaderRoute: typeof ProcessesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/final-opinions': {
-      id: '/final-opinions'
-      path: '/final-opinions'
-      fullPath: '/final-opinions'
-      preLoaderRoute: typeof FinalOpinionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/diagnostico': {
-      id: '/diagnostico'
-      path: '/diagnostico'
-      fullPath: '/diagnostico'
-      preLoaderRoute: typeof DiagnosticoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/courses': {
@@ -272,11 +216,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoursesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diagnostico': {
+      id: '/diagnostico'
+      path: '/diagnostico'
+      fullPath: '/diagnostico'
+      preLoaderRoute: typeof DiagnosticoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/final-opinions': {
+      id: '/final-opinions'
+      path: '/final-opinions'
+      fullPath: '/final-opinions'
+      preLoaderRoute: typeof FinalOpinionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/processes': {
+      id: '/processes'
+      path: '/processes'
+      fullPath: '/processes'
+      preLoaderRoute: typeof ProcessesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/supa-api/$': {

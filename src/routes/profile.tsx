@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ErrorState } from "@/components/ErrorState";
 import { useMemo, useState } from "react";
 import { CalendarDays, Loader2, LogOut, Mail, Save, Upload, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AuthProvider, useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/profile")({
@@ -21,15 +22,14 @@ export const Route = createFileRoute("/profile")({
       },
     ],
   }),
-  component: () => (
-    <AuthProvider>
-      <ProfilePage />
-    </AuthProvider>
+  component: ProfilePage,
+  errorComponent: ({ error, reset }) => (
+    <ErrorState error={error} reset={reset} boundary="route:profile" />
   ),
 });
 
-function initials(name: string) {
-  return name
+function initials(name: string | null | undefined) {
+  return (name ?? "")
     .trim()
     .split(/\s+/)
     .slice(0, 2)

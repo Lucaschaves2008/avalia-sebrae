@@ -1,4 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ErrorState } from "@/components/ErrorState";
+import { AuthPending } from "@/components/AuthPending";
 import { useEffect, useMemo, useState } from "react";
 import {
   FileText,
@@ -24,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AppShell } from "@/components/AppShell";
-import { AuthProvider, useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth";
 
 
 import { useCoursesListWhen, type Course } from "@/lib/courses";
@@ -55,23 +57,24 @@ export const Route = createFileRoute("/reports")({
   head: () => ({
     meta: [{ title: "Relatórios — Portfólio SEBRAE" }],
   }),
-  component: () => (
-    <AuthProvider>
-      <ReportsPage />
-    </AuthProvider>
+  component: ReportsPage,
+  errorComponent: ({ error, reset }) => (
+    <ErrorState error={error} reset={reset} boundary="route:reports" />
   ),
 });
 
 function ReportsPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, authError } = useAuth();
   const navigate = useNavigate();
   const canFetchData = !loading && !!user;
   const processes = useProcessesListWhen(canFetchData);
   const [processId, setProcessId] = useState<string>("");
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login" });
-  }, [loading, user, navigate]);
+    // Falha de rede não é logout: sem authError na condição, uma
+    // instabilidade do proxy expulsaria o usuário para o login.
+    if (!loading && !user && !authError) navigate({ to: "/login" });
+  }, [loading, user, authError, navigate]);
 
   useEffect(() => {
     if (processId || processes.length === 0) return;
@@ -80,11 +83,7 @@ function ReportsPage() {
   }, [processes, processId]);
 
   if (loading || !user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
-        Carregando...
-      </div>
-    );
+    return <AuthPending authError={authError} />;
   }
 
   const selectedProcess = processes.find((p) => p.id === processId);

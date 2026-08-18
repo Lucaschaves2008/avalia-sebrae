@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ErrorState } from "@/components/ErrorState";
 import { useEffect, useMemo, useState } from "react";
 import { Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, Check, X } from "lucide-react";
 import { toast } from "sonner";
@@ -14,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AuthProvider, useAuth, REGIONS, STATES_BY_REGION, type Region } from "@/lib/auth";
+import { useAuth, REGIONS, STATES_BY_REGION, type Region } from "@/lib/auth";
 import { SebraeLogo } from "@/components/SebraeLogo";
 import { PrvdFooter } from "@/components/PrvdFooter";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,10 +38,9 @@ export const Route = createFileRoute("/login")({
       },
     ],
   }),
-  component: () => (
-    <AuthProvider>
-      <LoginPage />
-    </AuthProvider>
+  component: LoginPage,
+  errorComponent: ({ error, reset }) => (
+    <ErrorState error={error} reset={reset} boundary="route:login" />
   ),
 });
 
@@ -139,7 +139,7 @@ function LoginPage() {
       toast.error(msg);
       return;
     }
-    toast.success(`Conta criada com sucesso! Bem-vindo(a), ${result.user.name.split(" ")[0]}.`);
+    toast.success(`Conta criada com sucesso! Bem-vindo(a), ${(result.user.name ?? "").trim().split(/\s+/)[0] || "usuário"}.`);
     navigate({ to: "/dashboard" });
   }
 
@@ -184,7 +184,7 @@ function LoginPage() {
       toast.error(msg);
       return;
     }
-    toast.success(`Bem-vindo, ${result.user.name.split(" ")[0]}!`);
+    toast.success(`Bem-vindo, ${(result.user.name ?? "").trim().split(/\s+/)[0] || "usuário"}!`);
     if (result.user.isFirstAccess) {
       setFirstAccessOpen(true);
     } else {

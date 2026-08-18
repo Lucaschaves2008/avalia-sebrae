@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ErrorState } from "@/components/ErrorState";
 import { useEffect, useMemo, useState } from "react";
 import { Check, Loader2, Lock, ShieldCheck, X } from "lucide-react";
 import { toast } from "sonner";
@@ -20,6 +21,9 @@ export const Route = createFileRoute("/reset-password")({
     ],
   }),
   component: ResetPasswordPage,
+  errorComponent: ({ error, reset }) => (
+    <ErrorState error={error} reset={reset} boundary="route:reset-password" />
+  ),
 });
 
 function getCriteria(password: string) {

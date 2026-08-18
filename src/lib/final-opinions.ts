@@ -78,8 +78,54 @@ export const STATUS_STYLES: Record<OpinionStatus, string> = {
 };
 
 // ---------- Reactive cache ----------
-import { loadCache, saveCache, isFresh } from "./cache-persist";
+import { loadCache, saveCache, isFresh, parseCachedList, asString } from "./cache-persist";
 const CACHE_KEY = "final-opinions";
+
+const FINAL_DECISIONS: FinalDecision[] = ["MANTER", "ATUALIZAR", "INATIVAR"];
+const FINAL_PRIORITIES: FinalPriority[] = ["ALTA", "MEDIA", "BAIXA"];
+const OPINION_STATUSES: OpinionStatus[] = ["NAO_INICIADO", "EM_ANDAMENTO", "FINALIZADO"];
+
+function parseCachedItem(raw: Record<string, unknown>): FinalOpinionItem | null {
+  const id = asString(raw.id);
+  if (!id) return null;
+  const decision = asString(raw.decision);
+  const priority = asString(raw.priority);
+  return {
+    id,
+    opinionId: asString(raw.opinionId),
+    courseId: asString(raw.courseId),
+    decision: (FINAL_DECISIONS as string[]).includes(decision)
+      ? (decision as FinalDecision)
+      : null,
+    priority: (FINAL_PRIORITIES as string[]).includes(priority)
+      ? (priority as FinalPriority)
+      : null,
+    observation: asString(raw.observation),
+    decidedBy: typeof raw.decidedBy === "string" ? raw.decidedBy : null,
+    decidedAt: typeof raw.decidedAt === "string" ? raw.decidedAt : null,
+    updatedAt: asString(raw.updatedAt),
+  };
+}
+
+// `items` é percorrido no render; um parecer sem a lista derruba a página.
+function parseCachedOpinion(raw: Record<string, unknown>): FinalOpinion | null {
+  const id = asString(raw.id);
+  if (!id) return null;
+  const items = parseCachedList(raw.items ?? [], parseCachedItem);
+  if (items === null) return null;
+  const status = asString(raw.status);
+  return {
+    id,
+    processId: asString(raw.processId),
+    status: (OPINION_STATUSES as string[]).includes(status)
+      ? (status as OpinionStatus)
+      : "NAO_INICIADO",
+    finalizedAt: typeof raw.finalizedAt === "string" ? raw.finalizedAt : null,
+    createdAt: asString(raw.createdAt),
+    updatedAt: asString(raw.updatedAt),
+    items,
+  };
+}
 
 let cache: FinalOpinion[] = [];
 let fetched = false;
@@ -87,7 +133,9 @@ let lastSavedAt = 0;
 let refreshScheduled = false;
 let loading = false;
 
-const _persisted = loadCache<FinalOpinion[]>(CACHE_KEY);
+const _persisted = loadCache<FinalOpinion[]>(CACHE_KEY, (raw) =>
+  parseCachedList(raw, parseCachedOpinion),
+);
 if (_persisted) {
   cache = _persisted.data;
   fetched = true;

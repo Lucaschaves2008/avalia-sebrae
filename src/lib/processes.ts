@@ -44,7 +44,8 @@ export const STATUS_STYLES: Record<ProcessStatus, string> = {
 export function effectiveStatus(p: { status: ProcessStatus; endDate: string }): ProcessStatus {
   if (p.status === "ATIVO") {
     const end = new Date(`${p.endDate}T23:59:59`);
-    if (end.getTime() < Date.now()) return "FINALIZADO";
+    // Data ausente/invalida vira NaN: mantém ATIVO em vez de decidir no escuro.
+    if (Number.isFinite(end.getTime()) && end.getTime() < Date.now()) return "FINALIZADO";
   }
   return p.status;
 }
@@ -59,8 +60,34 @@ export function isWithinPeriod(p: { startDate: string; endDate: string }): boole
 }
 
 // ---------- Reactive cache ----------
-import { loadCache, saveCache, isFresh } from "./cache-persist";
+import { loadCache, saveCache, isFresh, parseCachedList, asString, asStringArray } from "./cache-persist";
 const CACHE_KEY = "processes";
+
+const SCOPES: ProcessScope[] = ["NACIONAL", "REGIONAL", "AMBOS"];
+const STATUSES: ProcessStatus[] = ["ATIVO", "INATIVO", "FINALIZADO"];
+
+// Normaliza um processo vindo do localStorage (possivelmente gravado por
+// uma versão anterior do app) para o formato atual. Campos como `createdAt`
+// e `courseIds` são usados em sort/Set no render — se vierem ausentes,
+// derrubam a página.
+function parseCachedProcess(raw: Record<string, unknown>): EvaluationProcess | null {
+  const id = asString(raw.id);
+  if (!id) return null;
+  const scope = asString(raw.scope);
+  const status = asString(raw.status);
+  return {
+    id,
+    name: asString(raw.name),
+    description: asString(raw.description),
+    startDate: asString(raw.startDate),
+    endDate: asString(raw.endDate),
+    scope: (SCOPES as string[]).includes(scope) ? (scope as ProcessScope) : "AMBOS",
+    status: (STATUSES as string[]).includes(status) ? (status as ProcessStatus) : "INATIVO",
+    courseIds: asStringArray(raw.courseIds),
+    createdAt: asString(raw.createdAt),
+    updatedAt: asString(raw.updatedAt),
+  };
+}
 
 let cache: EvaluationProcess[] = [];
 let fetched = false;
@@ -68,7 +95,9 @@ let loading = false;
 let errorMessage: string | null = null;
 let lastSavedAt = 0;
 
-const _persisted = loadCache<EvaluationProcess[]>(CACHE_KEY);
+const _persisted = loadCache<EvaluationProcess[]>(CACHE_KEY, (raw) =>
+  parseCachedList(raw, parseCachedProcess),
+);
 if (_persisted) {
   cache = _persisted.data;
   fetched = true;

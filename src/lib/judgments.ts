@@ -57,8 +57,39 @@ const DB_TO_DECISION: Record<string, JudgmentDecision> = {
 
 // ---------- Reactive cache ----------
 
-import { loadCache, saveCache, isFresh } from "./cache-persist";
+import { loadCache, saveCache, isFresh, parseCachedList, asString } from "./cache-persist";
 const CACHE_KEY = "judgments";
+
+const DECISIONS: JudgmentDecision[] = ["MANTIDO", "ATUALIZADO", "INATIVACAO"];
+const PRIORITIES: JudgmentPriority[] = ["Alta", "Média", "Baixa"];
+
+// Normaliza uma avaliação vinda do localStorage para o formato atual —
+// registros gravados por versões anteriores não podem chegar crus ao render.
+function parseCachedJudgment(raw: Record<string, unknown>): Judgment | null {
+  const id = asString(raw.id);
+  if (!id) return null;
+  const decision = asString(raw.decision);
+  const priority = asString(raw.priority);
+  return {
+    id,
+    processId: asString(raw.processId),
+    courseId: asString(raw.courseId),
+    userId: asString(raw.userId),
+    userName: asString(raw.userName),
+    userEmail: asString(raw.userEmail),
+    region: asString(raw.region) as Region,
+    decision: (DECISIONS as string[]).includes(decision)
+      ? (decision as JudgmentDecision)
+      : "MANTIDO",
+    updatesNeeded: typeof raw.updatesNeeded === "string" ? raw.updatesNeeded : undefined,
+    priority: (PRIORITIES as string[]).includes(priority)
+      ? (priority as JudgmentPriority)
+      : null,
+    reason: asString(raw.reason),
+    createdAt: asString(raw.createdAt),
+    updatedAt: asString(raw.updatedAt),
+  };
+}
 
 let cache: Judgment[] = [];
 let fetched = false;
@@ -66,7 +97,9 @@ let loading = false;
 let errorMessage: string | null = null;
 let lastSavedAt = 0;
 
-const _persisted = loadCache<Judgment[]>(CACHE_KEY);
+const _persisted = loadCache<Judgment[]>(CACHE_KEY, (raw) =>
+  parseCachedList(raw, parseCachedJudgment),
+);
 if (_persisted) {
   cache = _persisted.data;
   fetched = true;
