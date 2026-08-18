@@ -13,8 +13,6 @@ import {
 
 import { SebraeLogo } from "@/components/SebraeLogo";
 
-import { HelpTourButton } from "@/components/HelpTourButton";
-import { TourAutoStart } from "@/lib/tour/TourProvider";
 import { useAuth, SUPER_ADMIN_EMAIL } from "@/lib/auth";
 import {
   DropdownMenu,
