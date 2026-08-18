@@ -141,7 +141,6 @@ export function AppShell({
             <span className="hidden text-sm capitalize text-white/70 md:inline">
               {formatDate(now)}
             </span>
-            {pageKey && <HelpTourButton pageKey={pageKey} variant="default" />}
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -215,8 +214,6 @@ export function AppShell({
           </nav>
         </div>
       </header>
-
-      {pageKey && user && <TourAutoStart pageKey={pageKey} userId={user.id} />}
 
       {/* Page content */}
       <main className="flex-1 px-6 py-8">
