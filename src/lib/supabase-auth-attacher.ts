@@ -21,7 +21,9 @@ async function waitForAccessToken(timeoutMs = 1200): Promise<string | null> {
     };
 
     const timer = window.setTimeout(() => {
-      void readAccessToken().then(finish).catch(() => finish(null));
+      void readAccessToken()
+        .then(finish)
+        .catch(() => finish(null));
     }, timeoutMs);
 
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {

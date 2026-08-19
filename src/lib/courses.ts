@@ -279,9 +279,53 @@ function courseToRow(c: Course) {
 
 // ---------- Reactive cache ----------
 
-import { loadCache, saveCache, isFresh } from "./cache-persist";
+import { loadCache, saveCache, isFresh, parseCachedList,
+  sanitizeFetchedList, asString, asNumber, asBoolean } from "./cache-persist";
 
 const CACHE_KEY = "courses";
+
+// O cache do localStorage pode ter sido gravado por uma versão anterior do
+// app (sem `materials`/`fgv`, por exemplo). Como esses dados alimentam o
+// render direto, normalizamos cada curso para o formato atual antes de usar.
+function parseCachedCourse(raw: Record<string, unknown>): Course | null {
+  const id = asString(raw.id) || asString(raw.codigo);
+  if (!id) return null;
+
+  const rawMaterials = (raw.materials ?? {}) as Record<string, unknown>;
+  const base = emptyCourse();
+  const materials = { ...base.materials };
+  for (const key of Object.keys(materials) as (keyof CourseMaterials)[]) {
+    materials[key] = asBoolean(rawMaterials[key]);
+  }
+
+  const rawFgv = (raw.fgv ?? {}) as Record<string, unknown>;
+  const fgv = { ...base.fgv };
+  for (const key of Object.keys(fgv) as (keyof CourseFgv)[]) {
+    fgv[key] = fgvFrom(typeof rawFgv[key] === "string" ? (rawFgv[key] as string) : null);
+  }
+
+  return {
+    id,
+    codigo: asString(raw.codigo, id),
+    solucao: asString(raw.solucao),
+    link: asString(raw.link),
+    publicoAlvo: asString(raw.publicoAlvo),
+    instrumento: asString(raw.instrumento),
+    modalidade: asString(raw.modalidade),
+    idadeMeses: asNumber(raw.idadeMeses),
+    atendimentosAno: asNumber(raw.atendimentosAno),
+    ids: asNumber(raw.ids),
+    bcg: (BCG_OPTIONS as string[]).includes(asString(raw.bcg))
+      ? (raw.bcg as BCG)
+      : "",
+    dataHabilitacao: asString(raw.dataHabilitacao),
+    materials,
+    fgv,
+    ferramentasInclusao: asString(raw.ferramentasInclusao),
+    sinteseAvaliacao: asString(raw.sinteseAvaliacao),
+    pontosAtencao: asString(raw.pontosAtencao),
+  };
+}
 
 let cache: Course[] = [];
 let fetched = false;
@@ -291,7 +335,7 @@ let lastSavedAt = 0;
 
 // Hidrata sincronamente do localStorage para tornar o primeiro paint
 // instantâneo mesmo após F5. Marca como "fetched" para evitar spinners.
-const _persisted = loadCache<Course[]>(CACHE_KEY);
+const _persisted = loadCache<Course[]>(CACHE_KEY, (raw) => parseCachedList(raw, parseCachedCourse));
 if (_persisted) {
   cache = _persisted.data;
   fetched = true;
@@ -335,7 +379,9 @@ export async function refreshCourses() {
   errorMessage = null;
   notify();
   try {
-    cache = await fetchAll();
+    // Mesma fronteira de normalização do cache, agora para os dados do
+    // banco: uma linha fora do formato não pode chegar crua ao render.
+    cache = sanitizeFetchedList(await fetchAll(), parseCachedCourse, "courses");
     fetched = true;
     loading = false;
     errorMessage = null;
@@ -712,9 +758,11 @@ export interface ReadinessResult {
 }
 
 export function computeMaterialReadiness(course: Course): ReadinessResult {
-  const items = Object.values(course.materials);
+  // `materials` pode faltar em registros vindos de fora (import, cache antigo):
+  // tratamos como "nenhum material" em vez de derrubar a tela.
+  const items = Object.values(course.materials ?? {});
   const done = items.filter(Boolean).length;
-  const pct = Math.round((done / items.length) * 100);
+  const pct = items.length ? Math.round((done / items.length) * 100) : 0;
   let level: ReadinessLevel;
   let label: string;
   if (pct <= 40) {

@@ -1,4 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ErrorState } from "@/components/ErrorState";
+import { AuthPending } from "@/components/AuthPending";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { Eye, EyeOff, KeyRound, Pencil, Plus, Search, Trash2, UserCog } from "lucide-react";
@@ -45,9 +47,7 @@ import {
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 
-import {
-  AuthProvider,
-  DEFAULT_PASSWORD,
+import { DEFAULT_PASSWORD,
   REGIONS,
   STATES_BY_REGION,
   createUser,
@@ -69,10 +69,13 @@ export const Route = createFileRoute("/users")({
     meta: [{ title: "Gestão de Usuários — SEBRAE" }],
   }),
   component: () => (
-    <AuthProvider>
+    <>
       <Toaster richColors position="top-right" />
       <UsersPage />
-    </AuthProvider>
+    </>
+  ),
+  errorComponent: ({ error, reset }) => (
+    <ErrorState error={error} reset={reset} boundary="route:users" />
   ),
 });
 
@@ -127,7 +130,7 @@ const EMPTY_FORM: FormState = {
 };
 
 function UsersPage() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout, authError } = useAuth();
   const navigate = useNavigate();
   const users = useUsersListWhen(!loading && !!user);
 
@@ -268,7 +271,11 @@ function UsersPage() {
     setConfirmDelete(null);
   }
 
-  if (loading || !user || user.role !== "admin") {
+  if (loading || !user) {
+    return <AuthPending authError={authError} />;
+  }
+
+  if (user.role !== "admin") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
         Verificando permissões...

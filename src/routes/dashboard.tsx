@@ -1,4 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ErrorState } from "@/components/ErrorState";
+import { AuthPending } from "@/components/AuthPending";
 import { useEffect, useMemo, useState } from "react";
 import {
   BookOpen,
@@ -23,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AuthProvider, REGIONS, useAuth, type Region } from "@/lib/auth";
+import { REGIONS, useAuth, type Region } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { computeMaterialReadiness, useCoursesListWhen, type Course } from "@/lib/courses";
@@ -38,10 +40,9 @@ export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [{ title: "Painel — Portfólio de Cursos SEBRAE" }],
   }),
-  component: () => (
-    <AuthProvider>
-      <Dashboard />
-    </AuthProvider>
+  component: Dashboard,
+  errorComponent: ({ error, reset }) => (
+    <ErrorState error={error} reset={reset} boundary="route:dashboard" />
   ),
 });
 
@@ -66,8 +67,13 @@ interface JudgmentRow {
   decision: string;
 }
 
+/** Primeiro nome do usuário, tolerante a perfil sem nome preenchido. */
+function firstName(name: string | null | undefined): string {
+  return (name ?? "").trim().split(/\s+/)[0] || "usuário";
+}
+
 function Dashboard() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout, authError } = useAuth();
   const navigate = useNavigate();
   const canFetchData = !loading && !!user;
   const courses = useCoursesListWhen(canFetchData);
@@ -133,8 +139,10 @@ function Dashboard() {
   }, [user]);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login" });
-  }, [loading, user, navigate]);
+    // Falha de rede não é logout: sem authError na condição, uma
+    // instabilidade do proxy expulsaria o usuário para o login.
+    if (!loading && !user && !authError) navigate({ to: "/login" });
+  }, [loading, user, authError, navigate]);
 
   // Real-time fetch of judgments scoped by role
   useEffect(() => {
@@ -208,11 +216,7 @@ function Dashboard() {
   }, [judgments]);
 
   if (loading || !user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
-        Carregando...
-      </div>
-    );
+    return <AuthPending authError={authError} />;
   }
 
   const isAdmin = user.role === "admin";
@@ -265,7 +269,7 @@ function Dashboard() {
           {isAdmin ? "Acesso total" : `Região ${user.region}`}
         </span>
       }
-      title={`Bem-vindo(a), ${user.name.split(" ")[0]}`}
+      title={`Bem-vindo(a), ${firstName(user.name)}`}
       subtitle="Avaliação do portfólio de Cursos da Educação Empreendedora — visão em tempo real."
     >
       <>

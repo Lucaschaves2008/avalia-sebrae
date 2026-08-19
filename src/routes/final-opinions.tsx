@@ -1,4 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ErrorState } from "@/components/ErrorState";
+import { AuthPending } from "@/components/AuthPending";
 import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
@@ -39,7 +41,7 @@ import {
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 
-import { AuthProvider, SUPER_ADMIN_EMAIL, useAuth } from "@/lib/auth";
+import { SUPER_ADMIN_EMAIL, useAuth } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 
 import { useCoursesListWhen, type Course } from "@/lib/courses";
@@ -69,10 +71,13 @@ import {
 export const Route = createFileRoute("/final-opinions")({
   head: () => ({ meta: [{ title: "Parecer Final — SEBRAE" }] }),
   component: () => (
-    <AuthProvider>
+    <>
       <Toaster richColors position="top-right" />
       <FinalOpinionsPage />
-    </AuthProvider>
+    </>
+  ),
+  errorComponent: ({ error, reset }) => (
+    <ErrorState error={error} reset={reset} boundary="route:final-opinions" />
   ),
 });
 
@@ -89,7 +94,7 @@ const REGIONAL_STYLE: Record<(typeof REGIONAL_DECISIONS)[number], string> = {
 };
 
 function FinalOpinionsPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, authError } = useAuth();
   const navigate = useNavigate();
   const canFetchData = !loading && !!user;
   const opinions = useFinalOpinionsListWhen(canFetchData);
@@ -104,8 +109,10 @@ function FinalOpinionsPage() {
   const [openProcessId, setOpenProcessId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login" });
-  }, [loading, user, navigate]);
+    // Falha de rede não é logout: sem authError na condição, uma
+    // instabilidade do proxy expulsaria o usuário para o login.
+    if (!loading && !user && !authError) navigate({ to: "/login" });
+  }, [loading, user, authError, navigate]);
   useEffect(() => {
     if (!loading && user && !canManage) navigate({ to: "/dashboard" });
   }, [loading, user, canManage, navigate]);
@@ -130,11 +137,7 @@ function FinalOpinionsPage() {
     : null;
 
   if (loading || !user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-muted-foreground">Carregando...</p>
-      </div>
-    );
+    return <AuthPending authError={authError} />;
   }
 
   return (

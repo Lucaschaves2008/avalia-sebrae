@@ -1,4 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ErrorState } from "@/components/ErrorState";
+import { AuthPending } from "@/components/AuthPending";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   
@@ -74,7 +76,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 
-import { AuthProvider, useAuth, type AuthUser } from "@/lib/auth";
+import { useAuth, type AuthUser } from "@/lib/auth";
 import {
   appendCourses,
   BCG_OPTIONS,
@@ -132,10 +134,13 @@ export const Route = createFileRoute("/courses")({
     meta: [{ title: "Gestão de Cursos — SEBRAE" }],
   }),
   component: () => (
-    <AuthProvider>
+    <>
       <Toaster richColors position="top-right" />
       <CoursesPage />
-    </AuthProvider>
+    </>
+  ),
+  errorComponent: ({ error, reset }) => (
+    <ErrorState error={error} reset={reset} boundary="route:courses" />
   ),
 });
 
@@ -164,7 +169,7 @@ const FGV_STYLES: Record<FgvRating, { badge: string; dot: string; bar: string }>
 };
 
 function CoursesPage() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout, authError } = useAuth();
   const navigate = useNavigate();
   const canFetchData = !loading && !!user;
   const courses = useCoursesListWhen(canFetchData);
@@ -195,8 +200,10 @@ function CoursesPage() {
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login" });
-  }, [loading, user, navigate]);
+    // Falha de rede não é logout: sem authError na condição, uma
+    // instabilidade do proxy expulsaria o usuário para o login.
+    if (!loading && !user && !authError) navigate({ to: "/login" });
+  }, [loading, user, authError, navigate]);
 
   // Active processes visible to current user
   const activeProcessesForUser = useMemo<EvaluationProcess[]>(() => {
@@ -323,11 +330,7 @@ function CoursesPage() {
   }
 
   if (loading || !user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
-        Carregando...
-      </div>
-    );
+    return <AuthPending authError={authError} />;
   }
 
   return (

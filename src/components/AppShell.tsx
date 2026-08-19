@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -11,6 +11,7 @@ import {
   User as UserIcon,
 } from "lucide-react";
 
+import { ConnectionBanner } from "@/components/ConnectionBanner";
 import { SebraeLogo } from "@/components/SebraeLogo";
 
 import { useAuth, SUPER_ADMIN_EMAIL } from "@/lib/auth";
@@ -44,8 +45,8 @@ const ADMIN_NAV: NavItem[] = [
   { key: "users", label: "Usuários", to: "/users", icon: UserCog, adminOnly: true },
 ];
 
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
+function initials(name: string | null | undefined) {
+  const parts = (name ?? "").trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
@@ -83,7 +84,11 @@ export function AppShell({
   const isAdmin = user?.role === "admin";
   const isSuperAdmin = user?.email === SUPER_ADMIN_EMAIL;
 
-  const now = useMemo(() => new Date(), []);
+  // A data é formatada no fuso do navegador. Renderizá-la já no SSR faz
+  // servidor (UTC) e cliente (fuso local) discordarem perto da virada do
+  // dia, quebrando a hidratação — por isso ela só aparece após montar.
+  const [hoje, setHoje] = useState<Date | null>(null);
+  useEffect(() => setHoje(new Date()), []);
 
   const mainItems = MAIN_NAV.filter((i) => !i.adminOnly || isAdmin);
   const adminItems = ADMIN_NAV.filter((i) => !i.adminOnly || isAdmin);
@@ -98,6 +103,10 @@ export function AppShell({
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/30">
+      {/* Avisa quando o banco fica inacessível (queda de rede ou bloqueio de
+          proxy corporativo). Sem ele as telas apenas ficavam vazias. */}
+      <ConnectionBanner />
+
       {/* Top blue navbar */}
       <header
         className="sticky top-0 z-30 text-white shadow-md"
@@ -139,7 +148,7 @@ export function AppShell({
 
           <div className="flex items-center gap-4">
             <span className="hidden text-sm capitalize text-white/70 md:inline">
-              {formatDate(now)}
+              {hoje ? formatDate(hoje) : ""}
             </span>
             {user && (
               <DropdownMenu>
