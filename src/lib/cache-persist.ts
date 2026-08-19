@@ -118,6 +118,40 @@ export function parseCachedList<T>(
   return out;
 }
 
+/**
+ * Normaliza uma lista vinda da REDE (banco). Diferente de `parseCachedList`,
+ * descarta apenas os itens irrecuperáveis e mantém o resto: uma linha
+ * estranha no banco não deve esconder todas as outras — mas também não pode
+ * chegar crua ao render e derrubar a tela.
+ */
+export function sanitizeFetchedList<T>(
+  raw: unknown,
+  mapItem: (item: Record<string, unknown>) => T | null,
+  rotulo: string,
+): T[] {
+  if (!Array.isArray(raw)) return [];
+  const out: T[] = [];
+  let descartados = 0;
+  for (const item of raw) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      descartados++;
+      continue;
+    }
+    const mapped = mapItem(item as Record<string, unknown>);
+    if (mapped === null) {
+      descartados++;
+      continue;
+    }
+    out.push(mapped);
+  }
+  if (descartados) {
+    console.warn(
+      `[${rotulo}] ${descartados} registro(s) fora do formato esperado foram ignorados.`,
+    );
+  }
+  return out;
+}
+
 export function asString(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
 }

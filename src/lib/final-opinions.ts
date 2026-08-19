@@ -78,7 +78,8 @@ export const STATUS_STYLES: Record<OpinionStatus, string> = {
 };
 
 // ---------- Reactive cache ----------
-import { loadCache, saveCache, isFresh, parseCachedList, asString } from "./cache-persist";
+import { loadCache, saveCache, isFresh, parseCachedList,
+  sanitizeFetchedList, asString } from "./cache-persist";
 const CACHE_KEY = "final-opinions";
 
 const FINAL_DECISIONS: FinalDecision[] = ["MANTER", "ATUALIZAR", "INATIVAR"];
@@ -209,7 +210,9 @@ export async function refreshFinalOpinions() {
   if (loading) return;
   loading = true;
   try {
-    cache = await fetchAll();
+    // Mesma fronteira de normalização do cache, agora para os dados do
+    // banco: uma linha fora do formato não pode chegar crua ao render.
+    cache = sanitizeFetchedList(await fetchAll(), parseCachedOpinion, "final-opinions");
     fetched = true;
     lastSavedAt = Date.now();
     saveCache(CACHE_KEY, cache);

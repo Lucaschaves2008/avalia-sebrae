@@ -60,7 +60,8 @@ export function isWithinPeriod(p: { startDate: string; endDate: string }): boole
 }
 
 // ---------- Reactive cache ----------
-import { loadCache, saveCache, isFresh, parseCachedList, asString, asStringArray } from "./cache-persist";
+import { loadCache, saveCache, isFresh, parseCachedList,
+  sanitizeFetchedList, asString, asStringArray } from "./cache-persist";
 const CACHE_KEY = "processes";
 
 const SCOPES: ProcessScope[] = ["NACIONAL", "REGIONAL", "AMBOS"];
@@ -152,7 +153,9 @@ export async function refreshProcesses() {
   errorMessage = null;
   notify();
   try {
-    cache = await fetchAll();
+    // Mesma fronteira de normalização do cache, agora para os dados do
+    // banco: uma linha fora do formato não pode chegar crua ao render.
+    cache = sanitizeFetchedList(await fetchAll(), parseCachedProcess, "processes");
     fetched = true;
     loading = false;
     errorMessage = null;

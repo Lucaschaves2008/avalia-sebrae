@@ -76,6 +76,7 @@ import {
   clearAllCaches,
   clearCache,
   parseCachedList,
+  sanitizeFetchedList,
   asString,
   asBoolean,
 } from "./cache-persist";
@@ -132,22 +133,27 @@ async function fetchUsers(): Promise<AuthUser[]> {
   for (const r of rolesRes.data ?? []) {
     roleMap.set(r.user_id, r.role as UserRole);
   }
-  return profiles
-    .filter((p) => p.email !== SUPER_ADMIN_EMAIL)
-    .map(
-      (p): AuthUser => ({
+  // Passa pelo mesmo normalizador do cache: uma linha do banco com campo
+  // nulo/inesperado não pode chegar crua ao render (a busca da tela de
+  // usuários, por exemplo, faz `.toLowerCase()` em nome e região).
+  return sanitizeFetchedList(
+    profiles
+      .filter((p) => p.email !== SUPER_ADMIN_EMAIL)
+      .map((p) => ({
         id: p.id,
         email: p.email,
         name: p.name,
         phone: p.phone ?? "",
         unit: p.unity,
-        region: p.region as Region,
+        region: p.region,
         state: (p as { state?: string | null }).state ?? null,
         role: roleMap.get(p.id) ?? "gestor",
-        status: ((p as { status?: UserStatus }).status ?? "Ativo") as UserStatus,
+        status: (p as { status?: UserStatus }).status ?? "Ativo",
         isFirstAccess: p.is_first_access ?? false,
-      }),
-    );
+      })),
+    parseCachedUser,
+    "users",
+  );
 }
 
 export async function refreshUsers() {
@@ -323,18 +329,20 @@ async function hydrateUser(authUserId: string): Promise<AuthUser | null> {
   const { data: roles } = rolesRes;
   if (!profile) return null;
   const role = ((roles?.[0]?.role as UserRole) ?? "gestor") as UserRole;
-  return {
+  // Mesmo normalizador do cache: campos nulos viram valores seguros em vez
+  // de quebrarem o render (ex.: `user.name` usado sem checagem no cabeçalho).
+  return parseCachedUser({
     id: profile.id,
     email: profile.email,
     name: profile.name,
     phone: profile.phone ?? "",
     unit: profile.unity,
-    region: profile.region as Region,
+    region: profile.region,
     state: (profile as { state?: string | null }).state ?? null,
     role,
-    status: ((profile as { status?: UserStatus }).status ?? "Ativo") as UserStatus,
+    status: (profile as { status?: UserStatus }).status ?? "Ativo",
     isFirstAccess: profile.is_first_access ?? false,
-  };
+  });
 }
 
 // Perfil do usuário logado, em memória do módulo.

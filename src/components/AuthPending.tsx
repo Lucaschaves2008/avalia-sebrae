@@ -19,8 +19,8 @@ export function AuthPending({ authError }: { authError?: string | null }) {
             Não foi possível carregar seu perfil
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Sua sessão continua válida, mas o sistema não conseguiu falar com o banco de dados.
-            Pode ser instabilidade de rede ou bloqueio do proxy corporativo.
+            Sua sessão continua válida, mas o sistema não conseguiu falar com o banco de dados. Pode
+            ser instabilidade de rede ou bloqueio do proxy corporativo.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-2">
             <button

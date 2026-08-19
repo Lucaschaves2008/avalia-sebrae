@@ -57,7 +57,8 @@ const DB_TO_DECISION: Record<string, JudgmentDecision> = {
 
 // ---------- Reactive cache ----------
 
-import { loadCache, saveCache, isFresh, parseCachedList, asString } from "./cache-persist";
+import { loadCache, saveCache, isFresh, parseCachedList,
+  sanitizeFetchedList, asString } from "./cache-persist";
 const CACHE_KEY = "judgments";
 
 const DECISIONS: JudgmentDecision[] = ["MANTIDO", "ATUALIZADO", "INATIVACAO"];
@@ -176,7 +177,9 @@ export async function refreshJudgments() {
   errorMessage = null;
   notify();
   try {
-    cache = await fetchAll();
+    // Mesma fronteira de normalização do cache, agora para os dados do
+    // banco: uma linha fora do formato não pode chegar crua ao render.
+    cache = sanitizeFetchedList(await fetchAll(), parseCachedJudgment, "judgments");
     fetched = true;
     loading = false;
     errorMessage = null;
