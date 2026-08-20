@@ -349,11 +349,9 @@ function CoursesPage() {
           ? "Importe, edite e gerencie as soluções educacionais do portfólio."
           : "Avaliação dos cursos o portfólio de soluções educacionais do SEBRAE"
       }
-    >
-      <div data-tour="courses-title" />
-      <>
-        {isAdmin && (
-          <div className="mb-6 flex flex-wrap justify-end gap-2">
+      actions={
+        isAdmin ? (
+          <div className="flex flex-wrap justify-end gap-2">
             <Button variant="outline" onClick={downloadCsvTemplate}>
               <Download className="mr-2 h-4 w-4" />
               Modelo CSV
@@ -381,7 +379,10 @@ function CoursesPage() {
               Novo curso
             </Button>
           </div>
-        )}
+        ) : undefined
+      }
+    >
+      <div data-tour="courses-title" />
 
 
         {importSummary && (
@@ -654,9 +655,8 @@ function CoursesPage() {
             </Table>
           </div>
         )}
-          </>
-        )}
       </>
+    )}
 
       {/* Detail Sheet */}
       <CourseDetailSheet

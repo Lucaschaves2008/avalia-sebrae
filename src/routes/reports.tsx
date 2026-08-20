@@ -234,7 +234,7 @@ function KpiCell({
   hint?: string;
 }) {
   return (
-    <div className="rounded border border-gray-300 bg-white px-2 py-1.5">
+    <div className="rounded-lg border border-gray-300 bg-white px-2 py-1.5">
       <div className="text-[8px] font-semibold uppercase tracking-wider text-gray-500">
         {label}
       </div>
@@ -277,13 +277,13 @@ function ScreenKpiSummary({ kpis }: { kpis: Kpis }) {
     },
   ];
   return (
-    <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4 print:hidden">
+    <div className="grid gap-px overflow-hidden rounded-xl bg-border sm:grid-cols-2 lg:grid-cols-4 print:hidden">
       {cards.map((c) => (
         <div key={c.label} className="bg-card px-4 py-3">
           <div className="flex items-center gap-2">
             <span
               aria-hidden
-              className="h-3 w-px"
+              className="h-3 w-px rounded-full"
               style={{ background: c.ink ?? "var(--primary)" }}
             />
             <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -594,7 +594,7 @@ function Callout({
   const { ink, wash } = toneVars(tone);
   return (
     <div
-      className="mb-4 border-l-2 px-4 py-3 text-sm leading-relaxed"
+      className="mb-4 rounded-lg border-l-2 px-4 py-3 text-sm leading-relaxed"
       style={{ borderColor: ink, background: wash, color: ink }}
     >
       {children}
@@ -615,9 +615,9 @@ function SectionBlock({
 }) {
   const { ink, wash } = toneVars(accent);
   return (
-    <div className="border border-border print:border-gray-300">
+    <div className="overflow-hidden rounded-xl border border-border print:border-gray-300">
       <div
-        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border px-4 py-3 sm:px-5"
+        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-t-xl border-b border-border px-4 py-3 sm:px-5"
         style={{ background: wash, borderLeft: `3px solid ${ink}` }}
       >
         <div className="flex min-w-0 items-center gap-2.5">
@@ -636,7 +636,7 @@ function SectionBlock({
           {String(count).padStart(2, "0")} curso{count === 1 ? "" : "s"}
         </span>
       </div>
-      <div className="p-4 sm:p-5 print:p-4">{children}</div>
+      <div className="rounded-b-xl p-4 sm:p-5 print:p-4">{children}</div>
     </div>
   );
 }
@@ -661,7 +661,7 @@ function CoursesList({
       {items.map((item) => (
         <li
           key={item.course.id}
-          className="rounded-md border border-border bg-card p-4 print:break-inside-avoid print:border-gray-300"
+          className="rounded-xl border border-border bg-card p-4 print:break-inside-avoid print:border-gray-300"
         >
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
@@ -695,7 +695,7 @@ function CoursesList({
             </div>
           </div>
 
-          <div className="mt-3 rounded-md bg-muted/40 p-3 print:bg-gray-50">
+          <div className="mt-3 rounded-lg bg-muted/40 p-3 print:bg-gray-50">
             <div className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
               Avaliações consolidadas das regionais (
               {item.judgments.length} julgamento
@@ -734,11 +734,11 @@ function CoursesList({
                       key={j.id}
                       className="flex flex-wrap items-center gap-2 text-xs text-foreground"
                     >
-                      <span className="inline-flex items-center gap-1 rounded border border-primary/30 bg-primary/5 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                      <span className="inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary/5 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
                         {j.region}
                       </span>
                       <span
-                        className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${regionalDecisionStyle(j.decision)}`}
+                        className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${regionalDecisionStyle(j.decision)}`}
                       >
                         {REGIONAL_DECISION_LABELS[j.decision]}
                       </span>
@@ -763,7 +763,7 @@ function CoursesList({
           </div>
 
           {!pending && item.gnObservation && (
-            <div className="mt-3 rounded-md border border-primary/20 bg-primary/5 p-3 print:border-gray-400 print:bg-gray-50">
+            <div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 p-3 print:border-gray-400 print:bg-gray-50">
               <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-primary">
                 Observação da Gerência Nacional
               </div>
