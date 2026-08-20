@@ -237,7 +237,7 @@ function LoginPage() {
       {/* Brand panel */}
       <div
         className="relative hidden flex-col overflow-hidden p-10 xl:p-14 lg:flex"
-        style={{ backgroundColor: "#00306f" }}
+        style={{ backgroundColor: "#0f2f7f" }}
       >
         <img
           src={loginBg.url}
@@ -245,11 +245,11 @@ function LoginPage() {
           aria-hidden="true"
           fetchPriority="high"
           decoding="async"
-          className="absolute inset-x-0 bottom-0 h-[62%] w-full object-cover object-bottom"
+          className="absolute inset-0 h-full w-full object-cover object-bottom"
         />
         <div
           className="absolute inset-0"
-          style={{ background: "linear-gradient(180deg, rgba(0,48,135,0.94) 0%, rgba(0,48,135,0.72) 45%, rgba(0,38,110,0.86) 100%)" }}
+          style={{ background: "linear-gradient(180deg, #0f2f7f 0%, rgba(15,47,127,0.85) 42%, rgba(10,38,105,0.35) 100%)" }}
         />
         <SebraeLogo className="relative" />
         <div className="relative mt-[clamp(2.5rem,8vh,5rem)] max-w-lg space-y-5">
