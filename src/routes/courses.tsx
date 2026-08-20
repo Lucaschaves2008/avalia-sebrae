@@ -819,41 +819,22 @@ const EFFORT_STYLE: Record<
   },
 };
 
-/**
- * Selo de esforço com medidor de 10 traços — um traço por material possível.
- * Sem pílula arredondada genérica: bloco de canto reto, rótulo em caixa alta
- * com tracking largo e número tabular.
- */
+/** Selo de esforço minimalista: ponto de cor, rótulo e percentual. */
 function ReadinessBadge({ result }: { result: ReadinessResult }) {
   const s = EFFORT_STYLE[result.level];
-  const filled = Math.max(0, Math.min(10, Math.round(result.pct / 10)));
 
   return (
-    <span
-      className="inline-flex items-center gap-2 rounded-[3px] px-2 py-1"
-      style={{
-        background: s.wash,
-        boxShadow: `inset 2px 0 0 0 ${s.fill}`,
-        color: s.ink,
-      }}
-    >
-      <span className="text-[10px] font-semibold uppercase tracking-[0.14em] whitespace-nowrap">
+    <span className="inline-flex items-center gap-1.5" style={{ color: s.ink }}>
+      <span
+        aria-hidden
+        className="h-1.5 w-1.5 rounded-full"
+        style={{ background: s.fill }}
+      />
+      <span className="text-[11px] font-medium uppercase tracking-[0.08em] whitespace-nowrap">
         {result.label}
       </span>
-      <span className="flex items-center gap-[2px]" aria-hidden>
-        {Array.from({ length: 10 }).map((_, i) => (
-          <span
-            key={i}
-            className="h-[9px] w-[2px]"
-            style={{
-              background: i < filled ? s.fill : "currentColor",
-              opacity: i < filled ? 1 : 0.18,
-            }}
-          />
-        ))}
-      </span>
       <span
-        className="text-[11px] font-bold"
+        className="text-[11px] font-semibold"
         style={{ fontVariantNumeric: "tabular-nums lining-nums" }}
       >
         {result.pct}%
@@ -861,6 +842,7 @@ function ReadinessBadge({ result }: { result: ReadinessResult }) {
     </span>
   );
 }
+
 
 
 function CourseCard({
