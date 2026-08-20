@@ -264,11 +264,12 @@ function Dashboard() {
     <AppShell
       pageKey="dashboard"
       eyebrow={
-        <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+        <span className="inline-flex items-center gap-2.5 pl-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary [box-shadow:inset_2px_0_0_0_var(--color-primary)]">
           {isAdmin ? "Acesso total" : `Região ${user.region}`}
+          <span className="h-[3px] w-6 bg-secondary" aria-hidden />
         </span>
       }
+
       title={`Bem-vindo(a), ${firstName(user.name)}`}
       subtitle="Avaliação do portfólio de Cursos da Educação Empreendedora — visão em tempo real."
     >
@@ -429,21 +430,22 @@ function Dashboard() {
                 label="Pronto / Baixo Esforço (≥ 76%)"
                 count={readiness.pronto}
                 total={readiness.total}
-                color="bg-emerald-500"
+                color="var(--effort-ready)"
               />
               <ReadinessRow
                 label="Médio Esforço (41–75%)"
                 count={readiness.medio}
                 total={readiness.total}
-                color="bg-amber-500"
+                color="var(--effort-mid)"
               />
               <ReadinessRow
                 label="Alto Esforço (≤ 40%)"
                 count={readiness.alto}
                 total={readiness.total}
-                color="bg-rose-500"
+                color="var(--effort-high)"
               />
             </div>
+
 
             <div className="mt-6 rounded-lg border border-dashed border-border p-4 text-center">
               <div className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -498,15 +500,32 @@ function ReadinessRow({
   const pct = total ? Math.round((count / total) * 100) : 0;
   return (
     <div>
-      <div className="mb-1 flex items-center justify-between text-xs">
-        <span className="text-muted-foreground">{label}</span>
-        <span className="font-semibold text-foreground">
-          {count} ({pct}%)
+      <div className="mb-1.5 flex items-baseline justify-between gap-3 text-xs">
+        <span className="uppercase tracking-[0.1em] text-muted-foreground">{label}</span>
+        <span
+          className="font-bold text-foreground"
+          style={{ fontVariantNumeric: "tabular-nums lining-nums" }}
+        >
+          {count} <span className="font-medium text-muted-foreground">({pct}%)</span>
         </span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-muted">
-        <div className={`h-full ${color}`} style={{ width: `${pct}%` }} />
+      {/* Medidor segmentado: barra de canto reto, sem pílula genérica. */}
+      <div className="flex h-[7px] gap-[2px]">
+        {Array.from({ length: 20 }).map((_, i) => {
+          const on = i < Math.round((pct / 100) * 20);
+          return (
+            <span
+              key={i}
+              className="flex-1"
+              style={{
+                background: on ? color : "var(--color-muted)",
+                opacity: on ? 1 : 1,
+              }}
+            />
+          );
+        })}
       </div>
     </div>
   );
 }
+

@@ -337,11 +337,12 @@ function CoursesPage() {
     <AppShell
       pageKey="courses"
       eyebrow={
-        <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
+        <span className="inline-flex items-center gap-2.5 pl-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary [box-shadow:inset_2px_0_0_0_var(--color-primary)]">
           <FileSpreadsheet className="h-3.5 w-3.5" />
           Portfólio
         </span>
       }
+
       title="Avaliação de Cursos"
       subtitle={
         isAdmin
@@ -797,18 +798,70 @@ function BcgBadge({ value }: { value: BCG }) {
   );
 }
 
+const EFFORT_STYLE: Record<
+  ReadinessLevel,
+  { ink: string; fill: string; wash: string }
+> = {
+  pronto: {
+    ink: "var(--effort-ready-ink)",
+    fill: "var(--effort-ready)",
+    wash: "var(--effort-ready-wash)",
+  },
+  medio: {
+    ink: "var(--effort-mid-ink)",
+    fill: "var(--effort-mid)",
+    wash: "var(--effort-mid-wash)",
+  },
+  alto: {
+    ink: "var(--effort-high-ink)",
+    fill: "var(--effort-high)",
+    wash: "var(--effort-high-wash)",
+  },
+};
+
+/**
+ * Selo de esforço com medidor de 10 traços — um traço por material possível.
+ * Sem pílula arredondada genérica: bloco de canto reto, rótulo em caixa alta
+ * com tracking largo e número tabular.
+ */
 function ReadinessBadge({ result }: { result: ReadinessResult }) {
-  const styles: Record<ReadinessLevel, string> = {
-    pronto: "border-emerald-300 bg-emerald-50 text-emerald-800",
-    medio: "border-amber-300 bg-amber-50 text-amber-800",
-    alto: "border-rose-300 bg-rose-50 text-rose-800",
-  };
+  const s = EFFORT_STYLE[result.level];
+  const filled = Math.max(0, Math.min(10, Math.round(result.pct / 10)));
+
   return (
-    <Badge variant="outline" className={styles[result.level]}>
-      {result.label} ({result.pct}%)
-    </Badge>
+    <span
+      className="inline-flex items-center gap-2 rounded-[3px] px-2 py-1"
+      style={{
+        background: s.wash,
+        boxShadow: `inset 2px 0 0 0 ${s.fill}`,
+        color: s.ink,
+      }}
+    >
+      <span className="text-[10px] font-semibold uppercase tracking-[0.14em] whitespace-nowrap">
+        {result.label}
+      </span>
+      <span className="flex items-center gap-[2px]" aria-hidden>
+        {Array.from({ length: 10 }).map((_, i) => (
+          <span
+            key={i}
+            className="h-[9px] w-[2px]"
+            style={{
+              background: i < filled ? s.fill : "currentColor",
+              opacity: i < filled ? 1 : 0.18,
+            }}
+          />
+        ))}
+      </span>
+      <span
+        className="text-[11px] font-bold"
+        style={{ fontVariantNumeric: "tabular-nums lining-nums" }}
+      >
+        {result.pct}%
+      </span>
+    </span>
   );
 }
+
 
 function CourseCard({
   course,
@@ -1146,17 +1199,31 @@ function MaterialsChecklist({ course }: { course: Course }) {
               <span className="text-base font-normal text-muted-foreground"> / {items.length}</span>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-1">
+          <div className="flex flex-col items-end gap-1.5">
             <ReadinessBadge result={readiness} />
-            <div className="text-sm font-semibold text-emerald-600">{pct}% prontos</div>
+            <div
+              className="text-xs font-semibold uppercase tracking-[0.14em]"
+              style={{ color: EFFORT_STYLE[readiness.level].ink }}
+            >
+              {pct}% prontos
+            </div>
           </div>
         </div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-border">
-          <div
-            className="h-full rounded-full bg-emerald-500 transition-all"
-            style={{ width: `${pct}%` }}
-          />
+        <div className="mt-3 flex h-[7px] gap-[2px]">
+          {items.map((_, i) => (
+            <span
+              key={i}
+              className="flex-1"
+              style={{
+                background:
+                  i < done
+                    ? EFFORT_STYLE[readiness.level].fill
+                    : "var(--color-border)",
+              }}
+            />
+          ))}
         </div>
+
       </div>
 
       <ul className="space-y-2">
