@@ -661,7 +661,7 @@ function CoursesList({
       {items.map((item) => (
         <li
           key={item.course.id}
-          className="rounded-md border border-border bg-card p-4 print:break-inside-avoid print:border-gray-300"
+          className="rounded-xl border border-border bg-card p-4 print:break-inside-avoid print:border-gray-300"
         >
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
