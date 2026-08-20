@@ -58,6 +58,7 @@ export interface Course {
   publicoAlvo: string;
   instrumento: string;
   modalidade: string;
+  portfolio: string;
   idadeMeses: number;
   atendimentosAno: number;
   ids: number;
@@ -69,6 +70,17 @@ export interface Course {
   sinteseAvaliacao: string;
   pontosAtencao: string;
 }
+
+export const PORTFOLIO_OPTIONS = [
+  "Ensino Médio",
+  "Ensino Fundamental",
+  "Ensino Superior",
+  "Ensino Técnico",
+  "Educação de Jovens e Adultos (EJA)",
+  "Outros",
+] as const;
+
+export const DEFAULT_PORTFOLIO = "Ensino Médio";
 
 export const MATERIAL_LABELS: Record<keyof CourseMaterials, string> = {
   moa: "Manual de Operação e Aplicação (MOA)",
@@ -135,6 +147,7 @@ export function emptyCourse(): Course {
     publicoAlvo: "",
     instrumento: "",
     modalidade: "",
+    portfolio: DEFAULT_PORTFOLIO,
     idadeMeses: 0,
     atendimentosAno: 0,
     ids: 0,
@@ -159,6 +172,7 @@ type DbCourse = {
   target_audience: string | null;
   instrument: string | null;
   modality: string | null;
+  portfolio: string | null;
   activation_date: string | null;
   age_months: number | null;
   current_year_attendance: number | null;
@@ -202,6 +216,7 @@ function rowToCourse(r: DbCourse): Course {
     publicoAlvo: r.target_audience ?? "",
     instrumento: r.instrument ?? "",
     modalidade: r.modality ?? "",
+    portfolio: r.portfolio || DEFAULT_PORTFOLIO,
     idadeMeses: r.age_months ?? 0,
     atendimentosAno: r.current_year_attendance ?? 0,
     ids: r.ids_score == null ? 0 : Number(r.ids_score),
@@ -246,6 +261,7 @@ function courseToRow(c: Course) {
     target_audience: c.publicoAlvo || null,
     instrument: c.instrumento || null,
     modality: c.modalidade || null,
+    portfolio: c.portfolio || DEFAULT_PORTFOLIO,
     activation_date: ISO_DATE_RE.test(c.dataHabilitacao) ? c.dataHabilitacao : null,
     age_months: c.idadeMeses || 0,
     current_year_attendance: c.atendimentosAno || 0,
@@ -312,6 +328,7 @@ function parseCachedCourse(raw: Record<string, unknown>): Course | null {
     publicoAlvo: asString(raw.publicoAlvo),
     instrumento: asString(raw.instrumento),
     modalidade: asString(raw.modalidade),
+    portfolio: asString(raw.portfolio) || DEFAULT_PORTFOLIO,
     idadeMeses: asNumber(raw.idadeMeses),
     atendimentosAno: asNumber(raw.atendimentosAno),
     ids: asNumber(raw.ids),
@@ -496,6 +513,10 @@ const HEADER_ALIASES: Record<string, keyof Course | `mat:${keyof CourseMaterials
   "público alvo": "publicoAlvo",
   instrumento: "instrumento",
   modalidade: "modalidade",
+  portfolio: "portfolio",
+  portfólio: "portfolio",
+  portifolio: "portfolio",
+  portifólio: "portfolio",
   "idade do produto (meses)": "idadeMeses",
   "idade do produto": "idadeMeses",
   "idade (meses)": "idadeMeses",
@@ -671,6 +692,7 @@ export const CSV_TEMPLATE = [
     "Público-alvo",
     "Instrumento",
     "Modalidade",
+    "Portfólio",
     "Idade do Produto (meses)",
     "Atendimentos no ano atual",
     "IDS",
@@ -707,6 +729,7 @@ export const CSV_TEMPLATE = [
     "Ensino Médio",
     "Curso",
     "Híbrido",
+    "Ensino Médio",
     "12",
     "850",
     "72",
