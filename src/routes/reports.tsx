@@ -818,13 +818,14 @@ function gnPriorityStyle(p: FinalPriority): string {
 function regionalDecisionStyle(d: Judgment["decision"]): string {
   switch (d) {
     case "MANTIDO":
-      return "bg-emerald-50 text-emerald-800 border border-emerald-200";
+      return `border ${TONE_CHIP.ready}`;
     case "ATUALIZADO":
-      return "bg-amber-50 text-amber-800 border border-amber-200";
+      return `border ${TONE_CHIP.mid}`;
     case "INATIVACAO":
-      return "bg-rose-50 text-rose-800 border border-rose-200";
+      return `border ${TONE_CHIP.high}`;
   }
 }
+
 
 function PrintStyles() {
   return (
