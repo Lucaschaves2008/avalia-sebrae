@@ -242,7 +242,7 @@ function LoginPage() {
           aria-hidden="true"
           fetchPriority="high"
           decoding="async"
-          className="absolute inset-0 h-full w-full object-cover object-bottom"
+          className="absolute inset-0 h-full w-full object-cover object-center"
         />
         <SebraeLogo className="relative" />
         <div className="relative mt-[clamp(1rem,4vh,2rem)] max-w-lg space-y-5">
