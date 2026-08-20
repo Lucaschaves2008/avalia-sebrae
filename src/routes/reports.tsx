@@ -594,7 +594,7 @@ function Callout({
   const { ink, wash } = toneVars(tone);
   return (
     <div
-      className="mb-4 border-l-2 px-4 py-3 text-sm leading-relaxed"
+      className="mb-4 rounded-lg border-l-2 px-4 py-3 text-sm leading-relaxed"
       style={{ borderColor: ink, background: wash, color: ink }}
     >
       {children}
@@ -615,9 +615,9 @@ function SectionBlock({
 }) {
   const { ink, wash } = toneVars(accent);
   return (
-    <div className="border border-border print:border-gray-300">
+    <div className="overflow-hidden rounded-xl border border-border print:border-gray-300">
       <div
-        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border px-4 py-3 sm:px-5"
+        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-t-xl border-b border-border px-4 py-3 sm:px-5"
         style={{ background: wash, borderLeft: `3px solid ${ink}` }}
       >
         <div className="flex min-w-0 items-center gap-2.5">
@@ -636,7 +636,7 @@ function SectionBlock({
           {String(count).padStart(2, "0")} curso{count === 1 ? "" : "s"}
         </span>
       </div>
-      <div className="p-4 sm:p-5 print:p-4">{children}</div>
+      <div className="rounded-b-xl p-4 sm:p-5 print:p-4">{children}</div>
     </div>
   );
 }
