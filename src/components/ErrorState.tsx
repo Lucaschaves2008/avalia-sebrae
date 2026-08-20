@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle, RefreshCw, Home, Eraser } from "lucide-react";
+import { RefreshCw, Home, Eraser } from "lucide-react";
 
 import { clearAllCaches } from "@/lib/cache-persist";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
