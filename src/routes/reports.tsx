@@ -2,18 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ErrorState } from "@/components/ErrorState";
 import { AuthPending } from "@/components/AuthPending";
 import { useEffect, useMemo, useState } from "react";
-import {
-  FileText,
-  Printer,
-  AlertTriangle,
-  RefreshCw,
-  XCircle,
-  CheckCircle2,
-  ClipboardList,
-  Users,
-  Layers,
-  Gauge,
-} from "lucide-react";
+import { FileText, Printer } from "lucide-react";
+
 
 
 import { Button } from "@/components/ui/button";
