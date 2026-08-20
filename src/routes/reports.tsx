@@ -258,59 +258,61 @@ function KpiCell({
 
 function ScreenKpiSummary({ kpis }: { kpis: Kpis }) {
   const cards: {
-    icon: React.ReactNode;
     label: string;
     value: string;
     hint: string;
-    tone: string;
+    ink?: string;
   }[] = [
     {
-      icon: <Layers className="h-5 w-5" />,
       label: "Cursos no processo",
       value: String(kpis.totalCourses),
       hint: `${kpis.regionalRegions} região(ões) participante(s)`,
-      tone: "bg-primary/5 text-primary border-primary/20",
     },
     {
-      icon: <Users className="h-5 w-5" />,
       label: "Cobertura regional",
       value: `${kpis.regionalCoveragePct}%`,
       hint: `${kpis.regionalTotalJudgments} julgamentos das regionais`,
-      tone: "bg-sky-50 text-sky-800 border-sky-200",
     },
     {
-      icon: <Gauge className="h-5 w-5" />,
       label: "Completude do parecer",
       value: `${kpis.gnCompletionPct}%`,
       hint: `${kpis.gnDecidedCount}/${kpis.totalCourses} cursos decididos pela GN`,
-      tone: "bg-emerald-50 text-emerald-800 border-emerald-200",
+      ink: "var(--effort-ready-ink)",
     },
     {
-      icon: <ClipboardList className="h-5 w-5" />,
       label: "Decisões finais",
       value: `${kpis.gnCounts.MANTER} · ${kpis.gnCounts.ATUALIZAR} · ${kpis.gnCounts.INATIVAR}`,
       hint: `Manter · Atualizar · Inativar`,
-      tone: "bg-amber-50 text-amber-800 border-amber-200",
+      ink: "var(--effort-mid-ink)",
     },
   ];
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 print:hidden">
+    <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4 print:hidden">
       {cards.map((c) => (
-        <div
-          key={c.label}
-          className={`rounded-lg border p-4 shadow-sm ${c.tone}`}
-        >
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide">
-            {c.icon}
-            {c.label}
+        <div key={c.label} className="bg-card px-4 py-3">
+          <div className="flex items-center gap-2">
+            <span
+              aria-hidden
+              className="h-3 w-px"
+              style={{ background: c.ink ?? "var(--primary)" }}
+            />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              {c.label}
+            </span>
           </div>
-          <div className="mt-2 text-2xl font-bold">{c.value}</div>
-          <div className="mt-1 text-xs opacity-80">{c.hint}</div>
+          <div
+            className="mt-2 text-2xl font-semibold tabular-nums tracking-tight"
+            style={{ color: c.ink ?? "var(--foreground)" }}
+          >
+            {c.value}
+          </div>
+          <div className="mt-1 text-[11px] text-muted-foreground">{c.hint}</div>
         </div>
       ))}
     </div>
   );
 }
+
 
 function ReportCard({
   title,
