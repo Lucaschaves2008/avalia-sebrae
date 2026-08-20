@@ -509,22 +509,14 @@ function ReadinessRow({
           {count} <span className="font-medium text-muted-foreground">({pct}%)</span>
         </span>
       </div>
-      {/* Medidor segmentado: barra de canto reto, sem pílula genérica. */}
-      <div className="flex h-[7px] gap-[2px]">
-        {Array.from({ length: 20 }).map((_, i) => {
-          const on = i < Math.round((pct / 100) * 20);
-          return (
-            <span
-              key={i}
-              className="flex-1"
-              style={{
-                background: on ? color : "var(--color-muted)",
-                opacity: on ? 1 : 1,
-              }}
-            />
-          );
-        })}
+      {/* Barra fina contínua — leitura direta, sem ornamento. */}
+      <div className="h-[3px] w-full bg-muted">
+        <div
+          className="h-full"
+          style={{ width: `${pct}%`, background: color }}
+        />
       </div>
+
     </div>
   );
 }
