@@ -49,6 +49,7 @@ export type Database = {
           ids_score: number | null
           instrument: string | null
           modality: string | null
+          portfolio: string
           solution_name: string
           target_audience: string | null
         }
@@ -86,6 +87,7 @@ export type Database = {
           ids_score?: number | null
           instrument?: string | null
           modality?: string | null
+          portfolio?: string
           solution_name: string
           target_audience?: string | null
         }
@@ -123,6 +125,7 @@ export type Database = {
           ids_score?: number | null
           instrument?: string | null
           modality?: string | null
+          portfolio?: string
           solution_name?: string
           target_audience?: string | null
         }
