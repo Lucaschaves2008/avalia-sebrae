@@ -128,6 +128,13 @@ async function fetchUsers(): Promise<AuthUser[]> {
     supabase.from("profiles").select("*").order("created_at", { ascending: true }),
     supabase.from("user_roles").select("user_id, role"),
   ]);
+  // Erros das duas consultas eram ignorados. O de `user_roles` é o pior:
+  // sem os papéis, TODO usuário caía no fallback "gestor" e a tela exibia
+  // até um Gestor Nacional como Regional, sem nenhum aviso — permissão
+  // errada na tela é pior do que lista nenhuma.
+  if (profilesRes.error) throw new Error(profilesRes.error.message);
+  if (rolesRes.error) throw new Error(rolesRes.error.message);
+
   const profiles = profilesRes.data ?? [];
   const roleMap = new Map<string, UserRole>();
   for (const r of rolesRes.data ?? []) {
@@ -170,7 +177,11 @@ function requestUsersRefresh() {
   usersRefreshScheduled = true;
   window.setTimeout(() => {
     usersRefreshScheduled = false;
-    void refreshUsers();
+    // `refreshUsers` agora pode rejeitar (ver fetchUsers): sem este catch a
+    // falha viraria uma unhandled rejection silenciosa.
+    void refreshUsers().catch((error) => {
+      console.error("[users] falha ao carregar usuários:", error);
+    });
   }, 0);
 }
 
