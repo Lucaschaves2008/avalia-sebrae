@@ -225,18 +225,32 @@ function LoginPage() {
   return (
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
       {/* Brand panel */}
-      <div
-        className="relative hidden flex-col justify-between p-12 lg:flex"
-        style={{ background: "var(--gradient-hero)" }}
-      >
-        <div className="absolute inset-0 opacity-10 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:24px_24px]" />
+      <div className="relative hidden flex-col justify-between overflow-hidden p-14 lg:flex">
+        <img
+          src={loginBg.url}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover object-bottom"
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(180deg, rgba(0,48,135,0.72) 0%, rgba(0,48,135,0.55) 55%, rgba(0,38,110,0.80) 100%)" }}
+        />
         <SebraeLogo className="relative" />
-        <div className="relative space-y-6">
-          <h1 className="text-4xl font-bold leading-tight text-white">
-            Sistema de avaliação do Portfólio de Cursos da&nbsp;
+        <div className="relative max-w-lg space-y-6">
+          <span className="inline-flex items-center rounded-full border border-white/35 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/90">
+            Plataforma oficial
+          </span>
+          <h1 className="text-[2.6rem] font-bold leading-[1.12] tracking-tight text-white">
+            Sistema de avaliação
+            <br />
+            do Portfólio de Cursos da{" "}
             <span className="text-secondary">Educação Empreendedora</span>
           </h1>
-          <p className="max-w-md text-base text-white/80">{"\n"}</p>
+          <p className="max-w-md text-[15px] leading-relaxed text-white/80">
+            Acompanhe, avalie e gere insights sobre o desempenho dos cursos que
+            impulsionam o empreendedorismo no Brasil.
+          </p>
         </div>
         <div className="relative space-y-3">
           <PrvdFooter variant="onDark" className="justify-start" />
@@ -256,13 +270,14 @@ function LoginPage() {
           {mode === "login" ? (
             <>
               <div className="mb-8">
-                <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                <h2 className="text-[28px] font-bold leading-tight tracking-tight text-foreground">
                   Acesso ao sistema
                 </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Informe suas credenciais para continuar.
+                <p className="mt-1.5 text-[15px] text-muted-foreground">
+                  Informe suas credenciais para continuar
                 </p>
               </div>
+
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
