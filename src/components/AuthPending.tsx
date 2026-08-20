@@ -22,19 +22,13 @@ export function AuthPending({ authError }: { authError?: string | null }) {
             Sua sessão continua válida, mas o sistema não conseguiu falar com o banco de dados. Pode
             ser instabilidade de rede ou bloqueio do proxy corporativo.
           </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-2">
+          <div className="mt-6 flex justify-center">
             <button
               onClick={() => window.location.reload()}
               className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Tentar novamente
             </button>
-            <a
-              href="/diagnostico"
-              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-            >
-              Executar diagnóstico
-            </a>
           </div>
         </div>
       </div>

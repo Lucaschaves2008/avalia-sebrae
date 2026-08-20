@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { Loader2, RefreshCw, WifiOff } from "lucide-react";
 
 import {
@@ -12,7 +11,7 @@ import {
 // Aviso fixo exibido quando o banco de dados está inacessível (queda de
 // internet ou bloqueio de rede corporativa, como o Zscaler do SEBRAE).
 // Sem ele, as telas apenas ficam vazias e o usuário não sabe o motivo.
-export function ConnectionBanner() {
+export function ConnectionBanner({ canViewDiagnostics = false }: { canViewDiagnostics?: boolean }) {
   const status = useConnectivity();
   const [checking, setChecking] = useState(false);
 
@@ -58,12 +57,14 @@ export function ConnectionBanner() {
           )}
           Tentar novamente
         </button>
-        <Link
-          to="/diagnostico"
-          className="rounded-md bg-amber-950/10 px-2.5 py-1 text-xs font-semibold hover:bg-amber-950/20"
-        >
-          Diagnóstico
-        </Link>
+        {canViewDiagnostics ? (
+          <a
+            href="/diagnostico"
+            className="rounded-md bg-amber-950/10 px-2.5 py-1 text-xs font-semibold hover:bg-amber-950/20"
+          >
+            Diagnóstico
+          </a>
+        ) : null}
       </span>
     </div>
   );

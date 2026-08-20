@@ -116,7 +116,7 @@ export function AppShell({
     <div className="flex min-h-screen flex-col bg-muted/30">
       {/* Avisa quando o banco fica inacessível (queda de rede ou bloqueio de
           proxy corporativo). Sem ele as telas apenas ficavam vazias. */}
-      <ConnectionBanner />
+      <ConnectionBanner canViewDiagnostics={isSuperAdmin} />
 
       {/* Top blue navbar */}
       <header
