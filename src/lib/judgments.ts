@@ -33,16 +33,21 @@ export const DECISION_LABELS: Record<JudgmentDecision, string> = {
 };
 
 export const DECISION_STYLES: Record<JudgmentDecision, string> = {
-  MANTIDO: "border-emerald-300 bg-emerald-50 text-emerald-800",
-  ATUALIZADO: "border-amber-300 bg-amber-50 text-amber-800",
-  INATIVACAO: "border-rose-300 bg-rose-50 text-rose-800",
+  MANTIDO:
+    "border-[var(--effort-ready)]/45 bg-[var(--effort-ready-wash)] text-[var(--effort-ready-ink)]",
+  ATUALIZADO:
+    "border-[var(--effort-mid)]/45 bg-[var(--effort-mid-wash)] text-[var(--effort-mid-ink)]",
+  INATIVACAO:
+    "border-[var(--effort-high)]/45 bg-[var(--effort-high-wash)] text-[var(--effort-high-ink)]",
 };
 
 export const PRIORITY_STYLES: Record<JudgmentPriority, string> = {
-  Alta: "border-rose-300 bg-rose-50 text-rose-800",
-  Média: "border-amber-300 bg-amber-50 text-amber-800",
-  Baixa: "border-sky-300 bg-sky-50 text-sky-800",
+  Alta: "border-[var(--effort-high)]/45 bg-[var(--effort-high-wash)] text-[var(--effort-high-ink)]",
+  Média:
+    "border-[var(--effort-mid)]/45 bg-[var(--effort-mid-wash)] text-[var(--effort-mid-ink)]",
+  Baixa: "border-primary/30 bg-primary/5 text-primary",
 };
+
 
 const DECISION_TO_DB: Record<JudgmentDecision, string> = {
   MANTIDO: "MANTIDO",
