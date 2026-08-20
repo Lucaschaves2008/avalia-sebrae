@@ -695,7 +695,7 @@ function CoursesList({
             </div>
           </div>
 
-          <div className="mt-3 rounded-md bg-muted/40 p-3 print:bg-gray-50">
+          <div className="mt-3 rounded-lg bg-muted/40 p-3 print:bg-gray-50">
             <div className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
               Avaliações consolidadas das regionais (
               {item.judgments.length} julgamento
@@ -734,11 +734,11 @@ function CoursesList({
                       key={j.id}
                       className="flex flex-wrap items-center gap-2 text-xs text-foreground"
                     >
-                      <span className="inline-flex items-center gap-1 rounded border border-primary/30 bg-primary/5 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                      <span className="inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary/5 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
                         {j.region}
                       </span>
                       <span
-                        className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${regionalDecisionStyle(j.decision)}`}
+                        className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${regionalDecisionStyle(j.decision)}`}
                       >
                         {REGIONAL_DECISION_LABELS[j.decision]}
                       </span>
@@ -763,7 +763,7 @@ function CoursesList({
           </div>
 
           {!pending && item.gnObservation && (
-            <div className="mt-3 rounded-md border border-primary/20 bg-primary/5 p-3 print:border-gray-400 print:bg-gray-50">
+            <div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 p-3 print:border-gray-400 print:bg-gray-50">
               <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-primary">
                 Observação da Gerência Nacional
               </div>
