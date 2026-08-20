@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ErrorState } from "@/components/ErrorState";
 import { useEffect, useMemo, useState } from "react";
 import { Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, Check, X } from "lucide-react";
@@ -357,12 +357,6 @@ function LoginPage() {
                 </button>
               </p>
 
-              <p className="mt-4 text-center text-xs text-muted-foreground">
-                Problemas para entrar nesta rede?{" "}
-                <Link to="/diagnostico" className="font-medium text-primary hover:underline">
-                  Executar diagnóstico de conexão
-                </Link>
-              </p>
             </>
           ) : (
             <>

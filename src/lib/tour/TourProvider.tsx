@@ -180,8 +180,9 @@ function useTargetRect(step: TourStep): { rect: Rect | null; missing: boolean } 
     let cancelled = false;
 
     const measure = () => {
+      if (cancelled) return;
       const el = document.querySelector(step.target) as HTMLElement | null;
-      if (!el) {
+      if (!el || !el.isConnected) {
         setMissing(true);
         setRect(null);
         return;
@@ -217,7 +218,9 @@ function useTargetRect(step: TourStep): { rect: Rect | null; missing: boolean } 
       tick();
     }, 250);
 
-    const onResize = () => measure();
+    const onResize = () => {
+      if (!cancelled) measure();
+    };
     window.addEventListener("resize", onResize);
 
     return () => {
@@ -375,7 +378,6 @@ function TourOverlay({
       {/* Card */}
       {(showSpotlight || centeredFallback) && (
         <div
-          key={stepIndex}
           role="dialog"
           aria-modal="true"
           aria-label={step.title}
