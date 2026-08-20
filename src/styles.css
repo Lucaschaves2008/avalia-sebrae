@@ -119,3 +119,19 @@
     color: var(--color-foreground);
   }
 }
+
+/* Responsividade global: nada pode vazar horizontalmente. */
+html,
+body {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (max-width: 767px) {
+  /* iOS não dá zoom automático com fonte >= 16px */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
