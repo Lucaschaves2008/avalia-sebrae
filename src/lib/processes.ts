@@ -35,9 +35,9 @@ export const STATUS_LABELS: Record<ProcessStatus, string> = {
 };
 
 export const STATUS_STYLES: Record<ProcessStatus, string> = {
-  ATIVO: "border-emerald-300 bg-emerald-50 text-emerald-800",
-  INATIVO: "border-slate-300 bg-slate-50 text-slate-700",
-  FINALIZADO: "border-sky-300 bg-sky-50 text-sky-800",
+  ATIVO: "border-[var(--effort-ready)]/45 bg-[var(--effort-ready-wash)] text-[var(--effort-ready-ink)]",
+  INATIVO: "border-border bg-muted text-muted-foreground",
+  FINALIZADO: "border-primary/30 bg-primary/5 text-primary",
 };
 
 /** Returns the effective status: if end_date already passed, treat ATIVO as FINALIZADO. */

@@ -377,13 +377,13 @@ function UsersPage() {
                           variant="outline"
                           className={
                             u.status === "Ativo"
-                              ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                              ? "border-[var(--effort-ready)]/45 bg-[var(--effort-ready-wash)] text-[var(--effort-ready-ink)]"
                               : "border-zinc-300 bg-zinc-100 text-zinc-600"
                           }
                         >
                           <span
                             className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${
-                              u.status === "Ativo" ? "bg-emerald-500" : "bg-zinc-400"
+                              u.status === "Ativo" ? "bg-[var(--effort-ready)]" : "bg-muted-foreground/50"
                             }`}
                           />
                           {u.status}
@@ -604,12 +604,12 @@ function UsersPage() {
             )}
 
             {editing && isSuperAdmin && editing.id !== user?.id && (
-              <div className="sm:col-span-2 space-y-2 rounded-md border border-amber-200 bg-amber-50 p-3">
-                <div className="flex items-center gap-2 text-sm font-semibold text-amber-900">
+              <div className="sm:col-span-2 space-y-2 border-l-2 border-[var(--effort-high-ink)] bg-[var(--effort-high-wash)] p-3">
+                <div className="flex items-center gap-2 text-sm font-semibold text-[var(--effort-high-ink)]">
                   <KeyRound className="h-4 w-4" />
                   Alterar senha de acesso (Super Administrador)
                 </div>
-                <p className="text-xs text-amber-800">
+                <p className="text-xs text-[var(--effort-high-ink)]">
                   Por segurança, a senha atual fica criptografada e não pode ser exibida.
                   Defina uma nova senha — o usuário poderá entrar imediatamente com ela.
                 </p>
@@ -641,7 +641,7 @@ function UsersPage() {
                     type="button"
                     onClick={handleChangePassword}
                     disabled={savingPassword || newPassword.length < 8}
-                    className="bg-amber-600 text-white hover:bg-amber-700"
+                    className="bg-[var(--effort-high-ink)] text-white hover:opacity-90"
                   >
                     {savingPassword ? "Salvando..." : "Salvar senha"}
                   </Button>

@@ -88,9 +88,9 @@ const REGIONAL_LABEL: Record<(typeof REGIONAL_DECISIONS)[number], string> = {
   INATIVACAO: "Inativar",
 };
 const REGIONAL_STYLE: Record<(typeof REGIONAL_DECISIONS)[number], string> = {
-  MANTIDO: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  ATUALIZADO: "bg-amber-100 text-amber-800 border-amber-200",
-  INATIVACAO: "bg-rose-100 text-rose-800 border-rose-200",
+  MANTIDO: "border-[var(--effort-ready)]/45 bg-[var(--effort-ready-wash)] text-[var(--effort-ready-ink)]",
+  ATUALIZADO: "border-[var(--effort-mid)]/45 bg-[var(--effort-mid-wash)] text-[var(--effort-mid-ink)]",
+  INATIVACAO: "border-[var(--effort-high)]/45 bg-[var(--effort-high-wash)] text-[var(--effort-high-ink)]",
 };
 
 function FinalOpinionsPage() {
@@ -361,7 +361,7 @@ function OpinionEditor({
       </div>
 
       {locked ? (
-        <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+        <div className="mb-4 rounded-md border border-[var(--effort-ready)]/40 bg-[var(--effort-ready-wash)] px-4 py-3 text-sm text-[var(--effort-ready-ink)]">
           <CheckCircle2 className="mr-2 inline h-4 w-4" />
           Este parecer está <strong>finalizado</strong> e não permite alterações.
         </div>
@@ -452,7 +452,7 @@ function SuperAdminOverride({ opinion }: { opinion: FinalOpinion }) {
     }
   }
   return (
-    <div className="mb-4 flex items-center gap-2 rounded-md border border-dashed border-sky-300 bg-sky-50 px-3 py-2 text-xs text-sky-900">
+    <div className="mb-4 flex items-center gap-2 rounded-md border border-dashed border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary">
       <ShieldCheck className="h-4 w-4" />
       <span>Super administrador — alterar status:</span>
       <Select
@@ -542,10 +542,10 @@ function CourseOpinionRow({
 
   const cardBorder = decision
     ? decision === "MANTER"
-      ? "border-l-4 border-l-emerald-500"
+      ? "border-l-4 border-l-[var(--effort-ready)]"
       : decision === "ATUALIZAR"
-        ? "border-l-4 border-l-amber-500"
-        : "border-l-4 border-l-rose-500"
+        ? "border-l-4 border-l-[var(--effort-mid)]"
+        : "border-l-4 border-l-[var(--effort-high)]"
     : "border-l-4 border-l-slate-200";
 
   return (

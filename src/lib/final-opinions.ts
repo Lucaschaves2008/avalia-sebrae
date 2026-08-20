@@ -42,9 +42,9 @@ export const PRIORITY_LABELS: Record<FinalPriority, string> = {
 
 
 export const DECISION_STYLES: Record<FinalDecision, string> = {
-  MANTER: "border-emerald-300 bg-emerald-50 text-emerald-800",
-  ATUALIZAR: "border-amber-300 bg-amber-50 text-amber-800",
-  INATIVAR: "border-rose-300 bg-rose-50 text-rose-800",
+  MANTER: "border-[var(--effort-ready)]/45 bg-[var(--effort-ready-wash)] text-[var(--effort-ready-ink)]",
+  ATUALIZAR: "border-[var(--effort-mid)]/45 bg-[var(--effort-mid-wash)] text-[var(--effort-mid-ink)]",
+  INATIVAR: "border-[var(--effort-high)]/45 bg-[var(--effort-high-wash)] text-[var(--effort-high-ink)]",
 };
 
 export const DECISION_BTN_STYLES: Record<
@@ -52,16 +52,19 @@ export const DECISION_BTN_STYLES: Record<
   { active: string; idle: string }
 > = {
   MANTER: {
-    active: "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700",
-    idle: "border-emerald-300 text-emerald-800 hover:bg-emerald-50",
+    active:
+      "bg-[var(--effort-ready-ink)] text-white border-[var(--effort-ready-ink)] hover:opacity-90",
+    idle: "border-[var(--effort-ready)]/50 text-[var(--effort-ready-ink)] hover:bg-[var(--effort-ready-wash)]",
   },
   ATUALIZAR: {
-    active: "bg-amber-500 text-white border-amber-500 hover:bg-amber-600",
-    idle: "border-amber-300 text-amber-800 hover:bg-amber-50",
+    active:
+      "bg-[var(--effort-mid-ink)] text-white border-[var(--effort-mid-ink)] hover:opacity-90",
+    idle: "border-[var(--effort-mid)]/50 text-[var(--effort-mid-ink)] hover:bg-[var(--effort-mid-wash)]",
   },
   INATIVAR: {
-    active: "bg-rose-600 text-white border-rose-600 hover:bg-rose-700",
-    idle: "border-rose-300 text-rose-800 hover:bg-rose-50",
+    active:
+      "bg-[var(--effort-high-ink)] text-white border-[var(--effort-high-ink)] hover:opacity-90",
+    idle: "border-[var(--effort-high)]/50 text-[var(--effort-high-ink)] hover:bg-[var(--effort-high-wash)]",
   },
 };
 
@@ -72,9 +75,9 @@ export const STATUS_LABELS: Record<OpinionStatus, string> = {
 };
 
 export const STATUS_STYLES: Record<OpinionStatus, string> = {
-  NAO_INICIADO: "border-slate-300 bg-slate-50 text-slate-700",
-  EM_ANDAMENTO: "border-amber-300 bg-amber-50 text-amber-800",
-  FINALIZADO: "border-emerald-300 bg-emerald-50 text-emerald-800",
+  NAO_INICIADO: "border-border bg-muted text-muted-foreground",
+  EM_ANDAMENTO: "border-[var(--effort-mid)]/45 bg-[var(--effort-mid-wash)] text-[var(--effort-mid-ink)]",
+  FINALIZADO: "border-[var(--effort-ready)]/45 bg-[var(--effort-ready-wash)] text-[var(--effort-ready-ink)]",
 };
 
 // ---------- Reactive cache ----------
