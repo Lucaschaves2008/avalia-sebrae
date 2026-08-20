@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ErrorState } from "@/components/ErrorState";
 import { useEffect, useMemo, useState } from "react";
-import { Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, Check, X } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, Mail, Check, X } from "lucide-react";
+import { Envelope, ShieldCheck as PhosphorShieldCheck } from "@phosphor-icons/react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -522,7 +523,7 @@ function LoginPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-secondary">
-              <Mail className="h-5 w-5 text-primary" />
+              <Envelope weight="duotone" className="h-5 w-5 text-primary" />
             </div>
             <DialogTitle>Recuperar senha</DialogTitle>
             <DialogDescription>
@@ -612,7 +613,7 @@ function LoginPage() {
         >
           <DialogHeader>
             <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-secondary">
-              <ShieldCheck className="h-5 w-5 text-primary" />
+              <PhosphorShieldCheck weight="duotone" className="h-5 w-5 text-primary" />
             </div>
             <DialogTitle>Primeiro acesso detectado</DialogTitle>
             <DialogDescription>
