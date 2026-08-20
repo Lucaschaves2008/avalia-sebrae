@@ -1199,17 +1199,31 @@ function MaterialsChecklist({ course }: { course: Course }) {
               <span className="text-base font-normal text-muted-foreground"> / {items.length}</span>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-1">
+          <div className="flex flex-col items-end gap-1.5">
             <ReadinessBadge result={readiness} />
-            <div className="text-sm font-semibold text-emerald-600">{pct}% prontos</div>
+            <div
+              className="text-xs font-semibold uppercase tracking-[0.14em]"
+              style={{ color: EFFORT_STYLE[readiness.level].ink }}
+            >
+              {pct}% prontos
+            </div>
           </div>
         </div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-border">
-          <div
-            className="h-full rounded-full bg-emerald-500 transition-all"
-            style={{ width: `${pct}%` }}
-          />
+        <div className="mt-3 flex h-[7px] gap-[2px]">
+          {items.map((_, i) => (
+            <span
+              key={i}
+              className="flex-1"
+              style={{
+                background:
+                  i < done
+                    ? EFFORT_STYLE[readiness.level].fill
+                    : "var(--color-border)",
+              }}
+            />
+          ))}
         </div>
+
       </div>
 
       <ul className="space-y-2">
