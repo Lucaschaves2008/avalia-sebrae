@@ -112,8 +112,54 @@ export function AppShell({
         className="sticky top-0 z-30 text-white shadow-md"
         style={{ background: "var(--gradient-hero)" }}
       >
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-6">
-          <div className="flex items-center gap-8">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
+          <div className="flex min-w-0 items-center gap-3 lg:gap-8">
+            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+              <SheetTrigger asChild>
+                <button
+                  type="button"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-white/90 transition-colors hover:bg-white/10 lg:hidden"
+                  aria-label="Abrir menu"
+                >
+                  <MenuIcon className="h-6 w-6" />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[86vw] max-w-xs p-0">
+                <SheetHeader className="border-b border-border px-5 py-4 text-left">
+                  <SheetTitle className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                    Navegação
+                  </SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col p-2">
+                  {allItems.map((item) => {
+                    const Icon = item.icon;
+                    const active = pathname.startsWith(item.to);
+                    return (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          navigate({ to: item.to });
+                        }}
+                        className={`flex min-h-[48px] items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors ${
+                          active
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground hover:bg-muted"
+                        }`}
+                      >
+                        <Icon className="h-[18px] w-[18px] shrink-0" />
+                        <span className="truncate">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </nav>
+                <div className="mt-auto border-t border-border px-5 py-3 text-xs capitalize text-muted-foreground">
+                  {hoje ? formatDate(hoje) : ""}
+                </div>
+              </SheetContent>
+            </Sheet>
+
             <button
               type="button"
               onClick={() => navigate({ to: "/dashboard" })}
@@ -124,6 +170,7 @@ export function AppShell({
             </button>
 
             <nav className="hidden items-center gap-1 lg:flex">
+
               {allItems.map((item) => {
                 const Icon = item.icon;
                 const active = pathname.startsWith(item.to);
