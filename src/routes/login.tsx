@@ -613,7 +613,7 @@ function LoginPage() {
         >
           <DialogHeader>
             <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-secondary">
-              <ShieldCheck className="h-5 w-5 text-primary" />
+              <PhosphorShieldCheck weight="duotone" className="h-5 w-5 text-primary" />
             </div>
             <DialogTitle>Primeiro acesso detectado</DialogTitle>
             <DialogDescription>
