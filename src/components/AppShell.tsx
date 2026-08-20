@@ -9,12 +9,20 @@ import {
   UserCog,
   LogOut,
   User as UserIcon,
+  Menu as MenuIcon,
 } from "lucide-react";
 
 import { ConnectionBanner } from "@/components/ConnectionBanner";
 import { SebraeLogo } from "@/components/SebraeLogo";
 
 import { useAuth, SUPER_ADMIN_EMAIL } from "@/lib/auth";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +31,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 
 
 interface NavItem {
