@@ -40,6 +40,14 @@ export const Route = createFileRoute("/login")({
           "Acesso ao sistema de gestão do Portfólio de Cursos de Educação Empreendedora do SEBRAE.",
       },
     ],
+    links: [
+      {
+        rel: "preload",
+        as: "image",
+        href: loginBg.url,
+        fetchpriority: "high",
+      },
+    ],
   }),
   component: LoginPage,
   errorComponent: ({ error, reset }) => (
