@@ -337,11 +337,12 @@ function CoursesPage() {
     <AppShell
       pageKey="courses"
       eyebrow={
-        <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
+        <span className="inline-flex items-center gap-2.5 pl-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary [box-shadow:inset_2px_0_0_0_var(--color-primary)]">
           <FileSpreadsheet className="h-3.5 w-3.5" />
           Portfólio
         </span>
       }
+
       title="Avaliação de Cursos"
       subtitle={
         isAdmin
