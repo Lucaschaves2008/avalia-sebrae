@@ -553,36 +553,6 @@ function toneVars(tone: DecisionTone) {
   };
 }
 
-/** Marca geométrica autoral (sem ícone genérico de círculo). */
-function DecisionMark({ tone }: { tone: DecisionTone }) {
-  const { base, ink } = toneVars(tone);
-  return (
-    <span
-      aria-hidden
-      className="grid h-4 w-4 shrink-0 place-items-center"
-      style={{ border: `1.5px solid ${ink}` }}
-    >
-      {tone === "ready" && (
-        <span className="h-1.5 w-1.5" style={{ background: base }} />
-      )}
-      {tone === "mid" && (
-        <span className="h-[1.5px] w-2.5" style={{ background: base }} />
-      )}
-      {tone === "high" && (
-        <span
-          className="h-[1.5px] w-3 rotate-45"
-          style={{ background: base }}
-        />
-      )}
-      {tone === "neutral" && (
-        <span
-          className="h-1.5 w-1.5 rounded-full"
-          style={{ background: base }}
-        />
-      )}
-    </span>
-  );
-}
 
 function Callout({
   tone,
@@ -621,7 +591,6 @@ function SectionBlock({
         style={{ background: wash, borderLeft: `3px solid ${ink}` }}
       >
         <div className="flex min-w-0 items-center gap-2.5">
-          <DecisionMark tone={accent} />
           <span
             className="truncate text-[11px] font-semibold uppercase tracking-[0.16em] sm:text-xs"
             style={{ color: ink }}
