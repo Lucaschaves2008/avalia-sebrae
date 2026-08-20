@@ -349,10 +349,40 @@ function CoursesPage() {
           ? "Importe, edite e gerencie as soluções educacionais do portfólio."
           : "Avaliação dos cursos o portfólio de soluções educacionais do SEBRAE"
       }
+      actions={
+        isAdmin ? (
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button variant="outline" onClick={downloadCsvTemplate}>
+              <Download className="mr-2 h-4 w-4" />
+              Modelo CSV
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => fileRef.current?.click()}
+              disabled={importing}
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              {importing ? "Importando..." : "Importar CSV"}
+            </Button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,text/csv"
+              hidden
+              onChange={handleFile}
+            />
+            <Button
+              onClick={() => setEditing(emptyCourse())}
+              className="bg-primary text-primary-foreground shadow-[var(--shadow-elegant)] hover:bg-[var(--primary-hover)]"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Novo curso
+            </Button>
+          </div>
+        ) : undefined
+      }
     >
       <div data-tour="courses-title" />
-      <>
-        {isAdmin && (
           <div className="mb-6 flex flex-wrap justify-end gap-2">
             <Button variant="outline" onClick={downloadCsvTemplate}>
               <Download className="mr-2 h-4 w-4" />
