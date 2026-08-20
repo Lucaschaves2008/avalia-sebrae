@@ -88,6 +88,8 @@ import {
   FGV_LABELS,
   FGV_OPTIONS,
   MATERIAL_LABELS,
+  PORTFOLIO_OPTIONS,
+  DEFAULT_PORTFOLIO,
   parseCoursesCsv,
   refreshCourses,
   upsertCourse,
