@@ -97,6 +97,8 @@ export function AppShell({
   // servidor (UTC) e cliente (fuso local) discordarem perto da virada do
   // dia, quebrando a hidratação — por isso ela só aparece após montar.
   const [hoje, setHoje] = useState<Date | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+
   useEffect(() => setHoje(new Date()), []);
 
   const mainItems = MAIN_NAV.filter((i) => !i.adminOnly || isAdmin);
