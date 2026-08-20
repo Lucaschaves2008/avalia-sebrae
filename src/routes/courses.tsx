@@ -88,6 +88,8 @@ import {
   FGV_LABELS,
   FGV_OPTIONS,
   MATERIAL_LABELS,
+  PORTFOLIO_OPTIONS,
+  DEFAULT_PORTFOLIO,
   parseCoursesCsv,
   refreshCourses,
   upsertCourse,
@@ -185,6 +187,7 @@ function CoursesPage() {
   const [bcgFilter, setBcgFilter] = useState<string>("all");
   const [publicoFilter, setPublicoFilter] = useState<string>("all");
   const [modalidadeFilter, setModalidadeFilter] = useState<string>("all");
+  const [portfolioFilter, setPortfolioFilter] = useState<string>("all");
   const [esforcoFilter, setEsforcoFilter] = useState<string>("all");
   const [view, setView] = useState<"cards" | "table">("cards");
   const [detail, setDetail] = useState<Course | null>(null);
@@ -231,6 +234,14 @@ function CoursesPage() {
     () => Array.from(new Set(courses.map((c) => c.publicoAlvo).filter(Boolean))).sort(),
     [courses],
   );
+  const portfolios = useMemo(
+    () =>
+      Array.from(
+        new Set(courses.map((c) => c.portfolio).filter(Boolean) as string[]),
+      ).sort(),
+    [courses],
+  );
+
   const modalidades = useMemo(
     () => Array.from(new Set(courses.map((c) => c.modalidade).filter(Boolean))).sort(),
     [courses],
@@ -246,6 +257,7 @@ function CoursesPage() {
       if (bcgFilter !== "all" && c.bcg !== bcgFilter) return false;
       if (publicoFilter !== "all" && c.publicoAlvo !== publicoFilter) return false;
       if (modalidadeFilter !== "all" && c.modalidade !== modalidadeFilter) return false;
+      if (portfolioFilter !== "all" && (c.portfolio || "") !== portfolioFilter) return false;
       if (esforcoFilter !== "all") {
         const r = computeMaterialReadiness(c);
         if (r.level !== esforcoFilter) return false;
@@ -258,7 +270,7 @@ function CoursesPage() {
         c.modalidade.toLowerCase().includes(q)
       );
     });
-  }, [courses, selectedProcess, query, bcgFilter, publicoFilter, modalidadeFilter, esforcoFilter]);
+  }, [courses, selectedProcess, query, bcgFilter, publicoFilter, modalidadeFilter, portfolioFilter, esforcoFilter]);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -305,6 +317,7 @@ function CoursesPage() {
     setBcgFilter("all");
     setPublicoFilter("all");
     setModalidadeFilter("all");
+    setPortfolioFilter("all");
     setEsforcoFilter("all");
   }
 
@@ -313,6 +326,7 @@ function CoursesPage() {
     bcgFilter !== "all" ||
     publicoFilter !== "all" ||
     modalidadeFilter !== "all" ||
+    portfolioFilter !== "all" ||
     esforcoFilter !== "all";
 
   const dataLoading =
@@ -451,7 +465,20 @@ function CoursesPage() {
                 className="h-10 pl-9"
               />
             </div>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5">
+              <Select value={portfolioFilter} onValueChange={setPortfolioFilter}>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Portfólio" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os portfólios</SelectItem>
+                  {portfolios.map((p) => (
+                    <SelectItem key={p} value={p}>
+                      {p}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Select value={publicoFilter} onValueChange={setPublicoFilter}>
                 <SelectTrigger className="h-10">
                   <SelectValue placeholder="Público-alvo" />
@@ -1056,6 +1083,7 @@ function CourseDetailSheet({
                   <InfoRow label="Público-alvo" value={course.publicoAlvo || "—"} />
                   <InfoRow label="Instrumento" value={course.instrumento || "—"} />
                   <InfoRow label="Modalidade" value={course.modalidade || "—"} />
+                  <InfoRow label="Portfólio" value={course.portfolio || "—"} />
                   <InfoRow label="Classificação BCG" value={course.bcg || "—"} />
                   <InfoRow
                     label="Data de habilitação"
@@ -1449,6 +1477,23 @@ function CourseEditDialog({
             </Field>
             <Field label="Modalidade">
               <Input value={form.modalidade} onChange={(e) => update("modalidade", e.target.value)} />
+            </Field>
+            <Field label="Portfólio">
+              <Select
+                value={form.portfolio || DEFAULT_PORTFOLIO}
+                onValueChange={(v) => update("portfolio", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o portfólio" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PORTFOLIO_OPTIONS.map((p) => (
+                    <SelectItem key={p} value={p}>
+                      {p}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
             <Field label="Idade do produto (meses)">
               <Input

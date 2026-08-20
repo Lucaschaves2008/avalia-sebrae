@@ -7,6 +7,7 @@ type DbCourse = {
   target_audience: string | null;
   instrument: string | null;
   modality: string | null;
+  portfolio: string | null;
   activation_date: string | null;
   age_months: number | null;
   current_year_attendance: number | null;
@@ -52,6 +53,7 @@ function rowToCourse(r: DbCourse): Course {
     publicoAlvo: r.target_audience ?? "",
     instrumento: r.instrument ?? "",
     modalidade: r.modality ?? "",
+    portfolio: r.portfolio || "Ensino Médio",
     idadeMeses: r.age_months ?? 0,
     atendimentosAno: r.current_year_attendance ?? 0,
     ids: r.ids_score == null ? 0 : Number(r.ids_score),
@@ -96,6 +98,7 @@ function courseToRow(c: Course) {
     target_audience: c.publicoAlvo || null,
     instrument: c.instrumento || null,
     modality: c.modalidade || null,
+    portfolio: c.portfolio || "Ensino Médio",
     activation_date: ISO_DATE_RE.test(c.dataHabilitacao) ? c.dataHabilitacao : null,
     age_months: c.idadeMeses || 0,
     current_year_attendance: c.atendimentosAno || 0,

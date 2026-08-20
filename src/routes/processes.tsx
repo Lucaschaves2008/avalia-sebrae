@@ -474,14 +474,37 @@ function CourseSelector({
   onChange: (ids: string[]) => void;
 }) {
   const [query, setQuery] = useState("");
+  const [portfolioFilter, setPortfolioFilter] = useState("all");
+  const [modalidadeFilter, setModalidadeFilter] = useState("all");
+
+  const portfolios = useMemo(
+    () =>
+      Array.from(
+        new Set(courses.map((c) => c.portfolio).filter(Boolean) as string[]),
+      ).sort(),
+    [courses],
+  );
+  const modalidades = useMemo(
+    () =>
+      Array.from(
+        new Set(courses.map((c) => c.modalidade).filter(Boolean) as string[]),
+      ).sort(),
+    [courses],
+  );
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return courses;
-    return courses.filter(
-      (c) =>
-        c.solucao.toLowerCase().includes(q) || c.codigo.toLowerCase().includes(q),
-    );
-  }, [courses, query]);
+    return courses.filter((c) => {
+      if (portfolioFilter !== "all" && (c.portfolio || "") !== portfolioFilter)
+        return false;
+      if (modalidadeFilter !== "all" && (c.modalidade || "") !== modalidadeFilter)
+        return false;
+      if (!q) return true;
+      return (
+        c.solucao.toLowerCase().includes(q) || c.codigo.toLowerCase().includes(q)
+      );
+    });
+  }, [courses, query, portfolioFilter, modalidadeFilter]);
 
   function toggle(id: string) {
     onChange(
@@ -522,6 +545,34 @@ function CourseSelector({
           className="pl-9"
         />
       </div>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <Select value={portfolioFilter} onValueChange={setPortfolioFilter}>
+          <SelectTrigger className="h-9">
+            <SelectValue placeholder="Portfólio" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os portfólios</SelectItem>
+            {portfolios.map((p) => (
+              <SelectItem key={p} value={p}>
+                {p}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={modalidadeFilter} onValueChange={setModalidadeFilter}>
+          <SelectTrigger className="h-9">
+            <SelectValue placeholder="Modalidade" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as modalidades</SelectItem>
+            {modalidades.map((m) => (
+              <SelectItem key={m} value={m}>
+                {m}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <div className="max-h-64 overflow-y-auto rounded-md border border-border bg-background">
         {filtered.length === 0 ? (
           <p className="p-4 text-center text-xs text-muted-foreground">
@@ -542,7 +593,7 @@ function CourseSelector({
                       {c.solucao}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {c.codigo} • {c.modalidade || "—"}
+                      {c.codigo} • {c.portfolio || "—"} • {c.modalidade || "—"}
                     </div>
                   </div>
                 </label>

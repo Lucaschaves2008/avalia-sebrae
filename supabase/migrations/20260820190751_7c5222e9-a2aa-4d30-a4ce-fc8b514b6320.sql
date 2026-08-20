@@ -1,0 +1,2 @@
+ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS portfolio text NOT NULL DEFAULT 'Ensino Médio';
+UPDATE public.courses SET portfolio = 'Ensino Médio' WHERE portfolio IS NULL OR btrim(portfolio) = '';
