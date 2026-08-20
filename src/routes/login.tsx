@@ -235,10 +235,7 @@ function LoginPage() {
   return (
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
       {/* Brand panel */}
-      <div
-        className="relative hidden flex-col overflow-hidden p-10 xl:p-14 lg:flex"
-        style={{ backgroundColor: "#0f2f7f" }}
-      >
+      <div className="relative hidden flex-col overflow-hidden p-10 xl:p-14 lg:flex">
         <img
           src={loginBg.url}
           alt=""
@@ -247,29 +244,25 @@ function LoginPage() {
           decoding="async"
           className="absolute inset-0 h-full w-full object-cover object-bottom"
         />
-        <div
-          className="absolute inset-0"
-          style={{ background: "linear-gradient(180deg, #0f2f7f 0%, rgba(15,47,127,0.85) 42%, rgba(10,38,105,0.35) 100%)" }}
-        />
         <SebraeLogo className="relative" />
-        <div className="relative mt-[clamp(2.5rem,8vh,5rem)] max-w-lg space-y-5">
-          <span className="inline-flex items-center rounded-full border border-white/35 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/90">
+        <div className="relative mt-[clamp(1rem,4vh,2rem)] max-w-lg space-y-5">
+          <span className="inline-flex items-center rounded-full border border-white/40 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
             Plataforma oficial
           </span>
-          <h1 className="text-[clamp(1.9rem,2.6vw,2.6rem)] font-bold leading-[1.12] tracking-tight text-white">
+          <h1 className="text-[clamp(1.9rem,2.6vw,2.6rem)] font-bold leading-[1.12] tracking-tight text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.35)]">
             Sistema de avaliação
             <br />
             do Portfólio de Cursos da{" "}
-            <span className="text-secondary">Educação Empreendedora</span>
+            <span className="text-secondary [text-shadow:0_1px_2px_rgba(0,0,0,0.35)]">Educação Empreendedora</span>
           </h1>
-          <p className="max-w-md text-[clamp(0.875rem,1vw,0.975rem)] leading-relaxed text-white/80">
+          <p className="max-w-md text-[clamp(0.875rem,1vw,0.975rem)] leading-relaxed text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.35)]">
             Acompanhe, avalie e gere insights sobre o desempenho dos cursos que
             impulsionam o empreendedorismo no Brasil.
           </p>
         </div>
         <div className="relative mt-auto space-y-3">
           <PrvdFooter variant="onDark" className="justify-start" />
-          <div className="text-xs text-white/60">
+          <div className="text-xs text-white/80 [text-shadow:0_1px_2px_rgba(0,0,0,0.35)]">
             © {new Date().getFullYear()}&nbsp;— Todos os direitos reservados.
           </div>
         </div>
