@@ -787,26 +787,34 @@ function CoursesList({
   );
 }
 
+const TONE_CHIP: Record<Exclude<DecisionTone, "neutral">, string> = {
+  ready:
+    "border-[var(--effort-ready)]/45 bg-[var(--effort-ready-wash)] text-[var(--effort-ready-ink)]",
+  mid: "border-[var(--effort-mid)]/45 bg-[var(--effort-mid-wash)] text-[var(--effort-mid-ink)]",
+  high: "border-[var(--effort-high)]/45 bg-[var(--effort-high-wash)] text-[var(--effort-high-ink)]",
+};
+
 function gnBadgeStyle(d: FinalDecision): string {
   switch (d) {
     case "MANTER":
-      return "border-emerald-300 bg-emerald-50 text-emerald-800";
+      return TONE_CHIP.ready;
     case "ATUALIZAR":
-      return "border-amber-300 bg-amber-50 text-amber-800";
+      return TONE_CHIP.mid;
     case "INATIVAR":
-      return "border-rose-300 bg-rose-50 text-rose-800";
+      return TONE_CHIP.high;
   }
 }
 function gnPriorityStyle(p: FinalPriority): string {
   switch (p) {
     case "ALTA":
-      return "border-rose-300 bg-rose-50 text-rose-800";
+      return TONE_CHIP.high;
     case "MEDIA":
-      return "border-amber-300 bg-amber-50 text-amber-800";
+      return TONE_CHIP.mid;
     case "BAIXA":
-      return "border-sky-300 bg-sky-50 text-sky-800";
+      return "border-primary/30 bg-primary/5 text-primary";
   }
 }
+
 function regionalDecisionStyle(d: Judgment["decision"]): string {
   switch (d) {
     case "MANTIDO":
