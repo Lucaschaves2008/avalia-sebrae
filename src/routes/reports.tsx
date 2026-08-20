@@ -234,7 +234,7 @@ function KpiCell({
   hint?: string;
 }) {
   return (
-    <div className="rounded border border-gray-300 bg-white px-2 py-1.5">
+    <div className="rounded-lg border border-gray-300 bg-white px-2 py-1.5">
       <div className="text-[8px] font-semibold uppercase tracking-wider text-gray-500">
         {label}
       </div>
@@ -277,13 +277,13 @@ function ScreenKpiSummary({ kpis }: { kpis: Kpis }) {
     },
   ];
   return (
-    <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4 print:hidden">
+    <div className="grid gap-px overflow-hidden rounded-xl bg-border sm:grid-cols-2 lg:grid-cols-4 print:hidden">
       {cards.map((c) => (
         <div key={c.label} className="bg-card px-4 py-3">
           <div className="flex items-center gap-2">
             <span
               aria-hidden
-              className="h-3 w-px"
+              className="h-3 w-px rounded-full"
               style={{ background: c.ink ?? "var(--primary)" }}
             />
             <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
