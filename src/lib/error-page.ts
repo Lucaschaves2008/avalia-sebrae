@@ -22,13 +22,11 @@ export function renderErrorPage(): string {
     <div class="card">
       <h1>Não foi possível carregar a página</h1>
       <p>
-        Houve uma falha no servidor do sistema. Tente novamente em alguns instantes.
-        Se o problema continuar, execute o diagnóstico de conexão e envie o resultado à TI.
+        Houve uma falha temporária no sistema. Tente novamente em alguns instantes.
       </p>
       <div class="actions">
         <button class="primary" onclick="location.reload()">Tentar novamente</button>
         <a class="secondary" href="/dashboard">Ir para o início</a>
-        <a class="secondary" href="/diagnostico">Diagnóstico</a>
       </div>
     </div>
   </body>

@@ -75,6 +75,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Sistema de avaliação do portifólio de cursos da Educação empreendedora do SEBRAE.",
       },
       { property: "og:type", content: "website" },
+      { name: "google", content: "notranslate" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "AVALIA SEBRAE - Cursos da Educação Empreendedora" },
@@ -115,12 +116,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR" translate="no">
       <head>
         <HeadContent />
       </head>
       <body>
-        {children}
+        <div id="sebrae-app-root" translate="no">{children}</div>
+        <div id="sebrae-portal-root" />
         <Scripts />
       </body>
     </html>

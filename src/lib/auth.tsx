@@ -17,7 +17,7 @@ import { adminCreateUser, adminDeleteUser } from "@/lib/admin-users.functions";
 // ("Failed to fetch"). Traduzimos para uma orientação útil ao usuário.
 const NETWORK_ERROR_MESSAGE =
   "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente. " +
-  "Se o problema continuar, abra a página /diagnostico e envie o relatório à TI.";
+  "Se o problema continuar, entre em contato com o suporte.";
 
 function isNetworkError(error: { message?: string }): boolean {
   if (isAuthRetryableFetchError(error)) return true;

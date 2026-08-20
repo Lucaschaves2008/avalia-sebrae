@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ErrorState } from "@/components/ErrorState";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -14,6 +14,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SebraeLogo } from "@/components/SebraeLogo";
+import { AuthPending } from "@/components/AuthPending";
+import { SUPER_ADMIN_EMAIL, useAuth } from "@/lib/auth";
 
 // Página pública de diagnóstico de conectividade.
 //
@@ -193,9 +195,17 @@ function StatusIcon({ status }: { status: TestResult["status"] }) {
 }
 
 function DiagnosticoPage() {
+  const { user, loading, authError } = useAuth();
+  const navigate = useNavigate();
   const [results, setResults] = useState<Record<TestKey, TestResult>>(INITIAL_RESULTS);
   const [running, setRunning] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!loading && (!user || user.email !== SUPER_ADMIN_EMAIL)) {
+      navigate({ to: user ? "/dashboard" : "/login", replace: true });
+    }
+  }, [loading, navigate, user]);
 
   const setResult = (key: TestKey, result: TestResult) =>
     setResults((prev) => ({ ...prev, [key]: result }));
@@ -245,8 +255,8 @@ function DiagnosticoPage() {
   }, []);
 
   useEffect(() => {
-    void runTests();
-  }, [runTests]);
+    if (user?.email === SUPER_ADMIN_EMAIL) void runTests();
+  }, [runTests, user?.email]);
 
   async function copyReport() {
     try {
@@ -266,6 +276,9 @@ function DiagnosticoPage() {
       : conclusion.tone === "fail"
         ? "border-red-300 bg-red-50 text-red-900"
         : "border-amber-300 bg-amber-50 text-amber-900";
+
+  if (loading || authError) return <AuthPending authError={authError} />;
+  if (!user || user.email !== SUPER_ADMIN_EMAIL) return null;
 
   return (
     <div className="min-h-screen bg-background px-4 py-8">

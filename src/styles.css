@@ -118,6 +118,16 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+
+  #sebrae-app-root {
+    min-height: 100vh;
+    isolation: isolate;
+  }
+
+  #sebrae-portal-root {
+    position: relative;
+    z-index: 50;
+  }
 }
 
 /* Responsividade global: nada pode vazar horizontalmente. */
