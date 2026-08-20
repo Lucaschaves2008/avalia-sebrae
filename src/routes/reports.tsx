@@ -2,18 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ErrorState } from "@/components/ErrorState";
 import { AuthPending } from "@/components/AuthPending";
 import { useEffect, useMemo, useState } from "react";
-import {
-  FileText,
-  Printer,
-  AlertTriangle,
-  RefreshCw,
-  XCircle,
-  CheckCircle2,
-  ClipboardList,
-  Users,
-  Layers,
-  Gauge,
-} from "lucide-react";
+import { FileText, Printer } from "lucide-react";
+
 
 
 import { Button } from "@/components/ui/button";
@@ -258,59 +248,61 @@ function KpiCell({
 
 function ScreenKpiSummary({ kpis }: { kpis: Kpis }) {
   const cards: {
-    icon: React.ReactNode;
     label: string;
     value: string;
     hint: string;
-    tone: string;
+    ink?: string;
   }[] = [
     {
-      icon: <Layers className="h-5 w-5" />,
       label: "Cursos no processo",
       value: String(kpis.totalCourses),
       hint: `${kpis.regionalRegions} região(ões) participante(s)`,
-      tone: "bg-primary/5 text-primary border-primary/20",
     },
     {
-      icon: <Users className="h-5 w-5" />,
       label: "Cobertura regional",
       value: `${kpis.regionalCoveragePct}%`,
       hint: `${kpis.regionalTotalJudgments} julgamentos das regionais`,
-      tone: "bg-sky-50 text-sky-800 border-sky-200",
     },
     {
-      icon: <Gauge className="h-5 w-5" />,
       label: "Completude do parecer",
       value: `${kpis.gnCompletionPct}%`,
       hint: `${kpis.gnDecidedCount}/${kpis.totalCourses} cursos decididos pela GN`,
-      tone: "bg-emerald-50 text-emerald-800 border-emerald-200",
+      ink: "var(--effort-ready-ink)",
     },
     {
-      icon: <ClipboardList className="h-5 w-5" />,
       label: "Decisões finais",
       value: `${kpis.gnCounts.MANTER} · ${kpis.gnCounts.ATUALIZAR} · ${kpis.gnCounts.INATIVAR}`,
       hint: `Manter · Atualizar · Inativar`,
-      tone: "bg-amber-50 text-amber-800 border-amber-200",
+      ink: "var(--effort-mid-ink)",
     },
   ];
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 print:hidden">
+    <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4 print:hidden">
       {cards.map((c) => (
-        <div
-          key={c.label}
-          className={`rounded-lg border p-4 shadow-sm ${c.tone}`}
-        >
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide">
-            {c.icon}
-            {c.label}
+        <div key={c.label} className="bg-card px-4 py-3">
+          <div className="flex items-center gap-2">
+            <span
+              aria-hidden
+              className="h-3 w-px"
+              style={{ background: c.ink ?? "var(--primary)" }}
+            />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              {c.label}
+            </span>
           </div>
-          <div className="mt-2 text-2xl font-bold">{c.value}</div>
-          <div className="mt-1 text-xs opacity-80">{c.hint}</div>
+          <div
+            className="mt-2 text-2xl font-semibold tabular-nums tracking-tight"
+            style={{ color: c.ink ?? "var(--foreground)" }}
+          >
+            {c.value}
+          </div>
+          <div className="mt-1 text-[11px] text-muted-foreground">{c.hint}</div>
         </div>
       ))}
     </div>
   );
 }
+
 
 function ReportCard({
   title,
@@ -442,50 +434,40 @@ function GlobalEvaluationReport({ process }: { process: EvaluationProcess }) {
 
   const groups: Array<{
     decision: FinalDecision;
-    icon: React.ReactNode;
-    accent: "emerald" | "amber" | "rose";
+    accent: DecisionTone;
     items: ConsolidatedItem[];
     calloutNode?: React.ReactNode;
   }> = [
     {
       decision: "MANTER",
-      icon: <CheckCircle2 className="h-5 w-5" />,
-      accent: "emerald",
+      accent: "ready",
       items: decided.filter((i) => i.gnDecision === "MANTER"),
       calloutNode: (
-        <div className="mb-4 flex items-start gap-3 rounded-lg border border-emerald-300 bg-emerald-50 p-4 print:border-emerald-400">
-          <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-700" />
-          <div className="text-sm text-emerald-900">
-            <strong>Decisão da Gerência Nacional:</strong> estes cursos devem
-            ser <strong>mantidos</strong> no portfólio conforme parecer final.
-          </div>
-        </div>
+        <Callout tone="ready">
+          <strong>Decisão da Gerência Nacional:</strong> estes cursos devem ser{" "}
+          <strong>mantidos</strong> no portfólio conforme parecer final.
+        </Callout>
       ),
     },
     {
       decision: "ATUALIZAR",
-      icon: <RefreshCw className="h-5 w-5" />,
-      accent: "amber",
+      accent: "mid",
       items: decided.filter((i) => i.gnDecision === "ATUALIZAR"),
       calloutNode: (
-        <div className="mb-4 flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 print:border-amber-400">
-          <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-700" />
-          <div className="text-sm text-amber-900">
-            <strong>Aviso de Priorização:</strong> estes cursos devem ser
-            <strong> priorizados para atualização</strong> — desenvolvimento e
-            confecção de materiais didáticos conforme apontamentos das
-            regionais.
-          </div>
-        </div>
+        <Callout tone="mid">
+          <strong>Aviso de Priorização:</strong> estes cursos devem ser
+          <strong> priorizados para atualização</strong> — desenvolvimento e
+          confecção de materiais didáticos conforme apontamentos das regionais.
+        </Callout>
       ),
     },
     {
       decision: "INATIVAR",
-      icon: <XCircle className="h-5 w-5" />,
-      accent: "rose",
+      accent: "high",
       items: decided.filter((i) => i.gnDecision === "INATIVAR"),
     },
   ];
+
 
   return (
     <ReportCard
@@ -506,7 +488,6 @@ function GlobalEvaluationReport({ process }: { process: EvaluationProcess }) {
           {groups.map((g, idx) => (
             <div key={g.decision}>
               <SectionBlock
-                icon={g.icon}
                 title={sectionTitle(g.decision)}
                 count={g.items.length}
                 accent={g.accent}
@@ -522,11 +503,11 @@ function GlobalEvaluationReport({ process }: { process: EvaluationProcess }) {
             <>
               <div className="print-break" />
               <SectionBlock
-                icon={<ClipboardList className="h-5 w-5" />}
                 title="Cursos aguardando parecer da Gerência Nacional"
                 count={pending.length}
-                accent="slate"
+                accent="neutral"
               >
+
                 <div className="mb-3 text-xs text-muted-foreground">
                   Parecer final:{" "}
                   <strong>{OPINION_STATUS_LABELS[opinionStatus]}</strong>. Os
@@ -555,42 +536,111 @@ function sectionTitle(d: FinalDecision): string {
   }
 }
 
+type DecisionTone = "ready" | "mid" | "high" | "neutral";
+
+function toneVars(tone: DecisionTone) {
+  if (tone === "neutral") {
+    return {
+      base: "var(--muted-foreground)",
+      ink: "var(--foreground)",
+      wash: "var(--muted)",
+    };
+  }
+  return {
+    base: `var(--effort-${tone})`,
+    ink: `var(--effort-${tone}-ink)`,
+    wash: `var(--effort-${tone}-wash)`,
+  };
+}
+
+/** Marca geométrica autoral (sem ícone genérico de círculo). */
+function DecisionMark({ tone }: { tone: DecisionTone }) {
+  const { base, ink } = toneVars(tone);
+  return (
+    <span
+      aria-hidden
+      className="grid h-4 w-4 shrink-0 place-items-center"
+      style={{ border: `1.5px solid ${ink}` }}
+    >
+      {tone === "ready" && (
+        <span className="h-1.5 w-1.5" style={{ background: base }} />
+      )}
+      {tone === "mid" && (
+        <span className="h-[1.5px] w-2.5" style={{ background: base }} />
+      )}
+      {tone === "high" && (
+        <span
+          className="h-[1.5px] w-3 rotate-45"
+          style={{ background: base }}
+        />
+      )}
+      {tone === "neutral" && (
+        <span
+          className="h-1.5 w-1.5 rounded-full"
+          style={{ background: base }}
+        />
+      )}
+    </span>
+  );
+}
+
+function Callout({
+  tone,
+  children,
+}: {
+  tone: DecisionTone;
+  children: React.ReactNode;
+}) {
+  const { ink, wash } = toneVars(tone);
+  return (
+    <div
+      className="mb-4 border-l-2 px-4 py-3 text-sm leading-relaxed"
+      style={{ borderColor: ink, background: wash, color: ink }}
+    >
+      {children}
+    </div>
+  );
+}
+
 function SectionBlock({
-  icon,
   title,
   count,
   accent,
   children,
 }: {
-  icon: React.ReactNode;
   title: string;
   count: number;
-  accent: "emerald" | "amber" | "rose" | "slate";
+  accent: DecisionTone;
   children: React.ReactNode;
 }) {
-  const accentMap = {
-    emerald: "bg-emerald-600 text-white",
-    amber: "bg-amber-500 text-white",
-    rose: "bg-rose-600 text-white",
-    slate: "bg-slate-600 text-white",
-  };
+  const { ink, wash } = toneVars(accent);
   return (
-    <div className="rounded-lg border border-border print:border-gray-300">
+    <div className="border border-border print:border-gray-300">
       <div
-        className={`flex items-center justify-between rounded-t-lg px-5 py-3 ${accentMap[accent]}`}
+        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border px-4 py-3 sm:px-5"
+        style={{ background: wash, borderLeft: `3px solid ${ink}` }}
       >
-        <div className="flex items-center gap-2 font-semibold">
-          {icon}
-          {title}
+        <div className="flex min-w-0 items-center gap-2.5">
+          <DecisionMark tone={accent} />
+          <span
+            className="truncate text-[11px] font-semibold uppercase tracking-[0.16em] sm:text-xs"
+            style={{ color: ink }}
+          >
+            {title}
+          </span>
         </div>
-        <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-bold">
-          {count} curso{count === 1 ? "" : "s"}
+        <span
+          className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.14em] tabular-nums"
+          style={{ color: ink }}
+        >
+          {String(count).padStart(2, "0")} curso{count === 1 ? "" : "s"}
         </span>
       </div>
-      <div className="p-5 print:p-4">{children}</div>
+      <div className="p-4 sm:p-5 print:p-4">{children}</div>
     </div>
   );
 }
+
 
 function CoursesList({
   items,
@@ -657,26 +707,27 @@ function CoursesList({
               </div>
             ) : (
               <>
-                <div className="flex flex-wrap gap-3 text-xs">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
                   <span>
-                    <strong className="text-emerald-700">
+                    <strong className="tabular-nums text-[var(--effort-ready-ink)]">
                       {item.regionalCounts.MANTIDO}
                     </strong>{" "}
                     {REGIONAL_DECISION_LABELS.MANTIDO}
                   </span>
                   <span>
-                    <strong className="text-amber-700">
+                    <strong className="tabular-nums text-[var(--effort-mid-ink)]">
                       {item.regionalCounts.ATUALIZADO}
                     </strong>{" "}
                     {REGIONAL_DECISION_LABELS.ATUALIZADO}
                   </span>
                   <span>
-                    <strong className="text-rose-700">
+                    <strong className="tabular-nums text-[var(--effort-high-ink)]">
                       {item.regionalCounts.INATIVACAO}
                     </strong>{" "}
                     {REGIONAL_DECISION_LABELS.INATIVACAO}
                   </span>
                 </div>
+
                 <ul className="mt-2 space-y-1">
                   {item.judgments.map((j) => (
                     <li
@@ -727,36 +778,45 @@ function CoursesList({
   );
 }
 
+const TONE_CHIP: Record<Exclude<DecisionTone, "neutral">, string> = {
+  ready:
+    "border-[var(--effort-ready)]/45 bg-[var(--effort-ready-wash)] text-[var(--effort-ready-ink)]",
+  mid: "border-[var(--effort-mid)]/45 bg-[var(--effort-mid-wash)] text-[var(--effort-mid-ink)]",
+  high: "border-[var(--effort-high)]/45 bg-[var(--effort-high-wash)] text-[var(--effort-high-ink)]",
+};
+
 function gnBadgeStyle(d: FinalDecision): string {
   switch (d) {
     case "MANTER":
-      return "border-emerald-300 bg-emerald-50 text-emerald-800";
+      return TONE_CHIP.ready;
     case "ATUALIZAR":
-      return "border-amber-300 bg-amber-50 text-amber-800";
+      return TONE_CHIP.mid;
     case "INATIVAR":
-      return "border-rose-300 bg-rose-50 text-rose-800";
+      return TONE_CHIP.high;
   }
 }
 function gnPriorityStyle(p: FinalPriority): string {
   switch (p) {
     case "ALTA":
-      return "border-rose-300 bg-rose-50 text-rose-800";
+      return TONE_CHIP.high;
     case "MEDIA":
-      return "border-amber-300 bg-amber-50 text-amber-800";
+      return TONE_CHIP.mid;
     case "BAIXA":
-      return "border-sky-300 bg-sky-50 text-sky-800";
+      return "border-primary/30 bg-primary/5 text-primary";
   }
 }
+
 function regionalDecisionStyle(d: Judgment["decision"]): string {
   switch (d) {
     case "MANTIDO":
-      return "bg-emerald-50 text-emerald-800 border border-emerald-200";
+      return `border ${TONE_CHIP.ready}`;
     case "ATUALIZADO":
-      return "bg-amber-50 text-amber-800 border border-amber-200";
+      return `border ${TONE_CHIP.mid}`;
     case "INATIVACAO":
-      return "bg-rose-50 text-rose-800 border border-rose-200";
+      return `border ${TONE_CHIP.high}`;
   }
 }
+
 
 function PrintStyles() {
   return (

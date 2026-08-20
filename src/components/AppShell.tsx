@@ -9,12 +9,20 @@ import {
   UserCog,
   LogOut,
   User as UserIcon,
+  Menu as MenuIcon,
 } from "lucide-react";
 
 import { ConnectionBanner } from "@/components/ConnectionBanner";
 import { SebraeLogo } from "@/components/SebraeLogo";
 
 import { useAuth, SUPER_ADMIN_EMAIL } from "@/lib/auth";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +31,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 
 
 interface NavItem {
@@ -88,6 +97,8 @@ export function AppShell({
   // servidor (UTC) e cliente (fuso local) discordarem perto da virada do
   // dia, quebrando a hidratação — por isso ela só aparece após montar.
   const [hoje, setHoje] = useState<Date | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+
   useEffect(() => setHoje(new Date()), []);
 
   const mainItems = MAIN_NAV.filter((i) => !i.adminOnly || isAdmin);
@@ -112,8 +123,54 @@ export function AppShell({
         className="sticky top-0 z-30 text-white shadow-md"
         style={{ background: "var(--gradient-hero)" }}
       >
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-6">
-          <div className="flex items-center gap-8">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
+          <div className="flex min-w-0 items-center gap-3 lg:gap-8">
+            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+              <SheetTrigger asChild>
+                <button
+                  type="button"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-white/90 transition-colors hover:bg-white/10 lg:hidden"
+                  aria-label="Abrir menu"
+                >
+                  <MenuIcon className="h-6 w-6" />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[86vw] max-w-xs p-0">
+                <SheetHeader className="border-b border-border px-5 py-4 text-left">
+                  <SheetTitle className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                    Navegação
+                  </SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col p-2">
+                  {allItems.map((item) => {
+                    const Icon = item.icon;
+                    const active = pathname.startsWith(item.to);
+                    return (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          navigate({ to: item.to });
+                        }}
+                        className={`flex min-h-[48px] items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors ${
+                          active
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground hover:bg-muted"
+                        }`}
+                      >
+                        <Icon className="h-[18px] w-[18px] shrink-0" />
+                        <span className="truncate">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </nav>
+                <div className="mt-auto border-t border-border px-5 py-3 text-xs capitalize text-muted-foreground">
+                  {hoje ? formatDate(hoje) : ""}
+                </div>
+              </SheetContent>
+            </Sheet>
+
             <button
               type="button"
               onClick={() => navigate({ to: "/dashboard" })}
@@ -124,6 +181,7 @@ export function AppShell({
             </button>
 
             <nav className="hidden items-center gap-1 lg:flex">
+
               {allItems.map((item) => {
                 const Icon = item.icon;
                 const active = pathname.startsWith(item.to);
@@ -198,44 +256,21 @@ export function AppShell({
           </div>
         </div>
 
-        {/* Mobile nav */}
-        <div className="border-t border-white/10 px-4 py-2 lg:hidden">
-          <nav className="flex items-center gap-1 overflow-x-auto">
-            {allItems.map((item) => {
-              const Icon = item.icon;
-              const active = pathname.startsWith(item.to);
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => navigate({ to: item.to })}
-                  className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                    active
-                      ? "bg-white/15 text-white"
-                      : "text-white/80 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Icon className="h-[18px] w-[18px]" />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-        </div>
       </header>
 
       {/* Page content */}
-      <main className="flex-1 px-6 py-8">
+      <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
         <div className="mx-auto max-w-7xl">
           {(title || eyebrow || subtitle || actions) && (
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
+              <div className="min-w-0">
                 {eyebrow}
                 {title && (
-                  <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
+                  <h1 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                     {title}
                   </h1>
                 )}
+
                 {subtitle && (
                   <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
                 )}
