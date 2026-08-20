@@ -657,6 +657,11 @@ export async function parseCoursesCsv(file: File): Promise<CsvImportResult> {
                 case "bcg":
                   c.bcg = parseBcg(rawVal);
                   break;
+                case "portfolio": {
+                  const v = String(rawVal ?? "").trim();
+                  if (v) c.portfolio = v;
+                  break;
+                }
                 default:
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   (c as any)[key] = String(rawVal ?? "").trim();
