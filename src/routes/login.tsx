@@ -19,7 +19,7 @@ import {
 import { useAuth, REGIONS, STATES_BY_REGION, type Region } from "@/lib/auth";
 import { SebraeLogo } from "@/components/SebraeLogo";
 import { PrvdFooter } from "@/components/PrvdFooter";
-import loginBg from "@/assets/login-bg.png.asset.json";
+import loginBg from "@/assets/login-bg.webp.asset.json";
 
 import { supabase } from "@/integrations/supabase/client";
 import {
