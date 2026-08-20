@@ -500,15 +500,32 @@ function ReadinessRow({
   const pct = total ? Math.round((count / total) * 100) : 0;
   return (
     <div>
-      <div className="mb-1 flex items-center justify-between text-xs">
-        <span className="text-muted-foreground">{label}</span>
-        <span className="font-semibold text-foreground">
-          {count} ({pct}%)
+      <div className="mb-1.5 flex items-baseline justify-between gap-3 text-xs">
+        <span className="uppercase tracking-[0.1em] text-muted-foreground">{label}</span>
+        <span
+          className="font-bold text-foreground"
+          style={{ fontVariantNumeric: "tabular-nums lining-nums" }}
+        >
+          {count} <span className="font-medium text-muted-foreground">({pct}%)</span>
         </span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-muted">
-        <div className={`h-full ${color}`} style={{ width: `${pct}%` }} />
+      {/* Medidor segmentado: barra de canto reto, sem pílula genérica. */}
+      <div className="flex h-[7px] gap-[2px]">
+        {Array.from({ length: 20 }).map((_, i) => {
+          const on = i < Math.round((pct / 100) * 20);
+          return (
+            <span
+              key={i}
+              className="flex-1"
+              style={{
+                background: on ? color : "var(--color-muted)",
+                opacity: on ? 1 : 1,
+              }}
+            />
+          );
+        })}
       </div>
     </div>
   );
 }
+
