@@ -498,7 +498,6 @@ function GlobalEvaluationReport({ process }: { process: EvaluationProcess }) {
           {groups.map((g, idx) => (
             <div key={g.decision}>
               <SectionBlock
-                icon={g.icon}
                 title={sectionTitle(g.decision)}
                 count={g.items.length}
                 accent={g.accent}
@@ -514,11 +513,11 @@ function GlobalEvaluationReport({ process }: { process: EvaluationProcess }) {
             <>
               <div className="print-break" />
               <SectionBlock
-                icon={<ClipboardList className="h-5 w-5" />}
                 title="Cursos aguardando parecer da Gerência Nacional"
                 count={pending.length}
-                accent="slate"
+                accent="neutral"
               >
+
                 <div className="mb-3 text-xs text-muted-foreground">
                   Parecer final:{" "}
                   <strong>{OPINION_STATUS_LABELS[opinionStatus]}</strong>. Os
