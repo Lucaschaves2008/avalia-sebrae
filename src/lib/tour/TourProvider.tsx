@@ -13,6 +13,7 @@ import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, X, Check } from "lucide-react";
 
 import { getTour, type TourConfig, type TourStep } from "./tours";
+import { getPortalContainer } from "@/lib/portal";
 
 // -------- Storage helpers --------
 
@@ -471,5 +472,6 @@ function TourOverlay({
     </div>
   );
 
-  return createPortal(overlay, document.body);
+  const portalContainer = getPortalContainer();
+  return portalContainer ? createPortal(overlay, portalContainer) : null;
 }
