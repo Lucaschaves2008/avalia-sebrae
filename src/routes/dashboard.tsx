@@ -264,11 +264,12 @@ function Dashboard() {
     <AppShell
       pageKey="dashboard"
       eyebrow={
-        <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+        <span className="inline-flex items-center gap-2.5 pl-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary [box-shadow:inset_2px_0_0_0_var(--color-primary)]">
           {isAdmin ? "Acesso total" : `Região ${user.region}`}
+          <span className="h-[3px] w-6 bg-secondary" aria-hidden />
         </span>
       }
+
       title={`Bem-vindo(a), ${firstName(user.name)}`}
       subtitle="Avaliação do portfólio de Cursos da Educação Empreendedora — visão em tempo real."
     >
