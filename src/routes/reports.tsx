@@ -546,42 +546,111 @@ function sectionTitle(d: FinalDecision): string {
   }
 }
 
+type DecisionTone = "ready" | "mid" | "high" | "neutral";
+
+function toneVars(tone: DecisionTone) {
+  if (tone === "neutral") {
+    return {
+      base: "var(--muted-foreground)",
+      ink: "var(--foreground)",
+      wash: "var(--muted)",
+    };
+  }
+  return {
+    base: `var(--effort-${tone})`,
+    ink: `var(--effort-${tone}-ink)`,
+    wash: `var(--effort-${tone}-wash)`,
+  };
+}
+
+/** Marca geométrica autoral (sem ícone genérico de círculo). */
+function DecisionMark({ tone }: { tone: DecisionTone }) {
+  const { base, ink } = toneVars(tone);
+  return (
+    <span
+      aria-hidden
+      className="grid h-4 w-4 shrink-0 place-items-center"
+      style={{ border: `1.5px solid ${ink}` }}
+    >
+      {tone === "ready" && (
+        <span className="h-1.5 w-1.5" style={{ background: base }} />
+      )}
+      {tone === "mid" && (
+        <span className="h-[1.5px] w-2.5" style={{ background: base }} />
+      )}
+      {tone === "high" && (
+        <span
+          className="h-[1.5px] w-3 rotate-45"
+          style={{ background: base }}
+        />
+      )}
+      {tone === "neutral" && (
+        <span
+          className="h-1.5 w-1.5 rounded-full"
+          style={{ background: base }}
+        />
+      )}
+    </span>
+  );
+}
+
+function Callout({
+  tone,
+  children,
+}: {
+  tone: DecisionTone;
+  children: React.ReactNode;
+}) {
+  const { ink, wash } = toneVars(tone);
+  return (
+    <div
+      className="mb-4 border-l-2 px-4 py-3 text-sm leading-relaxed"
+      style={{ borderColor: ink, background: wash, color: ink }}
+    >
+      {children}
+    </div>
+  );
+}
+
 function SectionBlock({
-  icon,
   title,
   count,
   accent,
   children,
 }: {
-  icon: React.ReactNode;
   title: string;
   count: number;
-  accent: "emerald" | "amber" | "rose" | "slate";
+  accent: DecisionTone;
   children: React.ReactNode;
 }) {
-  const accentMap = {
-    emerald: "bg-emerald-600 text-white",
-    amber: "bg-amber-500 text-white",
-    rose: "bg-rose-600 text-white",
-    slate: "bg-slate-600 text-white",
-  };
+  const { ink, wash } = toneVars(accent);
   return (
-    <div className="rounded-lg border border-border print:border-gray-300">
+    <div className="border border-border print:border-gray-300">
       <div
-        className={`flex items-center justify-between rounded-t-lg px-5 py-3 ${accentMap[accent]}`}
+        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border px-4 py-3 sm:px-5"
+        style={{ background: wash, borderLeft: `3px solid ${ink}` }}
       >
-        <div className="flex items-center gap-2 font-semibold">
-          {icon}
-          {title}
+        <div className="flex min-w-0 items-center gap-2.5">
+          <DecisionMark tone={accent} />
+          <span
+            className="truncate text-[11px] font-semibold uppercase tracking-[0.16em] sm:text-xs"
+            style={{ color: ink }}
+          >
+            {title}
+          </span>
         </div>
-        <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-bold">
-          {count} curso{count === 1 ? "" : "s"}
+        <span
+          className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.14em] tabular-nums"
+          style={{ color: ink }}
+        >
+          {String(count).padStart(2, "0")} curso{count === 1 ? "" : "s"}
         </span>
       </div>
-      <div className="p-5 print:p-4">{children}</div>
+      <div className="p-4 sm:p-5 print:p-4">{children}</div>
     </div>
   );
 }
+
 
 function CoursesList({
   items,
