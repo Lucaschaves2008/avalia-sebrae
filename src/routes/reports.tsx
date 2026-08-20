@@ -621,7 +621,6 @@ function SectionBlock({
         style={{ background: wash, borderLeft: `3px solid ${ink}` }}
       >
         <div className="flex min-w-0 items-center gap-2.5">
-          <DecisionMark tone={accent} />
           <span
             className="truncate text-[11px] font-semibold uppercase tracking-[0.16em] sm:text-xs"
             style={{ color: ink }}
