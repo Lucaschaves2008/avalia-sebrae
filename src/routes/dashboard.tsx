@@ -430,21 +430,22 @@ function Dashboard() {
                 label="Pronto / Baixo Esforço (≥ 76%)"
                 count={readiness.pronto}
                 total={readiness.total}
-                color="bg-emerald-500"
+                color="var(--effort-ready)"
               />
               <ReadinessRow
                 label="Médio Esforço (41–75%)"
                 count={readiness.medio}
                 total={readiness.total}
-                color="bg-amber-500"
+                color="var(--effort-mid)"
               />
               <ReadinessRow
                 label="Alto Esforço (≤ 40%)"
                 count={readiness.alto}
                 total={readiness.total}
-                color="bg-rose-500"
+                color="var(--effort-high)"
               />
             </div>
+
 
             <div className="mt-6 rounded-lg border border-dashed border-border p-4 text-center">
               <div className="text-xs uppercase tracking-wide text-muted-foreground">
