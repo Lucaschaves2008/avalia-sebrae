@@ -174,7 +174,6 @@ function requestUsersRefresh() {
   }, 0);
 }
 
-
 export function listUsers(): AuthUser[] {
   return usersCache;
 }
@@ -377,6 +376,21 @@ function setSessionUser(next: AuthUser | null) {
   else clearCache(SESSION_USER_CACHE_KEY);
 }
 
+// Quanto tempo esperar o perfil antes de explicar a demora ao usuário.
+// Numa rede que apenas cai (proxy corporativo derrubando a conexão), o
+// supabase-js e o fetch resiliente somam tentativas e o resultado só chega
+// dezenas de segundos depois — tempo demais olhando um "Carregando...".
+// Passado esse prazo mostramos o aviso, mas a tentativa continua correndo:
+// se ela vencer depois, a tela se resolve sozinha.
+const PERFIL_TIMEOUT_MS = 8_000;
+
+class PerfilDemorouError extends Error {
+  constructor() {
+    super("Tempo esgotado ao carregar o perfil.");
+    this.name = "PerfilDemorouError";
+  }
+}
+
 /** Hidrata o perfil deduplicando chamadas concorrentes para o mesmo usuário. */
 function hydrateOnce(userId: string): Promise<AuthUser | null> {
   if (inFlightHydration?.userId === userId) return inFlightHydration.promise;
@@ -432,7 +446,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        const u = await hydrateOnce(userId);
+        const hidratacao = hydrateOnce(userId);
+
+        // Quando a hidratação vence só depois do aviso, aplica o resultado
+        // assim mesmo — a tela sai do estado de erro sem o usuário agir.
+        void hidratacao
+          .then((tardio) => {
+            if (!mounted || !tardio) return;
+            setSessionUser(tardio);
+            setUser(tardio);
+            setAuthError(null);
+          })
+          .catch(() => {
+            /* já tratado no catch abaixo */
+          });
+
+        const u = await Promise.race([
+          hidratacao,
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new PerfilDemorouError()), PERFIL_TIMEOUT_MS),
+          ),
+        ]);
         if (!mounted) return;
         // `hydrateUser` devolve null quando o perfil não existe — aí o
         // usuário é realmente deslogado.
@@ -564,7 +598,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthError(null);
     setLoading(false);
   }, []);
-
 
   const changePassword: AuthContextValue["changePassword"] = useCallback(
     async (newPassword) => {
