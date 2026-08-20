@@ -43,13 +43,26 @@ export function ErrorState({ error, reset, boundary = "route", inline = false }:
       }
     >
       <div className="w-full max-w-lg text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-700">
-          <AlertTriangle className="h-6 w-6" />
+        <div className="mx-auto flex w-fit items-center gap-2.5 border-l-2 border-[var(--effort-high-ink)] pl-3 text-left">
+          <span
+            aria-hidden
+            className="grid h-4 w-4 shrink-0 place-items-center"
+            style={{ border: "1.5px solid var(--effort-high-ink)" }}
+          >
+            <span
+              className="h-[1.5px] w-3 rotate-45"
+              style={{ background: "var(--effort-high)" }}
+            />
+          </span>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--effort-high-ink)]">
+            Falha ao carregar
+          </span>
         </div>
 
         <h1 className="mt-4 text-xl font-semibold tracking-tight text-foreground">
           Não foi possível exibir esta página
         </h1>
+
         <p className="mt-2 text-sm text-muted-foreground">
           Houve uma falha ao montar a tela. Tente novamente; se o erro voltar sempre no mesmo lugar,
           limpe os dados salvos neste navegador — isso costuma resolver.
