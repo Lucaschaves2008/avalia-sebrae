@@ -717,26 +717,27 @@ function CoursesList({
               </div>
             ) : (
               <>
-                <div className="flex flex-wrap gap-3 text-xs">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
                   <span>
-                    <strong className="text-emerald-700">
+                    <strong className="tabular-nums text-[var(--effort-ready-ink)]">
                       {item.regionalCounts.MANTIDO}
                     </strong>{" "}
                     {REGIONAL_DECISION_LABELS.MANTIDO}
                   </span>
                   <span>
-                    <strong className="text-amber-700">
+                    <strong className="tabular-nums text-[var(--effort-mid-ink)]">
                       {item.regionalCounts.ATUALIZADO}
                     </strong>{" "}
                     {REGIONAL_DECISION_LABELS.ATUALIZADO}
                   </span>
                   <span>
-                    <strong className="text-rose-700">
+                    <strong className="tabular-nums text-[var(--effort-high-ink)]">
                       {item.regionalCounts.INATIVACAO}
                     </strong>{" "}
                     {REGIONAL_DECISION_LABELS.INATIVACAO}
                   </span>
                 </div>
+
                 <ul className="mt-2 space-y-1">
                   {item.judgments.map((j) => (
                     <li
