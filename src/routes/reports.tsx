@@ -444,50 +444,40 @@ function GlobalEvaluationReport({ process }: { process: EvaluationProcess }) {
 
   const groups: Array<{
     decision: FinalDecision;
-    icon: React.ReactNode;
-    accent: "emerald" | "amber" | "rose";
+    accent: DecisionTone;
     items: ConsolidatedItem[];
     calloutNode?: React.ReactNode;
   }> = [
     {
       decision: "MANTER",
-      icon: <CheckCircle2 className="h-5 w-5" />,
-      accent: "emerald",
+      accent: "ready",
       items: decided.filter((i) => i.gnDecision === "MANTER"),
       calloutNode: (
-        <div className="mb-4 flex items-start gap-3 rounded-lg border border-emerald-300 bg-emerald-50 p-4 print:border-emerald-400">
-          <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-700" />
-          <div className="text-sm text-emerald-900">
-            <strong>Decisão da Gerência Nacional:</strong> estes cursos devem
-            ser <strong>mantidos</strong> no portfólio conforme parecer final.
-          </div>
-        </div>
+        <Callout tone="ready">
+          <strong>Decisão da Gerência Nacional:</strong> estes cursos devem ser{" "}
+          <strong>mantidos</strong> no portfólio conforme parecer final.
+        </Callout>
       ),
     },
     {
       decision: "ATUALIZAR",
-      icon: <RefreshCw className="h-5 w-5" />,
-      accent: "amber",
+      accent: "mid",
       items: decided.filter((i) => i.gnDecision === "ATUALIZAR"),
       calloutNode: (
-        <div className="mb-4 flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 print:border-amber-400">
-          <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-700" />
-          <div className="text-sm text-amber-900">
-            <strong>Aviso de Priorização:</strong> estes cursos devem ser
-            <strong> priorizados para atualização</strong> — desenvolvimento e
-            confecção de materiais didáticos conforme apontamentos das
-            regionais.
-          </div>
-        </div>
+        <Callout tone="mid">
+          <strong>Aviso de Priorização:</strong> estes cursos devem ser
+          <strong> priorizados para atualização</strong> — desenvolvimento e
+          confecção de materiais didáticos conforme apontamentos das regionais.
+        </Callout>
       ),
     },
     {
       decision: "INATIVAR",
-      icon: <XCircle className="h-5 w-5" />,
-      accent: "rose",
+      accent: "high",
       items: decided.filter((i) => i.gnDecision === "INATIVAR"),
     },
   ];
+
 
   return (
     <ReportCard
