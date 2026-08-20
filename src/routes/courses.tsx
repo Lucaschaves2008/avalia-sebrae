@@ -797,18 +797,70 @@ function BcgBadge({ value }: { value: BCG }) {
   );
 }
 
+const EFFORT_STYLE: Record<
+  ReadinessLevel,
+  { ink: string; fill: string; wash: string }
+> = {
+  pronto: {
+    ink: "var(--effort-ready-ink)",
+    fill: "var(--effort-ready)",
+    wash: "var(--effort-ready-wash)",
+  },
+  medio: {
+    ink: "var(--effort-mid-ink)",
+    fill: "var(--effort-mid)",
+    wash: "var(--effort-mid-wash)",
+  },
+  alto: {
+    ink: "var(--effort-high-ink)",
+    fill: "var(--effort-high)",
+    wash: "var(--effort-high-wash)",
+  },
+};
+
+/**
+ * Selo de esforço com medidor de 10 traços — um traço por material possível.
+ * Sem pílula arredondada genérica: bloco de canto reto, rótulo em caixa alta
+ * com tracking largo e número tabular.
+ */
 function ReadinessBadge({ result }: { result: ReadinessResult }) {
-  const styles: Record<ReadinessLevel, string> = {
-    pronto: "border-emerald-300 bg-emerald-50 text-emerald-800",
-    medio: "border-amber-300 bg-amber-50 text-amber-800",
-    alto: "border-rose-300 bg-rose-50 text-rose-800",
-  };
+  const s = EFFORT_STYLE[result.level];
+  const filled = Math.max(0, Math.min(10, Math.round(result.pct / 10)));
+
   return (
-    <Badge variant="outline" className={styles[result.level]}>
-      {result.label} ({result.pct}%)
-    </Badge>
+    <span
+      className="inline-flex items-center gap-2 rounded-[3px] px-2 py-1"
+      style={{
+        background: s.wash,
+        boxShadow: `inset 2px 0 0 0 ${s.fill}`,
+        color: s.ink,
+      }}
+    >
+      <span className="text-[10px] font-semibold uppercase tracking-[0.14em] whitespace-nowrap">
+        {result.label}
+      </span>
+      <span className="flex items-center gap-[2px]" aria-hidden>
+        {Array.from({ length: 10 }).map((_, i) => (
+          <span
+            key={i}
+            className="h-[9px] w-[2px]"
+            style={{
+              background: i < filled ? s.fill : "currentColor",
+              opacity: i < filled ? 1 : 0.18,
+            }}
+          />
+        ))}
+      </span>
+      <span
+        className="text-[11px] font-bold"
+        style={{ fontVariantNumeric: "tabular-nums lining-nums" }}
+      >
+        {result.pct}%
+      </span>
+    </span>
   );
 }
+
 
 function CourseCard({
   course,
