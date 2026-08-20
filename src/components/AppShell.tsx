@@ -256,44 +256,21 @@ export function AppShell({
           </div>
         </div>
 
-        {/* Mobile nav */}
-        <div className="border-t border-white/10 px-4 py-2 lg:hidden">
-          <nav className="flex items-center gap-1 overflow-x-auto">
-            {allItems.map((item) => {
-              const Icon = item.icon;
-              const active = pathname.startsWith(item.to);
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => navigate({ to: item.to })}
-                  className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                    active
-                      ? "bg-white/15 text-white"
-                      : "text-white/80 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  <Icon className="h-[18px] w-[18px]" />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-        </div>
       </header>
 
       {/* Page content */}
-      <main className="flex-1 px-6 py-8">
+      <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
         <div className="mx-auto max-w-7xl">
           {(title || eyebrow || subtitle || actions) && (
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
+              <div className="min-w-0">
                 {eyebrow}
                 {title && (
-                  <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
+                  <h1 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                     {title}
                   </h1>
                 )}
+
                 {subtitle && (
                   <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
                 )}
