@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ErrorState } from "@/components/ErrorState";
 import { useEffect, useMemo, useState } from "react";
-import { Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, Check, X } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, Mail, Check, X } from "lucide-react";
+import { Envelope, ShieldCheck as PhosphorShieldCheck } from "@phosphor-icons/react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
